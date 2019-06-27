@@ -1,0 +1,39 @@
+﻿{% extends "shared/master.html" %}
+{% load static %}
+
+
+{%block main%}
+<div class="wcenter smallMargin-top">
+    <strong>Velkomin á miðlægan gagnagrunn Kynjakatta, Kattaræktarfélags Íslands, sem klárlega þarf töff nafn.</strong>
+    <p>
+        Gagnagrunnurinn er fullbúinn gagnagrunnur sem safnar saman á einn stað upplýsingum um alla ræktunarketti íslands, 
+        ræktendum þeirra, og sýningum á vegum Kynjakatta. Grunnurinn gerir Kynjakattafélagi Íslands mögulegt að halda utan um 
+        sýningar, ræktunarketti, félagsmenn, og nauðsynleg skyldustörf og bókvörslu.
+    </p>
+    <p>
+        Gagnagrunnurinn er sem stendur einungis opinn stjórnarmeðlimnum og þeim er koma að sýningarritun. Áætlun er að 
+    gera grunninn aðgengilegann öllum félagsmönnum Kynjakatta sem fyrst, þegar búið er að fullprófa kerfið og setja upp nauðsynlegt öryggi. </p>
+    <p>Við þökkum félagsmönnum fyrir biðlundina.</p>
+    <div id="login">
+        <strong>Vinsamlegast sláið inn netfang og lykilorð</strong>
+        <br />
+        <input id="uname" placeholder="JónJónsson@Kynjakettir.is"/>
+        <br />
+        <input id="pword" placeholder="Lykilorð" type="password"/>
+        <br />
+        <button>Innskrá</button>
+    </div>
+</div>
+{% endblock %}
+
+{%block navbar%}
+{%endblock%}
+
+{%block styles%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+
+{% endblock %}
+
+{%block scripts%}
+<script src="{% static 'js/login.js' %}"></script>
+{%endblock%}

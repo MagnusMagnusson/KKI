@@ -1,0 +1,16 @@
+﻿#login input {
+    width: 60%;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    border-radius: .4em;
+    text-align:center;
+}
+
+
+#login{
+    text-align:center;
+}
+
+.wcenter{
+    margin-top:1.5em;
+}

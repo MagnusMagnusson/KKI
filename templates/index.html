@@ -1,0 +1,10 @@
+﻿{% extends "shared/master.html" %}
+{% load static %}
+
+
+{%block main%}
+<div class="wcenter">
+    <h3 class="tcenter">Góðan daginn {{ request.session.user }} </h3>
+    <img id="centered-logo" src="{%static 'images/logo.jpg'%}" />
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+﻿@import url(//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,600italic,700,800);
+
+body, html {
+    margin: 0px;
+    padding: 0px;
+    font-family: 'Open Sans',Helvetica,Arial,sans-serif;
+}
+#header {
+    padding-top: 22px;
+    height: 72px;
+    border-bottom: 1px solid #eeac39;
+}
+
+a {
+    color: #0aa678;
+    text-decoration: none;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out;
+}
+
+
+#header .brand {
+    margin: 0;
+    font-weight: 300;
+    color: #262626;
+    text-transform: uppercase;
+    font-size: 15px;
+    line-height: 1.4;
+    float: left;
+}
+
+#header .brand strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+
+
+.wrap {
+    margin: 0 1.75em;
+}
+
+#header .brand:hover, #navbar li a:hover{
+    color: #eeac39;
+    cursor:pointer;
+}
+
+#navbar li {
+    float: left;
+    margin-left: .4em;
+    padding: 0 11px 15px;
+    font-size: 20px;
+    line-height: 25px;
+    text-transform: uppercase;
+    font-weight: 300;
+}
+
+#navbar li a {
+    color: black;
+    font-weight: 400;
+}
+
+#navbar ul{
+    list-style:none;
+    height:100%;
+}
+
+#navbar{
+    height:100%;
+    display:inline-block;
+    float:right;
+}
+
+.wcenter {
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+.tcenter {
+    text-align: center;
+}
+
+#centered-logo {
+    margin-left: 50%;
+    transform: translateX(-37%);
+
+}

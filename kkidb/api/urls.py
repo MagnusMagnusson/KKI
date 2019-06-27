@@ -15,14 +15,8 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from django.conf.urls import include
-from django.conf.urls.static import static
-from django.conf import settings
+from kkidb.api import api
 
-
-
-urlpatterns = static(settings.STATIC_URL,document_root=settings.STATIC_ROOT)
-
-urlpatterns += [
-    url(r'^', include("kkidb.urls")),
+urlpatterns = [
+    url("login",api.login)
 ]
