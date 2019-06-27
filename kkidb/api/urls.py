@@ -18,5 +18,6 @@ from django.contrib import admin
 from kkidb.api import api
 
 urlpatterns = [
-    url("login",api.login)
+    url("login",api.login),
+	url("finna/felagi",api.finna_felaga)
 ]

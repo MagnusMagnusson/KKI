@@ -21,5 +21,6 @@ from django.conf.urls import include
 
 urlpatterns = [
     url(r'api/', include("kkidb.api.urls")),
-    url("index",views.index)
+    url(r"^$",views.index),
+    url("felagar",views.members)
 ]

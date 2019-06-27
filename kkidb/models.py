@@ -53,6 +53,7 @@ class Cattery(models.Model):
 	name = models.CharField(max_length = 50)
 	country = models.CharField(max_length = 3, null=True)
 	prefix = models.BooleanField()
+	organization = models.ForeignKey("Organization",null = True)
 
 class CatteryOwner(models.Model):
 	cattery = models.ForeignKey('Cattery')

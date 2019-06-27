@@ -17,6 +17,10 @@ a {
     transition: color .15s ease-in-out,background-color .15s ease-in-out;
 }
 
+a:hover {
+    color: #eeac39;
+}
+
 
 #header .brand {
     margin: 0;
@@ -84,4 +88,8 @@ a {
     margin-left: 50%;
     transform: translateX(-37%);
 
+}
+
+#body{
+    margin-top:3em;
 }

@@ -1,0 +1,61 @@
+﻿#leit {
+    width: 50%;
+    border-radius: 2em;
+    border: 1px solid gray;
+    height: 2em;
+    filter: drop-shadow(1px 1px 4px #eeac39);
+    transform: translate(-50%);
+    margin-left: 50%;
+    text-align: center;
+    background-color: white;
+}
+
+#leitarTakki {
+    background-color: orange;
+    width: 1.7em;
+    height: 1.7em;
+    top: -1.5em;
+    float: right;
+    right: .2em;
+    position: relative;
+    border-radius: 1em;
+}
+
+#leitarTakki:hover{
+    cursor:pointer;
+}
+
+#leitargluggi{
+    padding-top:.3em;
+}
+
+.result-subtext i {
+    font-size: .8em;
+    margin-right:.5em;
+}
+
+#nidurstodur {
+    margin-left: 21%;
+}
+
+#nidurstodur ol{
+    list-style:none;
+}
+
+.payment-bubble {
+    color: white;
+    border-radius: 1em;
+    margin-right: .75em;
+    padding-left: .5em;
+    padding-right: .5em;
+}
+
+    .payment-bubble.red {
+        background-color: red;
+    }
+    .payment-bubble.yellow {
+        background-color: orange;
+    }
+    .payment-bubble.green {
+        background-color: limegreen;
+    }

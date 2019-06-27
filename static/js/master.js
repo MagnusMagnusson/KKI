@@ -1,4 +1,5 @@
 ﻿$(document).ready(function () {
+    window.Api = new Api();
     var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
     function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection

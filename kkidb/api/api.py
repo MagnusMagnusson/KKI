@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from kkidb.auth import auth
 from kkidb.models import *
+from django.contrib.postgres.search import TrigramDistance
 # Create your views here.
 
 def login(request):
@@ -46,6 +47,40 @@ def login(request):
 			'success':True
 		}
 		return JsonResponse(D)
+
+def finna_felaga(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+	name = request.GET['name']
+	d = {}
+	d['results'] = []
+	q = Person.objects.annotate( distance=TrigramDistance('name', name),).filter(distance__lte=0.9).filter(member__isnull = False).order_by('distance')
+	for res in q[:25]:
+		member = {}
+		member['name'] = res.name.encode('utf-8')
+		member['ssn'] = res.ssn
+		member['email'] = res.email
+		member['address'] = res.address
+		member['postcode'] = res.postcode
+		member['city'] = res.city
+		member['id'] = res.member.id
+
+		payment_set = res.member.payment_set;
+		payments = []
+		payment_set.order_by('date')
+		for payment in payment_set.all():
+			payments.append(payment)
+		if(len(payments) > 0):
+			member['last_payment'] =payments[0].date
+		
+		d['results'].append((res.distance, member))
+	d['results'] = list(d['results'])
+	return JsonResponse(d)
+	
 
 def validate_login(request):
 	if('token' in request.session):
