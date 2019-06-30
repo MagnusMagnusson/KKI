@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from kkidb.auth import auth
 from kkidb.models import *
 from django.contrib.postgres.search import TrigramDistance
+import json
+
 # Create your views here.
 
 def login(request):
@@ -48,7 +50,7 @@ def login(request):
 		}
 		return JsonResponse(D)
 
-def finna_felaga(request):
+def find_member(request):
 	if not request.is_ajax():
 		d = {
 			'success':False,
@@ -60,27 +62,62 @@ def finna_felaga(request):
 	d['results'] = []
 	q = Person.objects.annotate( distance=TrigramDistance('name', name),).filter(distance__lte=0.9).filter(member__isnull = False).order_by('distance')
 	for res in q[:25]:
-		member = {}
-		member['name'] = res.name.encode('utf-8')
-		member['ssn'] = res.ssn
-		member['email'] = res.email
-		member['address'] = res.address
-		member['postcode'] = res.postcode
-		member['city'] = res.city
-		member['id'] = res.member.id
-
-		payment_set = res.member.payment_set;
-		payments = []
-		payment_set.order_by('date')
-		for payment in payment_set.all():
-			payments.append(payment)
-		if(len(payments) > 0):
-			member['last_payment'] =payments[0].date
-		
+		member = res.toObject()
 		d['results'].append((res.distance, member))
 	d['results'] = list(d['results'])
 	return JsonResponse(d)
 	
+def get_person(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+	Q = Person.objects.all()
+	d = {}
+	valid = False
+	d['results'] = []
+	d['success'] = True
+	if(request.GET['ssn']):
+		valid = True 
+		Q = Q.filter(ssn = request.GET['ssn'])
+	for res in Q:
+		member = res.toObject()
+		d['results'].append( member)
+
+	if(not valid):
+		d = {"success":False,'error':"Tilgreindu í það minnsta einn leitarramma"}
+	return JsonResponse(d)
+
+def submit_payment(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	post = json.loads(request.POST['data'])
+	if('id' in post):
+		payment = Payment.objects.get(id = post['id'])
+	else:
+		payment = Payment()
+	payment.date = post['date']
+	payment.payer = Person.objects.get(id = post['pid']).member
+	payment.method = post['method']
+	payment.giftYear = post['method'] == "free"
+	payment.save()
+
+	memberList = {payment.payer.person}
+
+	for people in post['dependancies']:
+		per = Person.objects.get(id = people)
+		memberList.add(per)
+	payment.updateMembers(memberList)
+
+	response = {'success':True}
+	return JsonResponse(response)
 
 def validate_login(request):
 	if('token' in request.session):

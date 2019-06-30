@@ -23,3 +23,10 @@ def members(request):
 	
 	context = {'members':members}
 	return HttpResponse(template.render(context,request))
+
+@decorator_from_middleware(authMiddleWare.ValidateLogin)
+def member_profile(request,id):
+	template = loader.get_template("members/member_profile.html")
+	member = Person.objects.get(member__id=id)
+	context = {'member':member}
+	return HttpResponse(template.render(context,request))

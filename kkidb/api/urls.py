@@ -19,5 +19,7 @@ from kkidb.api import api
 
 urlpatterns = [
     url("login",api.login),
-	url("finna/felagi",api.finna_felaga)
+	url("leit/felagi",api.find_member),
+	url("saekja/einstaklingur",api.get_person),
+	url("skra/greidsla",api.submit_payment)
 ]

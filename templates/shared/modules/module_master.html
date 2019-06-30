@@ -1,0 +1,24 @@
+﻿{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'shared/modules/css/modules.css' %}">
+
+<div data-module="{%block module_type %}{% endblock %}" class="module popup">
+    <div id="module_header">
+        <h3>{% block module_title%}{%endblock%}</h3>
+        <div id="module_sections">
+            {%block module_sections %}
+            {%endblock%}
+        </div>
+    </div>
+
+    <div id="module_body">
+        {%block module_body %}
+        {%endblock%}
+    </div>
+    <div id="module_buttons">
+        {%block module_buttons %}
+        <span class="module-save button">Vista</span>
+        <span class="module-close button">Loka</span>
+        {%endblock%}
+    </div>
+</div>

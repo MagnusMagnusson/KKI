@@ -1,5 +1,6 @@
 ﻿$(document).ready(function () {
     window.Api = new Api();
+    window.ModuleManager = new ModuleManager();
     var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
     function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
@@ -12,4 +13,20 @@
             }
         }
     });
+
+    var notLocked = true;
+    $.fn.animateHighlight = function (highlightColor, duration) {
+        var highlightBg = highlightColor || "#FFFF9C";
+        var animateMs = duration || 1500;
+        var originalBg = this.css("color");
+        console.log(originalBg);
+        
+        if (notLocked) {
+            notLocked = false;
+            this.stop().css("color", highlightBg)
+                .animate({ color: originalBg }, animateMs);
+            setTimeout(function () { notLocked = true; }, animateMs);
+        }
+    };
 });
+

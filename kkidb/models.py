@@ -17,27 +17,111 @@ class Person(models.Model):
 	comment = models.CharField(max_length = 2048, null = True)
 	email = models.CharField(max_length=1024,null = True)
 
+	def toObject(self):
+		member = {}
+		member['name'] = self.name.encode('utf-8')
+		member['ssn'] = self.ssn
+		member['email'] = self.email
+		member['address'] = self.address
+		member['postcode'] = self.postcode
+		member['city'] = self.city
+		member['pid'] = self.id
+		member['last_payment'] = self.member.lastPaymentDate() if self.member else None 
+		member['id'] = self.member.id if self.member else None
+		return member
+
 class Member(models.Model):
 	id = models.CharField(primary_key=True, max_length=6)
 	person = models.OneToOneField('Person', on_delete=models.CASCADE)
-	payer = models.ForeignKey('Member',null=True)
 	salt = models.CharField(max_length=256)
 	password = models.CharField(max_length = 256)
 
+	def allPayments(self):
+		payment_set = self.memberpayment_set;
+		payments = []
+		payment_set
+		for payment in payment_set.all().order_by('-payment__date'):
+			payments.append(payment.payment)
+		return payments
+
+	def lastPaymentDate(self):
+		payments = self.allPayments()
+		if(len(payments) > 0):
+			return payments[0].date
+		return None;
+
+	def lastPayment(self):
+		payments = self.allPayments()
+		if(len(payments) > 0):
+			return payments[0]
+		return None;
+
+	def toObject(self):
+		return person.toObject()
+	
 	def save(self):
 		if(not self.id):
 			i = random.randrange(000000,999999)
 			i = str(i).zfill(6)
-			print(i)
-			print("yo")
 			self.id = i
 		super(Member, self).save()
 
+
 class Payment(models.Model):
 	date = models.DateField()
-	member = models.ForeignKey(Member)
 	giftYear = models.BooleanField(default=False)
 	comment = models.CharField(max_length = 1024, null = True)
+	method = models.CharField(max_length=128)
+	payer = models.ForeignKey(Member, related_name='payer', null=True)
+
+	def updateMembers(self, newMembers):
+		currentMembers = self.memberEntries()
+		currentMemberInstances = []
+		deleted = 0
+		added = 0
+		new = 0
+		for mp in currentMembers:
+			currentMemberInstances.append(mp.member)
+		#delete all currently attached members that are not in the new set
+		for entry in currentMembers:
+			m = entry.member.person
+			if not m in newMembers:
+				m.delete()
+				delted += 1
+		#add all members not currently attatched, creating memberships for those that do not have it
+		for person in newMembers:
+			if person.member is None:
+				newMember = Member()
+				newMember.person = person
+				newMember.password = ""
+				newMember.salt = ""
+				newMember.save()
+				new += 1
+			if(person.member not in currentMemberInstances):
+				mp = MemberPayment()
+				mp.payment = self
+				mp.member = person.member
+				mp.save()
+				added += 1
+		return (added,deleted,new)
+				
+	def memberEntries(self):
+		mpset = self.memberpayment_set.all()
+		return mpset
+
+	def members(self):
+		mpset = self.memberpayment_set
+		members = []
+		for mp in mpset.all():
+			members.append(mp.member.person)
+		return members
+
+
+class MemberPayment(models.Model):
+	member = models.ForeignKey(Member)
+	payment = models.ForeignKey(Payment)
+	class Meta:
+		unique_together = ("member","payment")
 
 class Owner(models.Model):
 	person = models.ForeignKey('Person')

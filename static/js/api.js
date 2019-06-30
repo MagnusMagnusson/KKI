@@ -6,12 +6,23 @@ class Api{
     }
 
     setupURLs() {
-        this.urlList.findMember = "/api/finna/felagi";
+        this.urlList.findMember = "/api/leit/felagi";
+        this.urlList.getPerson = "/api/saekja/einstaklingur";
+        this.urlList.submitPayment = "/api/skra/greidsla";
     }
 
-    findMember(name,callback) {
-        this.get(this.urlList.findMember, { name }, callback);
+    findMember(terms,callback) {
+        this.get(this.urlList.findMember,terms, callback);
     }
+
+    getPerson(terms, callback) {
+        this.get(this.urlList.getPerson, terms, callback);
+    }
+
+    submitPayment(data, callback) {
+        this.post(this.urlList.submitPayment, data, callback);
+    }
+    
 
     get(url, data, callback) {
         $.ajax({
@@ -29,6 +40,18 @@ class Api{
             url: url,
             data: data,
         }).done(function (msg) {
+            callback(msg);
+        });
+    }
+
+    getModule(module, callback) {
+        let t = this;
+        $.ajax(
+            {
+                url: "/modules/"+module,
+                method: "GET"
+            }
+        ).done(function (msg) {
             callback(msg);
         });
     }

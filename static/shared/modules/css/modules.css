@@ -1,0 +1,88 @@
+﻿.popup.module {
+    position: absolute;
+    background-color: #fff8e8;
+    border: 1px solid #eeac39;
+    box-shadow: black;
+    box-shadow: 6px 4px 8px -3px rgba(0,0,0,0.75);
+    padding: 1.2em;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 1em;
+    text-align: center;
+    min-width: 50%;
+}
+
+.popup.module .textinput{
+    width: 50%;
+    border: .4px solid orange;
+    border-radius: 1em;
+    margin-top: .4em;
+    margin-bottom: .4em;
+    text-align: center;
+}
+
+#module_buttons {
+    padding-top: 1em;
+    border-top: 1px solid var(--orange);
+}
+
+#module_header {
+    border-bottom: 1px solid var(--orange);
+    overflow:hidden;
+}
+
+.popup.module .button {
+    float: initial;
+    bottom: 0;
+    display: inline-block;
+    left: 30%;
+    width: 15%;
+}
+
+
+.popup.module .button.section {
+    top: .2em;
+    height: 2em;
+    width: inherit;
+    left: 0px;
+    background-color: rgba(0,0,0,0);
+    border: 1px solid var(--orange);
+    color: green;
+    transition: background-color ease-in-out .2s, color ease-in-out .2s;
+}
+
+.popup.module .button.section:hover, .popup.module .button.section.selected {
+    background-color: var(--orange);
+    border: 1px solid var(--orange);
+    color: white;
+}
+
+section{
+    display:none;
+}
+
+section[data-section='basic']{
+    display:block;
+}
+
+.list-window {
+    background-color: white;
+    width: 75%;
+    min-height: 7em;
+    border: 1px solid var(--orange);
+    margin-left: 50%;
+    transform: translateX(-50%);
+    border-radius: .5em;
+   
+}
+
+.list-window ul{
+    list-style:none;
+    padding-left:0px;
+}
+
+.list-window-element {
+    font-size: .75em;
+    text-align: left;
+}

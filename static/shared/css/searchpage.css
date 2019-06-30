@@ -1,5 +1,5 @@
 ﻿#leit {
-    width: 50%;
+    width: 66%;
     border-radius: 2em;
     border: 1px solid gray;
     height: 2em;
@@ -50,12 +50,12 @@
     padding-right: .5em;
 }
 
-    .payment-bubble.red {
-        background-color: red;
-    }
-    .payment-bubble.yellow {
-        background-color: orange;
-    }
-    .payment-bubble.green {
-        background-color: limegreen;
-    }
+.payment-bubble.red {
+    background-color: red;
+}
+.payment-bubble.yellow {
+    background-color: orange;
+}
+.payment-bubble.green {
+    background-color: limegreen;
+}

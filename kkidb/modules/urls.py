@@ -15,14 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from kkidb import views
-from django.conf.urls import include
-
+from kkidb.modules import modules
 
 urlpatterns = [
-    url(r'api/', include("kkidb.api.urls")),
-    url(r'modules/', include("kkidb.modules.urls")),
-    url(r"^$",views.index),
-    url(r'felagar/([0-9]{6})',views.member_profile),
-    url("felagar",views.members)
+    url("payment",modules.payment),
+    url("member",modules.member),
 ]

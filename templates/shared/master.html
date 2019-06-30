@@ -5,8 +5,11 @@
     <meta charset="utf-8" />
     <title>Kynjakattafélag Íslands</title>
     <script src="{% static 'js/jq.js' %}"></script>
+    <script src="{% static 'js/jqc.js' %}"></script>
     <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'shared/modules/js/moduleManager.js' %}"></script>
     <script src="{% static 'js/master.js' %}"></script>
+    <script src="{% static 'js/cleave.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'shared/css/master.css' %}">
     {% block styles %}
     {% endblock %}
@@ -38,7 +41,7 @@
                         </a>
                     </li>
                     <li>
-                        <a>
+                        <a href="/felagar">
                             Félagar
                         </a>
                     </li>
@@ -53,9 +56,25 @@
         </div>
     </header>
     <div id="body">
-        {%block main %}
+        <div class="sidebar left">
+            <div id="sidebar">
+                <ul>
+                    {% block sidebar %}
 
-        {%endblock%}
+                    {%endblock%}
+                </ul>
+            </div>
+
+        </div >
+        <div id="content">
+            {%block main %}
+
+            {%endblock%}
+        </div>
+        <div  class="sidebar right">
+
+        </div>
+        <div id="modules"></div>
     </div>
 </body>
 </html>

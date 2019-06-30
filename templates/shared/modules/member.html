@@ -1,0 +1,28 @@
+﻿{% extends "shared/modules/module_master.html" %}
+
+{%block module_type%}member{%endblock%}
+
+{% block module_title%}
+    Nýskrá Félaga
+{%endblock%}
+{%block module_sections %}
+    <div data-section="basic" class="button section selected">
+        Kennitala
+    </div>
+{%endblock%}
+
+
+{%block module_body %}
+    <form id="payment-form">
+        <section data-section="basic">
+            <div class="centeredContent">
+                Kennitala félaga<br />
+                <input class="form-kt textinput" placeholder="Kennitala" name="ssn" />
+                <span style="left:0;" id="payment-payer-kt-search" class="button">Leita</span>
+                <input name="pid" style="display:none;"><br />
+                <input name="name" class="textinput" disabled="disabled"><br />
+            </div>
+        </section>
+    </form>
+{%endblock%}
+

@@ -1,0 +1,304 @@
+body {
+	background-image:url(/media/images/bg-header.png);
+	background-repeat:repeat-x;
+	
+	padding: 0;
+
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: small;
+	color: #444444;
+}
+
+q {
+	quotes: "&#8222","$#8220";
+}
+
+h1, h2, h3, h4, h5 {
+	margin: 0;
+}
+
+.smallText {
+	display: None;
+}
+
+a {
+	color: navy;
+	text-decoration: none;
+}
+
+a:hover {
+	color: black;
+}
+
+a.header_link:hover{
+  text-decoration:none;
+}
+
+.nav > li > a {
+	text-shadow: none;
+}
+
+.nav > li > a:hover {
+	background-color: navy;
+	color: white;
+}
+
+.well {
+	padding: 15px;
+	border-radius: 0;
+}
+
+/* Header */
+
+#header {
+	margin: 0;
+	padding: 0;
+	min-height: 100px;
+
+}
+
+#header h1 {
+	padding: 18px 0 0 30px;
+	font-size: 50px;
+	letter-spacing: -3px;
+	color: navy;
+}
+
+#header h2 {
+    clear:both;
+	max-width: 900px;
+	text-align: right;
+	margin: 1px 102px 0 30px;
+	font-size:1.2em;
+	letter-spacing: -1px;
+}
+
+.img1 {
+	float: left;
+	margin: 3px 15px 0px 0px;
+	border: 2px solid;
+}
+
+/* Menu */
+#menu1 {
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: 14px;
+	color: #323B2E;
+	margin-bottom: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+#menu1 ul {
+	margin: 0px;
+	list-style: none;
+	padding: 0px;
+}
+
+.drop-button {
+	text-align: center;
+	display: none;
+	cursor: pointer;
+}
+
+/* Content */
+
+.page-header {
+	margin-bottom: 5px;
+}
+
+#leit_form {
+	padding-top: 10px;
+}
+
+.breadcrumb:empty {
+	display: none;
+}
+
+.alert {
+	margin-bottom: 0px;
+}
+
+fieldsetm, form, .input-append {
+	margin-bottom: 0px;
+}
+
+input, button {
+	border-radius: 0 !important;
+}	
+
+.hero-unit {
+	padding: 20px;
+	padding-bottom: 1px;
+}
+
+#search {
+	text-align: center;
+}
+
+.table th {
+	background-color: #f3f3f3;
+}
+
+.btn {
+	margin-bottom: 10px;
+}
+
+input[type="checkbox"] {
+	margin-bottom: 6px;
+}
+
+#content {
+	display: block;
+	margin-right: auto;
+	margin-left: auto;
+	padding: 10px;
+	max-width: 900px;
+}
+
+#footer {
+	margin: 0 auto;
+	padding-top: 10px;
+}
+
+#footer p {
+	text-align: center;
+	padding: 0;
+	font-size: 10px;
+}
+
+span.prize{
+  font-weight:bold;
+}
+
+.jalogo{
+  float:left;
+  margin-left:10px;
+  margin-top:3px;
+}
+
+.jalogo span.slogan{
+  display:block;
+  line-height:55px;
+  font-size:2em;
+}
+
+.jalogo a{
+  color:#444444;
+}
+
+p.pprize{
+  margin-left:30px;
+  font-size:1.15em;
+}
+p.samkeppni{
+  font-size:1.1em;
+}
+
+table.textatafla {
+  margin-top: 1em !important;
+  margin-bottom: 1em !important;
+}
+
+table.textatafla tr td {
+  padding-right: 1em !important;
+}
+
+#content h2 {
+  font-size: 200% !important;
+}
+
+#result h2 {
+  font-size: 30px !important;
+}
+
+#content h3 {
+  font-size: 150% !important;
+}
+
+#content h4 {
+  font-size: 130% !important;
+}
+
+/* Beygingarmyndir */
+
+.VO_beygingarmynd {
+	color: darkblue;
+	font-weight: bold;
+}
+
+.VO_daemi {
+	font-weight: normal;
+	color: darkblue;
+}
+
+.ordmynd, b {
+	font-weight: bold;
+	color: darkblue;
+}
+
+.notdaemi, i {
+	font-style: normal;
+	color: darkblue;
+}
+
+.highlight {
+	color: darkblue;
+}
+
+.vont {
+	font-weight: bold;
+	color: #880000;
+}
+
+.beyging_nested td {
+	padding: 0px;
+	border: none;
+}
+
+/* box fyrir athugasemdir */
+.alert-info {
+	background-color: #f3f3f3;
+	border-color: #f3f3f3;
+	color: black;
+	/* box-shadow: inset 0px 1px 1px #e3e3e3; */
+}
+
+/* media */
+
+@media screen and (max-width: 767px){
+	#header, .header_link {
+		font-size: 0.8em;
+	}
+	.menu-link, .breadcrumb {
+		display: none;
+	}
+	.drop-button {
+		display: block;
+	}
+}
+@media screen and (max-width: 381px){
+	.header_link {
+		font-size: 0.6em;
+	}
+	#header > h1, #header > h2 {
+		padding: 0px;
+		margin: 0px;
+	}
+	.bigText {
+		display: None;
+	}
+	.smallText {
+		display: inline;
+	}
+}
+
+@media print {
+	#colOne, .no-print, #leit_form {
+		display: none;
+	}
+	table {
+		page-break-inside:avoid
+	}
+}

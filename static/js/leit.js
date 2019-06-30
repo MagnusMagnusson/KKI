@@ -1,7 +1,7 @@
 ﻿$(document).ready(function(){
     $("#leitarTakki").on("click", function (e) {
         var name = $("#leitargluggi").text();
-        window.Api.findMember(name, memberResults);
+        window.Api.findMember({ name }, memberResults);
     });
 })
 let year = new Date().getFullYear();
@@ -24,7 +24,7 @@ function memberResults(msg) {
             }
             payment = $("<span class='"+cls+" payment-bubble'>"+last_payment+"</span>");
         } else {
-            payment = $("<span class='red payment-bubble'>ógreitt</span>");
+            payment = $("<span class='red payment-bubble'>Ógreitt</span>");
         }
   
         let li = $("<li></li>");

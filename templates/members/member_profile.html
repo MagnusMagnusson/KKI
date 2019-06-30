@@ -1,0 +1,67 @@
+﻿{% extends "members/members_master.html" %}
+{% load static %}
+
+{%block type%}
+payment
+{%endblock%}
+
+{%block main%}
+<div >
+    <h2>
+        {{member.name}}
+    </h2>
+    <div class = "infobox" id="basic-info">
+        <ul>
+            <li name='profile-kt' data-kt="{{member.ssn}}">
+                Kennitala: {{member.ssn}}
+            </li>
+            <li>
+                Símanúmer: {{member.phoneNumber}}
+            </li>
+            <li>
+                Tölvupóstur: {{member.email}}
+            </li>
+            <li>
+                Heimilisfang: {{member.address}}; {{member.postcode}}, {{member.city}}
+            </li>
+
+        </ul>
+    </div>
+    <div class = "infobox" id="payment-info">
+        <i>Greiðslusaga</i><span data-module ="payment" class="module-button button">Skrá greiðslu</span>
+        <div id="payment-history">
+            {%for payment in member.member.allPayments %}
+            <small>{{payment.date}}
+                {% if payment.payer != member.member and payment.payer is not None%}   
+                    ( F )
+                {%endif%}
+            </small> </br>
+            {% endfor %}
+        </div>
+    </div>
+
+  
+    <div id="family-info">
+        <i>Fjölskylda í samaðild</i><br />
+
+        <div class="infobox">
+            {%for family in member.member.lastPayment.members %}
+                {% if family != member%}
+                <small>
+                    {{family.name}} 
+                </small> </br> 
+                {% endif %}
+            {% endfor %}           
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{%block styles%}
+<link rel="stylesheet" type="text/css" href="{% static 'shared/css/profile.css' %}">
+{%endblock%}
+
+{%block scripts%}
+<script src="{% static 'js/profile.js' %}"></script>
+{%endblock%}
