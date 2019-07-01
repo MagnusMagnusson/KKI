@@ -9,6 +9,7 @@ class Api{
         this.urlList.findMember = "/api/leit/felagi";
         this.urlList.getPerson = "/api/saekja/einstaklingur";
         this.urlList.submitPayment = "/api/skra/greidsla";
+        this.urlList.submitPerson = "/api/skra/einstaklingur";
     }
 
     findMember(terms,callback) {
@@ -22,7 +23,10 @@ class Api{
     submitPayment(data, callback) {
         this.post(this.urlList.submitPayment, data, callback);
     }
-    
+
+    submitPerson(data, callback) {
+        this.post(this.urlList.submitPerson, data, callback);
+    }
 
     get(url, data, callback) {
         $.ajax({

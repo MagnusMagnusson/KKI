@@ -48,3 +48,21 @@ def member(request):
 	scripts.append("/static/shared/modules/js/payment.js")
 	d['js'] = scripts
 	return JsonResponse(d)
+
+def person(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(d)
+	
+	template = loader.get_template("shared/modules/person.html")
+	context = {}
+	d = {}
+	d['name'] = 'person'
+	d['html'] = template.render(context,request);
+	scripts = moduleJS[:]
+	scripts.append("/static/shared/modules/js/person.js")
+	d['js'] = scripts
+	return JsonResponse(d)

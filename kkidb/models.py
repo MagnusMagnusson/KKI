@@ -7,8 +7,8 @@ import random
 
 class Person(models.Model):
 	id = models.AutoField(primary_key = True)
-	name = models.CharField(max_length = 75, null = True)
-	ssn = models.CharField(max_length = 10, null = True)
+	name = models.CharField(max_length = 75)
+	ssn = models.CharField(max_length = 10, null = True, unique = True)
 	address = models.CharField(max_length = 50, null = True)
 	city = models.CharField(max_length = 50, null = True)
 	postcode = models.CharField(max_length = 10, null = True)
@@ -26,8 +26,9 @@ class Person(models.Model):
 		member['postcode'] = self.postcode
 		member['city'] = self.city
 		member['pid'] = self.id
-		member['last_payment'] = self.member.lastPaymentDate() if self.member else None 
-		member['id'] = self.member.id if self.member else None
+		if(hasattr(self, 'member')):
+			member['last_payment'] = self.member.lastPaymentDate() if self.member else None 
+			member['id'] = self.member.id if self.member else None
 		return member
 
 class Member(models.Model):

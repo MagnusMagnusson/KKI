@@ -21,5 +21,6 @@ urlpatterns = [
     url("login",api.login),
 	url("leit/felagi",api.find_member),
 	url("saekja/einstaklingur",api.get_person),
-	url("skra/greidsla",api.submit_payment)
+	url("skra/greidsla",api.submit_payment),
+	url("skra/einstaklingur",api.submit_person)
 ]

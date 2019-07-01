@@ -119,6 +119,40 @@ def submit_payment(request):
 	response = {'success':True}
 	return JsonResponse(response)
 
+def submit_person(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	post = json.loads(request.POST['data'])
+	if('id' in post):
+		person = Person.objects.get(id = post['id'])
+	else:
+		person = Person()
+	if "name" in post:
+		person.name = post['name']
+	if "address" in post:
+		person.address = post['address']
+	if "post" in post:
+		person.postcode = post['post']
+	if "city" in post:
+		person.city = post['city']
+	if "phone" in post:
+		person.phone = post['phone']
+	if "email" in post:
+		person.email = post['email']
+	if "ssn" in post:
+		person.ssn = post['ssn']
+
+	person.save()
+
+	response = {'success':True, 'result':person.toObject()}
+	return JsonResponse(response)
+
+
 def validate_login(request):
 	if('token' in request.session):
 		meta = request.META['HTTP_USER_AGENT']

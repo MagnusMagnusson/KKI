@@ -3,11 +3,19 @@ class ModuleManager {
     constructor() {
         this.modules = {};
         this.moduleQueue = [];
-        this.messageQueue = [];
+        this.messageQueue = {};
         this.setupHandlers();
         this.loadedScripts = [];
     }
 
+
+    getMessage(module) {
+        if (this.messageQueue[module]) {
+            if (this.messageQueue[module].length > 0) {
+                return this.messageQueue[module].pop();
+            }
+        }
+    }
     //Fetches a module via API: if it does not already exist in the DOM.
     loadModule(module, caller = null, callback = null) {
         if (caller) {
@@ -16,6 +24,7 @@ class ModuleManager {
         }
         if (this.modules[module]) {
             this.modules[module].show();
+            this.modules[module].activate();
             $("#modules").addClass("visible");
         }
         else {
@@ -23,27 +32,65 @@ class ModuleManager {
         }
     }
 
+    activateModule(module) {
+        if (this.modules[module]) {
+            this.modules[module].activate();
+        } else {
+            throw "No module named " + module;
+        }
+    }
+
     //Close the module. If there are other modules currently waiting for data, resume the most recent one
-    closeModule(module) {
+    closeModule(module,success = false) {
         if (this.modules[module]) {
             this.modules[module].close();
         }
         if (this.moduleQueue.length > 0) {
-            this.resumeModule();
+            this.resumeModule(success);
+        } else {
+            $("#modules").removeClass("visible");
+        }
+    }
+
+
+    saveModule(module) {
+        if (this.modules[module]) {
+            this.modules[module].save();
+        }
+    }
+
+    saveSuccess(module, message = null) {
+        if (this.modules[module]) {
+            if (message && this.moduleQueue.length > 0) {
+                let topModule = this.moduleQueue[this.moduleQueue.length - 1].name;
+                if (!this.messageQueue[topModule]) {
+                    this.messageQueue[topModule] = [];
+                }
+                this.messageQueue[topModule].push(message);
+            }
+            this.closeModule(module, true);
         }
     }
 
     //Resume a module.
-    resumeModule() {
+    resumeModule(success) {
         var nextModule = this.moduleQueue.pop();
-        nextModule.resume();
+        nextModule.resume(success);
     }
 
+
     //A module wishes for information for a different module. Put it on the stack and load the requested module
-    requestData(caller, module) {
+    requestData(caller, module, callback, message = null) {
+        console.log(caller + " has requested data from " + module);
+        if (!this.messageQueue[module]) {
+            this.messageQueue[module] = [];
+        }
+        if (message) {
+            this.messageQueue[module].push(message);
+        }
+        this.modules[caller].pendingAction = callback;
         this.moduleQueue.push(this.modules[caller]);
         this.loadModule(module);
-        console.log(caller + " has requested data from " + module);
     }
 
     //the API has returned our requested module. Insert it in to the DOM and our datastores
@@ -62,6 +109,15 @@ class ModuleManager {
             } else {
                 console.log("Blocked loading same script twice");
             }
+        }
+    }
+
+    registerModuleHandler(module, name, handler) {
+        if (this.modules[module]) {
+            this.modules[module].registerHandler(name, handler);
+        } else {
+            console.log(this.modules);
+            throw "No module named " + module;
         }
     }
 
@@ -93,16 +149,32 @@ class Module {
         $(this.gui).show();
     }
 
-    resume() {
+    resume(success) {
         this.show();
+        if (this.pendingAction) {
+            if (success) {
+                let msg = window.ModuleManager.getMessage(this.name);
+                this.pendingAction(msg);
+            }
+            this.pendingAction = null;
+        }
     }
 
     save(callback) {
         if (this.handler['save']) {
-            this.saveHandler(callback);
+            this.handler['save'](callback);
         } else {
             throw "Module " + this.name + " must register a save handler";
         }
+    }
+
+    activate(callback) {
+        if (this.handler['activate']) {
+            this.handler['activate'](callback);
+        } else {
+            throw "Module " + this.name + " must register an activation handler";
+        }
+
     }
 
     registerHandler(name, handler) {

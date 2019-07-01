@@ -177,3 +177,9 @@ a:hover {
     background-color: rgba(0,0,0,.55);
     pointer-events:initial;
 }
+
+input:read-only {
+    color: rgb(84, 84, 84);
+    cursor: default;
+    background-color: rgb(235, 235, 228);
+}

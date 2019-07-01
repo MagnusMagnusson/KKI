@@ -20,4 +20,5 @@ from kkidb.modules import modules
 urlpatterns = [
     url("payment",modules.payment),
     url("member",modules.member),
+    url("person",modules.person),
 ]

@@ -1,63 +1,38 @@
 ﻿{% extends "shared/modules/module_master.html" %}
 
-{%block module_type%}payment{%endblock%}
+{%block module_type%}person{%endblock%}
 
 {% block module_title%}
-    Skrá Greiðslu
+    Einstaklingur óþekktur
 {%endblock%}
 {%block module_sections %}
     <div data-section="basic" class="button section selected">
         Upplýsingar
     </div>
-    <div data-section="family" class="button section">
-        Fjölskylduaðild
-    </div>
 {%endblock%}
 
 
 {%block module_body %}
-    <form id="payment-form">
+    <small>Einstaklingur óþekktur: vinsamlegast skráið inn viðeigandi upplýsingar</small>
+    <form id="person-form">
         <section data-section="basic">
             <div class="centeredContent">
-                Kennitala félaga<br />
-                <input class="form-kt textinput" placeholder="Kennitala" name="ssn" />
-                <span style="left:0;" id="payment-payer-kt-search" class="button">Leita</span>
-                <input name="pid" style="display:none;"><br />
-                <input name="name" class="textinput" disabled="disabled"><br />
+                Kennitala<br />
+                <input readonly="readonly" class="form-kt textinput" placeholder="Kennitala" name="ssn" />
             </div>
             <div>
-                <span>
-                    Dagsetning<br />
-                    <input class="textinput" data-date-format="DD MMMM YYYY" type="date" name="date" />
-                </span><br />
-                <span>
-                    Greiðslumáti<br />
-                    <input id="card" type="radio" name="method" value="card" />
-                    <label for="card">Greiðslukort</label>
-                    <input id="transfer" type="radio" name="method" value="transfer" />
-                    <label for="transfer">Millifært</label>
-                    <input id="cash" type="radio" name="method" value="cash" />
-                    <label for="cash">Staðgreitt</label>
-                    <input id="free" type="radio" name="method" value="free" />
-                    <label for="free">Gjafaár</label>
-                </span>
-            </div>
-        </section>
-        <section data-section="family">
-            <div class="centeredContent">
-                <b>Fjölskylduaðild</b><br />
-            </div>
-            <div>
-                <span>
-                    Kennitala fjölskyldumeðlimar<br />
-                    <input class="form-kt textinput" name="familymember" />
-                    <span style="left:0;" id="payment-kt-search" class="button">Leita</span>
-                </span><br />
-                <div id ="payment-list-window" class="list-window">
-                    <ul>
-
-                    </ul>
-                </div>
+                <small>Nafn</small><br />
+                <input class="textinput" placeholder="Nafn" name="name" /><br />
+                <small>Heimilisfang</small><br />
+                <input class="textinput" placeholder="Heimilisfang" name="address" /><br />
+                <small>Póstnúmer</small><br />
+                <input class="textinput" placeholder="101" name="post" /><br />
+                <small>Bæjarfélag</small><br />
+                <input class="textinput" placeholder="Borg" name="city" />
+                <small>Símanúmer</small><br />
+                <input class="textinput" placeholder="123-4567" name="phone" />
+                <small>Netfang</small><br />
+                <input class="textinput" placeholder="kynjakettir@kynjakettir.is" name="email" />
             </div>
         </section>
     </form>
