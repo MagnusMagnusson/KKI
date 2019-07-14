@@ -1,0 +1,52 @@
+﻿{% extends "shared/leit.html" %}
+{% load static %}
+
+{% block sidebar %}
+{%include "catteries/catteries_master.html"%}
+{%endblock%}
+
+{%block searchtitle %}Ræktanir{%endblock%}
+{%block searchType%}cattery{% endblock %}
+{%block searchTerm%}name{% endblock %}
+
+{%block scripts %}
+{{block.super}}
+<script>
+    let year = new Date().getFullYear();
+    function searchCallback(msg) {
+        let res = msg.results;
+        console.log(res);
+        $("#nidurstodur ol").empty()
+        for (let cattery of res) {
+            cattery = cattery[1];
+            let last_litter = null;
+            if (cattery.last_litter) {
+                last_litter = cattery.last_litter.split("-")[0];
+                litter = $("<span class='green payment-bubble'>" + last_payment + "</span>");
+            } else {
+                litter = $("<span class='red payment-bubble'>-</span>");
+            }
+
+            let li = $("<li></li>");
+            let a = $("<a href='/raektun/" + cattery.id + "'></a>");
+            let strong = $("<strong>" + cattery.name + " </strong> ");
+            let emm = null;
+            if (cattery.email) {
+                emm = $("<i class='result-subtext'> " + cattery.email + "</i>");
+            }
+            let address = cattery.address + ", " + cattery.postcode + ", " + cattery.city;
+            let span = $("<span class='result-subtext'><i>" + address + "</i></span>")
+            $(a).append(litter);
+            $(a).append(strong);
+            if (emm) {
+                $(a).append(emm);
+            }
+            $(a).append($("<br/>"));
+            $(a).append(span);
+            $(li).append(a);
+            $("#nidurstodur ol").append(li);
+        }
+    }
+
+</script>
+{%endblock%}

@@ -17,6 +17,14 @@ class Person(models.Model):
 	comment = models.CharField(max_length = 2048, null = True)
 	email = models.CharField(max_length=1024,null = True)
 
+	def fullAddress(self):
+		str = self.address
+		if self.city:
+			str += ", " + self.city
+		if self.postcode:
+			str += " ("+self.postcode+")"
+		return str
+
 	def toObject(self):
 		member = {}
 		member['name'] = self.name.encode('utf-8')
@@ -57,8 +65,14 @@ class Member(models.Model):
 			return payments[0]
 		return None;
 
+	def firstPaymentDate(self):
+		payments = self.allPayments()
+		if(len(payments) > 0):
+			return payments[len(payments)-1].date
+		return None;
+
 	def toObject(self):
-		return person.toObject()
+		return self.person.toObject()
 	
 	def save(self):
 		if(not self.id):
@@ -66,7 +80,6 @@ class Member(models.Model):
 			i = str(i).zfill(6)
 			self.id = i
 		super(Member, self).save()
-
 
 class Payment(models.Model):
 	date = models.DateField()
@@ -117,7 +130,6 @@ class Payment(models.Model):
 			members.append(mp.member.person)
 		return members
 
-
 class MemberPayment(models.Model):
 	member = models.ForeignKey(Member)
 	payment = models.ForeignKey(Payment)
@@ -135,10 +147,73 @@ class Judge(models.Model):
 
 class Cattery(models.Model):
 	id = models.AutoField(primary_key = True)
-	name = models.CharField(max_length = 50)
+	registry_date = models.DateField(null = True)
+	name = models.CharField(max_length = 50, unique=True)
 	country = models.CharField(max_length = 3, null=True)
 	prefix = models.BooleanField()
 	organization = models.ForeignKey("Organization",null = True)
+	email = models.CharField(max_length=1024,null=True)
+	address = models.CharField(max_length = 50, null = True)
+	city = models.CharField(max_length = 50, null = True)
+	postcode = models.CharField(max_length = 10, null = True)
+	website = models.CharField(max_length = 1024, null = True)
+	phone = models.CharField(max_length = 50, null = True)
+
+	def toObject(self):
+		cattery = {}
+		cattery['id'] = self.id
+		cattery['name'] = self.name
+		cattery['country'] = self.country
+		if self.organization:
+			cattery['organization'] = self.organization.name
+		else:
+			cattery['organization'] = None
+		cattery['email'] = self.email
+		cattery['address'] = self.address
+		cattery['postcode'] = self.postcode
+		cattery['city'] = self.city
+		cattery['website'] = self.website
+		cattery['phone'] = self.phone
+		cattery['owners'] = []
+		for person in self.catteryowner_set.all():
+			cattery['owners'].append(person.owner.toObject())
+		return cattery 
+
+	def memberEntries(self):
+		mpset = self.catteryowner_set.all()
+		return mpset
+
+	def updateMembers(self, newMembers):
+		currentMembers = self.memberEntries()
+		currentMemberInstances = []
+		deleted = 0
+		added = 0
+		new = 0
+		for mp in currentMembers:
+			currentMemberInstances.append(mp.owner)
+		#delete all currently attached members that are not in the new set
+		for entry in currentMembers:
+			m = entry.owner
+			if not m in newMembers:
+				entry.delete()
+				deleted += 1
+		#add all members not currently attatched
+		for person in newMembers:
+			if(person not in currentMemberInstances):
+				mp = CatteryOwner()
+				mp.cattery = self
+				mp.owner = person
+				mp.save()
+				added += 1
+		return (added,deleted,new)
+
+	def fullAddress(self):
+		str = self.address
+		if self.city:
+			str += ", " + self.city
+		if self.postcode:
+			str += " ("+self.postcode+")"
+		return str
 
 class CatteryOwner(models.Model):
 	cattery = models.ForeignKey('Cattery')
@@ -173,7 +248,8 @@ class Microchip(models.Model):
 
 class Organization(models.Model):
 	id = models.AutoField(primary_key = True)
-	name = models.CharField(max_length = 50)
+	name = models.CharField(max_length = 100)
+	short = models.CharField(max_length = 15, null=True)
 	country = models.CharField(max_length = 3)
 
 class Breed(models.Model):

@@ -1,7 +1,9 @@
 ﻿$(document).ready(function (e) {
 
     function setPayingMember(kt) {
+        alert(kt);
         window.Api.getPerson({ "ssn": kt }, function (e) {
+
             if (e.results.length == 0) {
                 window.ModuleManager.requestData("payment", "person", function (msg) {
                     var person = msg
@@ -19,14 +21,12 @@
 
     window.ModuleManager.registerModuleHandler("payment", "activate", function () {
         $('[name="date"]').val(new Date().toISOString().split('T')[0]);
-
-        let ktSnoop = $("[name='profile-kt']");
-        if (ktSnoop.length > 0) {
-            var ssn = $(ktSnoop).data('kt');
-            $("[name='ssn']").val(ssn);
-            setPayingMember(ssn);
-
+        
+        let msg = window.ModuleManager.getMessage("payment");
+        if (msg) {
+            setPayingMember(msg);
         }
+        
     })
 
     window.ModuleManager.registerModuleHandler("payment", "save", function () {
@@ -63,7 +63,7 @@
                         $("li[data-value='" + person.pid + "']").animateHighlight("#dd0000", 5000);
                     }
                     else {
-                        let li = $("<li data-value = '" + person.pid + "' class='list-window-element'>" + person.name + "  -  <small>" + person.ssn + "</small></li>")
+                        let li = $("<li data-value = '" + person.pid + "' class='list-window-element'>" + person.name + "  -  <small>" + person.ssn + "</small> <span class='red'>X</span></li>")
                         $("#payment-list-window ul").append(li);
                     }
                 },kt);
@@ -75,7 +75,7 @@
                     $("li[data-value='" + person.pid +"']").animateHighlight("#dd0000", 5000);
                 }
                 else {
-                    let li = $("<li data-value = '" + person.pid + "' class='list-window-element'>" + person.name + "  -  <small>" + person.ssn + "</small></li>")
+                    let li = $("<li data-value = '" + person.pid + "' class='list-window-element'>" + person.name + "  -  <small>" + person.ssn + "</small> <span class='red'>X</span></li>")
                     $("#payment-list-window ul").append(li);
                 }
             }
@@ -89,6 +89,10 @@
         setPayingMember(kt);
     });
 
+    $(document).on('click', "#payment-list-window .list-window-element .red", function (e) {
+        e.stopPropagation();
+        $(this).parents(".list-window-element")[0].remove();
+    });
     
 
     $("#payment-form .form-kt").each(function () {

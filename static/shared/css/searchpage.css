@@ -25,8 +25,11 @@
     cursor:pointer;
 }
 
-#leitargluggi{
-    padding-top:.3em;
+#leitargluggi {
+    padding-top: .3em;
+    max-height: 1.35em;
+    min-height: 1.35em;
+    width: 100%;
 }
 
 .result-subtext i {
@@ -58,4 +61,8 @@
 }
 .payment-bubble.green {
     background-color: limegreen;
+}
+
+h3{
+    text-align:center;
 }

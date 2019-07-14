@@ -1,0 +1,25 @@
+﻿{% extends "shared/master.html" %}
+{% load static %}
+
+
+{%block main%}
+<div>
+    <h3>{%block searchtitle %}Leit{%endblock%}</h3>
+    <div id="leit">
+        <div contenteditable="true" data-term="{%block searchTerm%}{% endblock %}" data-type="{%block searchType%}{% endblock %}" id="leitargluggi"> </div><div id="leitarTakki"></div>
+    </div>
+    <div id="nidurstodur">
+        <ol></ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src='{% static "js/leit.js"%}'></script>
+{% endblock %}
+
+
+{%block styles%}
+<link rel="stylesheet" type="text/css" href="{% static 'shared/css/searchpage.css' %}">
+
+{%endblock%}

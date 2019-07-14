@@ -32,37 +32,46 @@ class Command(BaseCommand):
 			done = 0
 			lastpercent = 0.05
 			for row in spamreader:
-				person = Person()
-				person.name = row[0]
-				person.ssn = row[1]
-				person.address = row[2]
-				person.city = row[4]
-				person.postcode = row[3]
-				person.country = "ISL"
-				person.email = row[5]
-				person.comment = row[17]
-				person.save()
-				member = Member()
-				member.person = person;
-				member.payer = None;
-				password = person.ssn
-				pword = auth.hash_password(password)
-				member.password = pword[0]
-				member.salt = pword[1]
-				member.save()
-				years = [18,22,25]
-				for year in years:
-					if(row[year] != ""):
-						dateTime = datetime.strptime(row[year],"%d.%m.%Y")
-						paymentDate = dateTime.date()
-						p = Payment()
-						p.date = paymentDate
-						p.member = member
-						p.save()
-				done += 1
-				if(float(done/Length) >= lastpercent):
-					lastpercent += 0.05
-					print(str(float(100*done/Length)) + "% done")
+				pCheck = Person.objects.all().filter(ssn = row[1])
+				if(len(pCheck) > 0):
+					print(row[1])
+					continue
+				else:
+					person = Person()
+					person.name = row[0]
+					person.ssn = row[1]
+					person.address = row[2]
+					person.city = row[4]
+					person.postcode = row[3]
+					person.country = "ISL"
+					person.email = row[5]
+					person.comment = row[17]
+					person.save()
+					member = Member()
+					member.person = person;
+
+					password = person.ssn
+					pword = auth.hash_password(password)
+					member.password = pword[0]
+					member.salt = pword[1]
+					member.save()
+					years = [18,22,25]
+					for year in years:
+						if(row[year] != ""):
+							dateTime = datetime.strptime(row[year],"%d.%m.%Y")
+							paymentDate = dateTime.date()
+							p = Payment()
+							p.date = paymentDate
+							p.payer = member
+							p.save()
+							pm = MemberPayment()
+							pm.payment = p
+							pm.member = member
+							pm.save()
+					done += 1
+					if(float(done/Length) >= lastpercent):
+						lastpercent += 0.05
+						print(str(float(100*done/Length)) + "% done")
 						
 
 		csvfile.close()

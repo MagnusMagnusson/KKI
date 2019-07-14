@@ -1,0 +1,42 @@
+﻿{% extends "shared/master.html" %}
+{% load static %}
+
+
+
+{%block main%}
+<div id="profile-main">
+    <div id="profile-infobox">
+        <div id="image-area">
+            <img id="profile-image" src='{%static "/images/logo.jpg"%}' />
+            <div id="profile-options">
+                <ul>
+                    {%block profile-options %}
+                    {% endblock %}
+                </ul>
+            </div>
+        </div>
+        <div id="detail-area">
+            <h3 id="profile-name">{%block profile_name %}Kisi von kattarson{%endblock%}</h3>
+            <div class="infobox">
+                {%block details%}             
+                {%endblock%}
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div id="profile-sections" class="infobox">
+    {% block sections%}
+    {% endblock %}
+</div>
+
+{% endblock %}
+
+{%block styles%}
+<link rel="stylesheet" type="text/css" href="{% static 'shared/css/profile.css' %}">
+{%endblock%}
+
+{%block scripts%}
+<script src="{% static 'js/profile.js' %}"></script>
+{%endblock%}

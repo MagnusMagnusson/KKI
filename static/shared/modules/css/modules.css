@@ -13,6 +13,10 @@
     min-width: 50%;
 }
 
+.centered{
+    text-align:center;
+}
+
 .popup.module .textinput{
     width: 50%;
     border: .4px solid orange;
@@ -58,7 +62,7 @@
     color: white;
 }
 
-section{
+.module > section{
     display:none;
 }
 
@@ -85,4 +89,23 @@ section[data-section='basic']{
 .list-window-element {
     font-size: .75em;
     text-align: left;
+    pointer-events: none;
+}
+
+.list-window-element:hover {
+    background-color:rgba(255,0,0,.2);
+    cursor:pointer;
+}
+
+
+span.red {
+    float: right;
+    margin-right: 2em;
+    font-weight: bold;
+    color: maroon;
+    pointer-events: auto;
+}
+
+span.red:hover{
+    cursor:pointer;
 }

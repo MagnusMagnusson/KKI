@@ -45,7 +45,7 @@ def member(request):
 	d['name'] = 'member'
 	d['html'] = template.render(context,request);
 	scripts = moduleJS[:]
-	scripts.append("/static/shared/modules/js/payment.js")
+	scripts.append("/static/shared/modules/js/member.js")
 	d['js'] = scripts
 	return JsonResponse(d)
 
@@ -64,5 +64,45 @@ def person(request):
 	d['html'] = template.render(context,request);
 	scripts = moduleJS[:]
 	scripts.append("/static/shared/modules/js/person.js")
+	d['js'] = scripts
+	return JsonResponse(d)
+
+def cattery(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(d)
+	
+	template = loader.get_template("shared/modules/cattery.html")
+	orgs = Organization.objects.all()
+	context = {
+		'orgs':orgs
+	}
+	d = {}
+	d['name'] = 'cattery'
+	d['html'] = template.render(context,request);
+	scripts = moduleJS[:]
+	scripts.append("/static/shared/modules/js/cattery.js")
+	d['js'] = scripts
+	return JsonResponse(d)
+
+def catteryOwner(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(d)
+	
+	template = loader.get_template("shared/modules/catteryOwner.html")
+	
+	d = {}
+	context = {}
+	d['name'] = 'catteryOwner'
+	d['html'] = template.render(context,request);
+	scripts = moduleJS[:]
+	scripts.append("/static/shared/modules/js/catteryOwner.js")
 	d['js'] = scripts
 	return JsonResponse(d)

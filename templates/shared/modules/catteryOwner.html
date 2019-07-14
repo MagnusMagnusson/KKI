@@ -1,0 +1,36 @@
+﻿{% extends "shared/modules/module_master.html" %}
+
+{%block module_type%}catteryOwner{%endblock%}
+
+{% block module_title%}
+    Skrá eigendur ræktunar
+{%endblock%}
+{%block module_sections %}
+<div data-section="basic" class="button section selected">
+    Eigendur
+</div>
+{%endblock%}
+
+
+{%block module_body %}
+    <form id="catteryOwner-form">
+        <input disabled hidden type="number" id="catteryOwnerForm-id" />
+        <section data-section="basic">
+
+            <div class="centeredContent">
+                <b>Eigendur</b><br />
+            </div>
+            <div>
+                <span>
+                    Kennitala eiganda<br />
+                    <input class="form-kt textinput" name="catteryOwner" />
+                    <span style="left:0;" id="catteryOwner-kt-search" class="button">Leita</span>
+                </span><br />
+                <div id="catteryOwner-list-window" class="list-window">
+                    <ul></ul>
+                </div>
+            </div>
+        </section>
+    </form>
+{%endblock%}
+

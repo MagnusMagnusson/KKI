@@ -1,0 +1,91 @@
+﻿{% extends "shared/modules/module_master.html" %}
+
+{%block module_type%}cattery{%endblock%}
+
+{% block module_title%}
+    Skrá ræktunarnafn
+{%endblock%}
+{%block module_sections %}
+<div data-section="basic" class="button section selected">
+    Upplýsingar
+</div>
+<div data-section="contact" class="button section selected">
+    Samskipti
+</div>
+<div data-section="owners" class="button section selected">
+    Eigendur
+</div>
+{%endblock%}
+
+
+{%block module_body %}
+    <form id="cattery-form">
+        <section data-section="basic">
+            <div class="centeredContent">
+                Ræktunarnafn<br />
+                <input required class="textinput" placeholder="ÍS*Kynjakatta" name="name" />
+                <div>
+                    <input required id="prefix" type="radio" name="prefix" value="prefix" />
+                    <label for="prefix">Forskeyti</label>
+                    <input required id="affix" type="radio" name="prefix" value="affix" />
+                    <label for="affix">Viðskeyti</label>
+                </div>
+                <div>
+                    Dagsetning<br />
+                    <input required class="textinput" data-date-format="DD MMMM YYYY" type="date" name="date" />
+                </div><br />
+            </div>
+            <div>
+                <select hidden  form ="cattery-form" name="country">
+                    {%include "shared/AllCountriesSnipped.html"%}
+                </select>
+            </div>
+            <div>
+                <select hidden form="cattery-form" name ="organization"class="centerd">
+                    <option value="-1">Annað</option>
+                    {%for org in orgs%}
+                        <option  {%if org.country == "IS"%}selected{%endif%} value="{{org.id}}">{{org.country}}: {{org.name}}
+                    {%if org.short%}
+                        ({{org.short}})
+                    {%endif%}
+                    </option>
+                    {%endfor%}
+                </select>
+            </div>           
+
+        </section>
+    
+        <section data-section="contact">
+            <div>
+                <small>Heimilisfang</small><br />
+                <input class="textinput" placeholder="Heimilisfang" name="address" /><br />
+                <input class="textinput" placeholder="Póstnúmer" name="post" /><br />
+                <input class="textinput" placeholder="Borg" name="city" /><br />
+                <small>Símanúmer</small><br />
+                <input class="textinput" placeholder="123-4567" name="phone" /><br />
+                <small>Netfang</small><br />
+                <input class="textinput" placeholder="kynjakettir@kynjakettir.is" name="email" /><br />
+                <small>Vefsvæði</small><br />
+                <input class="textinput" placeholder="kynjakettir.is" name="website" />
+            </div>
+
+        </section>
+        <section data-section="owners">
+
+            <div class="centeredContent">
+                <b>Eigendur</b><br />
+            </div>
+            <div>
+                <span>
+                    Kennitala eiganda<br />
+                    <input class="form-kt textinput" name="catteryOwner" />
+                    <span style="left:0;" id="cattery-kt-search" class="button">Leita</span>
+                </span><br />
+                <div id="cattery-list-window" class="list-window">
+                    <ul></ul>
+                </div>
+            </div>
+        </section>
+    </form>
+{%endblock%}
+

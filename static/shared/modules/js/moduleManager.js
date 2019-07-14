@@ -78,6 +78,14 @@ class ModuleManager {
         nextModule.resume(success);
     }
 
+    sendMessage(sendee, message) {
+        if (!this.messageQueue[sendee]) {
+            this.messageQueue[sendee] = [];
+        }
+        if (message) {
+            this.messageQueue[sendee].push(message);
+        }
+    }
 
     //A module wishes for information for a different module. Put it on the stack and load the requested module
     requestData(caller, module, callback, message = null) {
@@ -127,6 +135,9 @@ class ModuleManager {
         $(".module-button").on("click", function (e) {
             if ($(".module:visible").length == 0) {
                 let module = $(this).data("module");
+                if ($(this).data("message")) {
+                    window.ModuleManager.sendMessage(module, $(this).data("message"));
+                }
                 t.loadModule(module);
             }
         });

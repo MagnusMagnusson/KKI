@@ -1,0 +1,36 @@
+﻿{% extends "shared/profile.html" %}
+{% load static %}
+{% block sidebar %}
+{%include "catteries/catteries_master.html"%}
+{%endblock%}
+
+{%block profile_name %}{{cattery.name}}{%endblock%}
+
+{%block details %}
+<ul>
+    <li><emph>Heimilisfang:</emph> {{cattery.fullAddress}}</li>
+    <li><emph>Þjóðerni:</emph> {{cattery.country}}</li>
+    <li><emph>Stofnun:</emph> {{cattery.organization.name}}</li>
+    <li><emph>Sími:</emph> {{cattery.phone}}</li>
+    <li><emph>Netfang:</emph> {{cattery.email}}</li>
+    <li><emph>Vefsíða:</emph> {{cattery.website}}</li>
+</ul>
+{% endblock %}
+
+{%block profile-options %}
+<li data-message="{{cattery.id}}" class="module-button" data-module="catteryOwner">
+    Skrá Eigendur
+</li>
+{% endblock %}
+
+
+{% block sections %}
+    <section id="payment-history">
+        <h3>Eigendur</h3>
+        <ul>
+            {%for owner in cattery.catteryowner_set.all %}
+            <li><a  href="/felagar/{{owner.owner.member.id}}">{{owner.owner.name}}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}

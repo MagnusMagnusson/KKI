@@ -27,6 +27,20 @@ def members(request):
 @decorator_from_middleware(authMiddleWare.ValidateLogin)
 def member_profile(request,id):
 	template = loader.get_template("members/member_profile.html")
-	member = Person.objects.get(member__id=id)
-	context = {'member':member}
+	member = Member.objects.get(id = id)
+	context = {'member':member.person}
+	return HttpResponse(template.render(context,request))
+
+@decorator_from_middleware(authMiddleWare.ValidateLogin)
+def catteries(request):
+	template = loader.get_template("catteries/catteries.html")
+	
+	context = {}
+	return HttpResponse(template.render(context,request))
+
+@decorator_from_middleware(authMiddleWare.ValidateLogin)
+def cattery_profile(request,id):
+	template = loader.get_template("catteries/cattery_profile.html")
+	cattery = Cattery.objects.get(id=id)
+	context = {'cattery':cattery}
 	return HttpResponse(template.render(context,request))

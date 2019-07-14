@@ -11,6 +11,7 @@ window.ModuleManager.registerModuleHandler("person", "save", function () {
     for (let x of a) {
         d[x.name] = x.value;
     }
+    d['ssn'] = d['ssn'].match(/\d+/g).join("");
     string = JSON.stringify(d);
     d = {};
     d['data'] = string;

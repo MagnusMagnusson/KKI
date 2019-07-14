@@ -50,20 +50,27 @@ def login(request):
 		}
 		return JsonResponse(D)
 
-def find_member(request):
+def find(request):
 	if not request.is_ajax():
 		d = {
 			'success':False,
 			'error': "óvænt villa kom upp við beiðni þinni"
 		}
 		return JsonResponse(D)
-	name = request.GET['name']
+	type = request.GET['type'].lower()
+	term = request.GET['term']
+	value = request.GET['value']
+	
+	if type == 'member':
+		objectset = Person.objects.filter(member__isnull = False)
+	elif type == 'cattery':
+		objectset = Cattery.objects
 	d = {}
 	d['results'] = []
-	q = Person.objects.annotate( distance=TrigramDistance('name', name),).filter(distance__lte=0.9).filter(member__isnull = False).order_by('distance')
+	q = objectset.annotate( distance=TrigramDistance(term, value),).filter(distance__lte=0.9).order_by('distance')
 	for res in q[:25]:
-		member = res.toObject()
-		d['results'].append((res.distance, member))
+		results = res.toObject()
+		d['results'].append((res.distance, results))
 	d['results'] = list(d['results'])
 	return JsonResponse(d)
 	
@@ -75,13 +82,18 @@ def get_person(request):
 		}
 		return JsonResponse(D)
 	Q = Person.objects.all()
+	get = request.GET
 	d = {}
 	valid = False
 	d['results'] = []
 	d['success'] = True
-	if(request.GET['ssn']):
+	if('ssn' in get):
 		valid = True 
 		Q = Q.filter(ssn = request.GET['ssn'])
+	if('member' in get):
+		Q = Q.filter(member__isnull = False)
+		valid = True
+	
 	for res in Q:
 		member = res.toObject()
 		d['results'].append( member)
@@ -89,6 +101,25 @@ def get_person(request):
 	if(not valid):
 		d = {"success":False,'error':"Tilgreindu í það minnsta einn leitarramma"}
 	return JsonResponse(d)
+
+def getById(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+	type = request.GET['type'].lower()
+	id = request.GET['id']
+	if type == "cattery":
+		objectSet = Cattery.objects
+	object = objectSet.get(id = id)
+	d = {
+		'success':True,
+		'results': object.toObject()
+	}
+	return JsonResponse(d)
+
 
 def submit_payment(request):
 	if not request.is_ajax():
@@ -150,6 +181,83 @@ def submit_person(request):
 	person.save()
 
 	response = {'success':True, 'result':person.toObject()}
+	return JsonResponse(response)
+
+def submit_member(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	post = json.loads(request.POST['data'])
+	if('mid' in post):
+		member = Member.objects.get(id = post['mid'])
+	else:
+		member = Member()
+
+	if "pid" in post:
+		person = Person.objects.get(id = post['pid'])		
+		if(hasattr(person, 'member')):
+			response = {'success':False, 'error':"Person already a member"}
+			return JsonResponse(response)
+		member.person = person
+	else:
+		response = {'success':False, 'error':"Must specify a person to become member"}
+		return JsonResponse(response)
+
+
+	member.save()
+
+	response = {'success':True, 'result':member.toObject()}
+	return JsonResponse(response)
+
+def submit_cattery(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	post = json.loads(request.POST['data'])
+	if('id' in post):
+		cattery = Cattery.objects.get(id = post['id'])
+	else:
+		cattery = Cattery()
+	if 'name' in post:
+		cattery.name = post['name']
+	if 'date' in post:
+		cattery.registry_date = post['date']
+	if 'country' in post:
+		cattery.country = post['country']
+	if 'orginization' in post:
+		cattery.organization = Organization.objects.get(id = post['organization'])
+	if 'prefix' in post:
+		cattery.prefix = post['prefix'] == "prefix"
+	if 'address' in post:
+		cattery.address = post['address']
+	if 'city' in post:
+		cattery.city = post['city']
+	if 'postcode' in post:
+		cattery.postcode = post['post']
+	if 'phone' in post:
+		cattery.phone = post['phone']
+	if 'email' in post:
+		cattery.email = post['email']
+	if 'website' in post:
+		cattery.website = post['website']
+
+	cattery.save() 
+	if 'owners' in post:
+		ownerList = []
+		for people in post['owners']:
+			per = Person.objects.get(id = people)
+			ownerList.append(per)	
+		cattery.updateMembers(ownerList)
+
+	response = {'success':True}
 	return JsonResponse(response)
 
 

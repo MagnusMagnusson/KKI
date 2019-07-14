@@ -24,5 +24,7 @@ urlpatterns = [
     url(r'modules/', include("kkidb.modules.urls")),
     url(r"^$",views.index),
     url(r'felagar/([0-9]{6})',views.member_profile),
-    url("felagar",views.members)
+    url("felagar",views.members),
+    url(r'raektun/([0-9]*)',views.cattery_profile),
+    url("raektun",views.catteries)
 ]
