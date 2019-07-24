@@ -125,3 +125,22 @@ def catNeuter(request):
 	scripts.append("/static/shared/modules/js/catNeuter.js")
 	d['js'] = scripts
 	return JsonResponse(d)
+
+def catOwner(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(d)
+	
+	template = loader.get_template("shared/modules/catOwner.html")
+	
+	d = {}
+	context = {}
+	d['name'] = 'catOwner'
+	d['html'] = template.render(context,request);
+	scripts = moduleJS[:]
+	scripts.append("/static/shared/modules/js/catOwner.js")
+	d['js'] = scripts
+	return JsonResponse(d)

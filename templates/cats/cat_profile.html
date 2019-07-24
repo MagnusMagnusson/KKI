@@ -70,9 +70,9 @@
 
 
 {% block sections %}
-    <section id="payment-history">
+    <section id="owner-overview">
         <h3>Ræktendur og Eigendur</h3>
-        <ul>
+        <div>
             {%if cat.cattery%}
                 {%if cat.isMale%}
                 Ræktaður af
@@ -82,12 +82,22 @@
                 {{cat.cattery.name}}
             {%endif%}
 
-            {%if cat.owners%}
-                {%for owner in cat.owners%}
-                {{owner.name}}
-                {%endfor%}
-            {%endif%}
-            
-        </ul>
+            <ul id="owner-overview">
+                {%if cat.owners%}
+                    {%for owner in cat.owners%}
+                        <li>
+                            E. {{owner.person.name}}, síðan {{owner.date}}<br />
+                            <small>{{owner.person.fullAddress}}. 
+                            {%if owner.person.phone%}
+                                {{owner.person.phone}}, 
+                            {%endif%}
+                            {%if owner.person.email%}
+                               {{owner.person.email}}
+                            {%endif%}</small>
+                        </li>
+                    {%endfor%}
+                {%endif%}
+            </ul>
+        </div>
     </section>
 {% endblock %}

@@ -15,6 +15,7 @@ class Api{
         this.urlList.submitMember = "/api/skra/felagi";
         this.urlList.submitCattery = "/api/skra/raektun";
         this.urlList.submitNeuter = "/api/skra/geldingu";
+        this.urlList.submitCatOwner = "/api/skra/eigendaskipti";
     }
 
     /*
@@ -65,6 +66,10 @@ class Api{
 
     submitNeuter(data, callback) {
         this.post(this.urlList.submitNeuter, data, callback);
+    }
+
+    submitCatOwner(data, callback) {
+        this.post(this.urlList.submitCatOwner, data, callback);
     }
 
     get(url, data, callback) {

@@ -233,7 +233,7 @@ class Cat(models.Model):
 
 	def owners(self):
 		ownerset = self.owner_set.all().filter(current = True)
-		return [1,2,3]
+		return ownerset
 
 	def fullName(self):
 		t1 = self.highestTitle(False)
@@ -282,6 +282,33 @@ class Cat(models.Model):
 		else:
 			return None
 
+	def updateOwners(self, owners, date):
+		currentOwners = self.owners()
+		currentOwnerInstances = []
+		deleted = 0
+		added = 0
+		new = 0
+		for co in currentOwners:
+			currentOwnerInstances.append(co.person)
+		#delete all currently attached members that are not in the new set
+		for entry in currentOwners:
+			m = entry.person
+			if not m in owners:
+				entry.current = False
+				deleted += 1
+		#add all members not currently attatched
+		for person in owners:
+			if(person not in currentOwnerInstances):
+				ow = Owner()
+				ow.cat = self
+				ow.person = person
+				ow.current = True
+				ow.date = date
+				ow.save()
+				added += 1
+		return (added,deleted,new)
+
+
 	def toObject(self):
 		cat = {} 
 		cat['id'] = self.id 
@@ -295,6 +322,9 @@ class Cat(models.Model):
 		cat['birthdate'] = self.birth_date
 		cat['regdate'] = self.reg_date
 		cat['gender'] = "Male" if self.isMale else "Female"
+		cat['owners'] = []
+		for owner in self.owners():
+			cat['owners'].append(owner.person.toObject())
 		if self.cattery:
 			cat['cattery'] = self.cattery.toObject()
 		else:

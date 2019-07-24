@@ -325,6 +325,37 @@ def submit_neuter(request):
 	return JsonResponse(response)
 
 
+def submit_ownership_change(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	post = json.loads(request.POST['data'])
+	if('id' in post):
+		cat = Cat.objects.get(id = post['id'])
+	else:
+		return JsonResponse({"success":False, "error":"Enginn köttur tilgreindur"})
+	if 'date' in post:
+		date = post['date']
+	else:
+		return JsonResponse({"success":False, "error":"Engin dagsetning tilgreind"})
+
+	
+	if 'owners' in post:
+		ownerList = []
+		for people in post['owners']:
+			per = Person.objects.get(id = people)
+			ownerList.append(per)	
+		cat.updateOwners(ownerList, date)
+
+	
+	response = {'success':True, "results":ownerList}
+	return JsonResponse(response)
+
+
 def validate_login(request):
 	if('token' in request.session):
 		meta = request.META['HTTP_USER_AGENT']
