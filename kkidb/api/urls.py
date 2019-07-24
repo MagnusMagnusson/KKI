@@ -21,9 +21,11 @@ urlpatterns = [
     url("login",api.login),
 	url("leit",api.find),
 	url("saekja/einstakling",api.get_person),
+	url("saekja/kott",api.get_cat),
 	url("saekja/",api.getById),
 	url("skra/greidsla",api.submit_payment),
 	url("skra/einstaklingur",api.submit_person),
 	url("skra/felagi",api.submit_member),
-	url("skra/raektun",api.submit_cattery)
+	url("skra/raektun",api.submit_cattery),
+	url("skra/gelding",api.submit_neuter),
 ]

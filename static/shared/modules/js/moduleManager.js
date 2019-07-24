@@ -59,7 +59,7 @@ class ModuleManager {
         }
     }
 
-    saveSuccess(module, message = null) {
+    saveSuccess(module, message = null, result=null) {
         if (this.modules[module]) {
             if (message && this.moduleQueue.length > 0) {
                 let topModule = this.moduleQueue[this.moduleQueue.length - 1].name;
@@ -69,6 +69,14 @@ class ModuleManager {
                 this.messageQueue[topModule].push(message);
             }
             this.closeModule(module, true);
+            var event = new CustomEvent("module-success", {
+                detail: {
+                    module,
+                    message,
+                    result
+                }
+            });
+            document.dispatchEvent(event);
         }
     }
 

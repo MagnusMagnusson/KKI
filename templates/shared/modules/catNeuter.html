@@ -1,0 +1,39 @@
+﻿{% extends "shared/modules/module_master.html" %}
+
+{%block module_type%}catNeuter{%endblock%}
+
+{% block module_title%}
+    Skrá geldingu
+{%endblock%}
+{%block module_sections %}
+<div data-section="basic" class="button section selected">
+    Gelding
+</div>
+{%endblock%}
+
+
+{%block module_body %}
+    <form id="catNeuter-form">
+        <input readonly hidden type="number" id="catNeuterForm-id" name="id"/>
+        <section data-section="basic">
+
+            <div class="centeredContent">
+                <b>Gelding</b><br />
+            </div>
+            <div>
+                <span>
+                    Skráninganúmer kattar<br />
+                    <input id ="catNeuterForm-catRegNr"class="textinput" name="cat" />
+                    <span style="left:0;" id="catNeuter-regnr-search" class="button">Leita</span>
+                    <br />
+
+                    <input required disabled id="catNeuterForm-catName" class="textinput" name="catName" />
+                </span><br />
+                Dagsetning geldingar <br />
+
+                <input required type="date" name="date"/>
+            </div>
+        </section>
+    </form>
+{%endblock%}
+

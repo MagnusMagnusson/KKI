@@ -1,0 +1,47 @@
+﻿{% extends "shared/leit.html" %}
+{% load static %}
+
+{% block sidebar %}
+{%include "cats/cats_master.html"%}
+{%endblock%}
+
+{%block searchtitle %}Kettir{%endblock%}
+{%block searchType%}cat{% endblock %}
+{%block searchTerm%}name{% endblock %}
+
+{%block scripts %}
+{{block.super}}
+<script>
+    let year = new Date().getFullYear();
+    function searchCallback(msg) {
+        let res = msg.results;
+        console.log(res);
+        $("#nidurstodur ol").empty()
+        for (let cat of res) {
+            cat = cat[1];
+            let last_litter = null;
+
+            let li = $("<li></li>");
+            let a = $("<a href='/kettir/" + cat.id + "'></a>");
+            let upper = $("<span></span>");
+
+            let strong = $("<strong>" + cat.fullName + ", </strong>");
+            let ems = cat.ems;
+            let registry = cat.registry;
+            let birth = cat.birthdate;
+            let small = $("<small'>(" + ems + "), "+registry+  ", f: "+birth+" </span>")
+
+            //let ems = cat.ems;
+            let span = $("<span class='result-subtext'>&nbsp;&nbsp; </span>")
+            $(upper).append(strong);
+            $(upper).append(small);
+            $(a).append(upper);
+            $(a).append($("<br/>"));
+            $(a).append(span);
+            $(li).append(a);
+            $("#nidurstodur ol").append(li);
+        }
+    }
+
+</script>
+{%endblock%}

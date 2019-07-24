@@ -12,6 +12,16 @@ import json
 
 # Create your views here.
 
+def getObjectset(type):
+	if type == 'member':
+		objectset = Person.objects.filter(member__isnull = False)
+	elif type == 'cattery':
+		objectset = Cattery.objects
+	elif type == 'cat':
+		objectset = Cat.objects
+
+	return objectset
+
 def login(request):
 	if not request.is_ajax():
 		D = {
@@ -61,10 +71,7 @@ def find(request):
 	term = request.GET['term']
 	value = request.GET['value']
 	
-	if type == 'member':
-		objectset = Person.objects.filter(member__isnull = False)
-	elif type == 'cattery':
-		objectset = Cattery.objects
+	objectset = getObjectset(type)
 	d = {}
 	d['results'] = []
 	q = objectset.annotate( distance=TrigramDistance(term, value),).filter(distance__lte=0.9).order_by('distance')
@@ -102,6 +109,35 @@ def get_person(request):
 		d = {"success":False,'error':"Tilgreindu í það minnsta einn leitarramma"}
 	return JsonResponse(d)
 
+def get_cat(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+	Q = Cat.objects.all()
+	get = request.GET
+	d = {}
+	valid = False
+	d['results'] = []
+	d['success'] = True
+	if('registry' in get):
+		valid = True 
+		Q = Q.filter(reg_full__contains = request.GET['registry'])
+	if('id' in get):
+		Q = Q.filter(id = get['id'])
+		valid = True
+	
+	for res in Q:
+		member = res.toObject()
+		d['results'].append( member)
+
+	if(not valid):
+		d = {"success":False,'error':"Tilgreindu í það minnsta einn leitarramma"}
+	return JsonResponse(d)
+
+
 def getById(request):
 	if not request.is_ajax():
 		d = {
@@ -111,8 +147,7 @@ def getById(request):
 		return JsonResponse(D)
 	type = request.GET['type'].lower()
 	id = request.GET['id']
-	if type == "cattery":
-		objectSet = Cattery.objects
+	objectSet = getObjectset(type)
 	object = objectSet.get(id = id)
 	d = {
 		'success':True,
@@ -256,6 +291,35 @@ def submit_cattery(request):
 			per = Person.objects.get(id = people)
 			ownerList.append(per)	
 		cattery.updateMembers(ownerList)
+
+	response = {'success':True}
+	return JsonResponse(response)
+
+def submit_neuter(request):
+
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	post = json.loads(request.POST['data'])
+	if('id' in post):
+		cat = Cat.objects.get(id = post['id'])
+	else:
+		return JsonResponse({'success':False, 'error':"Enginn köttur tilgreindur"})
+	if 'date' in post and post['date'] != "":
+		date = post['date']
+	else:
+		return JsonResponse({'success':False, 'error':"Engin dagsetning tilgreind"})
+
+	neuterTest = Neuter.objects.filter(cat = cat)
+	if len(neuterTest ) == 0:
+		neuter = Neuter()
+		neuter.cat = cat
+		neuter.date = date
+		neuter.save()
 
 	response = {'success':True}
 	return JsonResponse(response)

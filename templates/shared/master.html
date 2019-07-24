@@ -4,12 +4,12 @@
 <head>
     <meta charset="utf-8" />
     <title>Kynjakattafélag Íslands</title>
-    <script src="{% static 'js/jq.js' %}"></script>
-    <script src="{% static 'js/jqc.js' %}"></script>
-    <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'shared/js/jq.js' %}"></script>
+    <script src="{% static 'shared/js/jqc.js' %}"></script>
+    <script src="{% static 'shared/js/api.js' %}"></script>
     <script src="{% static 'shared/modules/js/moduleManager.js' %}"></script>
-    <script src="{% static 'js/master.js' %}"></script>
-    <script src="{% static 'js/cleave.min.js' %}"></script>
+    <script src="{% static 'shared/js/master.js' %}"></script>
+    <script src="{% static 'shared/js/cleave.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'shared/css/master.css' %}">
     {% block styles %}
     {% endblock %}
@@ -31,7 +31,7 @@
                 {% block navbar %}
                 <ul>
                     <li>
-                        <a>
+                        <a href="/kettir">
                             Kettir
                         </a>
                     </li>

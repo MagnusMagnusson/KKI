@@ -48,7 +48,6 @@ class Member(models.Model):
 	def allPayments(self):
 		payment_set = self.memberpayment_set;
 		payments = []
-		payment_set
 		for payment in payment_set.all().order_by('-payment__date'):
 			payments.append(payment.payment)
 		return payments
@@ -86,7 +85,7 @@ class Payment(models.Model):
 	giftYear = models.BooleanField(default=False)
 	comment = models.CharField(max_length = 1024, null = True)
 	method = models.CharField(max_length=128)
-	payer = models.ForeignKey(Member, related_name='payer', null=True)
+	payer = models.ForeignKey(Member, related_name='payer', null=True, on_delete=models.CASCADE)
 
 	def updateMembers(self, newMembers):
 		currentMembers = self.memberEntries()
@@ -131,7 +130,7 @@ class Payment(models.Model):
 		return members
 
 class MemberPayment(models.Model):
-	member = models.ForeignKey(Member)
+	member = models.ForeignKey(Member, on_delete=models.CASCADE)
 	payment = models.ForeignKey(Payment)
 	class Meta:
 		unique_together = ("member","payment")
@@ -143,7 +142,7 @@ class Owner(models.Model):
 	current = models.BooleanField()
 
 class Judge(models.Model):
-	person = models.ForeignKey('Person')
+	person = models.OneToOneField('Person')
 
 class Cattery(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -222,13 +221,88 @@ class CatteryOwner(models.Model):
 class Cat(models.Model):
 	id = models.AutoField(primary_key = True)
 	name = models.CharField(max_length = 50)
-	reg_full = models.CharField(max_length = 50, null = True)
+	reg_full = models.CharField(max_length = 50, null = True, unique=True)
+	reg_nr = models.IntegerField(null = True)
 	birth_date = models.DateField(null = True)
 	reg_date = models.DateField(null = True)
-	gender = models.BooleanField()
+	isMale = models.BooleanField()
 	dam = models.ForeignKey('Cat',related_name='dam_children',null=True)
 	sire = models.ForeignKey('Cat',related_name='sire_children', null=True)
 	cattery = models.ForeignKey('Cattery',null=True)
+
+
+	def owners(self):
+		ownerset = self.owner_set.all().filter(current = True)
+		return [1,2,3]
+
+	def fullName(self):
+		t1 = self.highestTitle(False)
+		t2 = self.highestTitle(True)
+		s = ""
+		if t1:
+			if t2:
+				s += t1.short + ", " + t2.short + " "
+			else:
+				s += t1.short + " "
+		elif t2:
+			s += t2.short + " "
+		s += self.name
+		return s
+
+
+	def allEms(self):
+		ems_set = self.catems_set;
+		ems_list = []
+		for ems in ems_set.all().order_by('-date'):
+			ems_list.append(ems)
+		return ems_list
+
+	def ems(self):
+		emss = self.allEms()
+		if len(emss) > 0:
+			return emss[0]
+
+	def highestCert(self,neutered = False):
+		catSet = self.catcert_set.all().filter(cert__neuter = neutered)
+		if len(catSet) > 0:
+			catSet = list(catSet)
+			def absSort(a,b = None):
+				if not b:
+					return 0
+				return a.absRank() - b.absRank()
+			catSet.sort(key=absSort)
+			return catSet[0]
+		else:
+			return None
+
+	def highestTitle(self,neutered = False):
+		cert = self.highestCert(neutered)
+		if cert:
+			return cert.cert.getTitle()
+		else:
+			return None
+
+	def toObject(self):
+		cat = {} 
+		cat['id'] = self.id 
+		if self.ems():
+			cat['ems'] = str(self.ems().ems)
+		else:
+			cat['ems'] = None
+		cat['name'] = self.name
+		cat['fullName'] = self.fullName()
+		cat['registry'] = self.reg_full
+		cat['birthdate'] = self.birth_date
+		cat['regdate'] = self.reg_date
+		cat['gender'] = "Male" if self.isMale else "Female"
+		if self.cattery:
+			cat['cattery'] = self.cattery.toObject()
+		else:
+			cat['cattery'] = None
+		return cat
+
+
+
 
 class Import(models.Model):
 	cat = models.OneToOneField('Cat')
@@ -239,7 +313,7 @@ class Import(models.Model):
 
 class Neuter(models.Model):
 	cat = models.OneToOneField('Cat', primary_key = True)
-	date = models.DateField()
+	date = models.DateField(null = True)
 
 class Microchip(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -253,20 +327,43 @@ class Organization(models.Model):
 	country = models.CharField(max_length = 3)
 
 class Breed(models.Model):
-	breed = models.CharField(max_length = 25)
+	breed = models.CharField(max_length = 25, unique=True)
 	category = models.IntegerField()
-	short = models.CharField(max_length = 5)
+	short = models.CharField(max_length = 5,unique = True)
 
 class Color(models.Model):
-	color = models.CharField(max_length=50)
-	short = models.CharField(max_length=20)
+	color = models.CharField(max_length=50, unique = True)
+	short = models.CharField(max_length=20, unique = True)
 	desc = models.CharField(max_length=1024)
 
 class EMS(models.Model):
-	cat = models.ForeignKey('Cat')
 	breed = models.ForeignKey('Breed')
 	color = models.ForeignKey('Color')
+	group = models.IntegerField(null = True)
+	
+	def toObject(self):
+		ems = {}
+		ems['ems'] = str(self)
+		return ems
+	
+	def __str__(self):
+		return self.breed.short + " " + self.color.short
+	
+	class Meta:
+		unique_together = ('breed', 'color')
+
+class CatEms(models.Model):
+	cat = models.ForeignKey('Cat')
+	ems = models.ForeignKey('EMS')
 	date = models.DateField()
+	def __str__(self):
+		return str(self.ems)
+	def toObject(self):
+		ems = {}
+		ems['cat'] = self.cat.id
+		ems['date'] = self.date 
+		ems['ems'] = self.ems.toObject()
+		return ems
 
 ############# Shows
 
@@ -318,21 +415,54 @@ class LitterJudgement(models.Model):
 	litter = models.ForeignKey('Litter')
 
 class Cert(models.Model):
-	certName = models.CharField(max_length = 10)
-	certRank = models.IntegerField()
-	next = models.ForeignKey('Cert')
+	name = models.CharField(max_length = 10)
+	rank = models.IntegerField()
+	next = models.ForeignKey('Cert', null=True)
 	neuter = models.BooleanField()
+
+	def prev(self):
+		certQ = Cert.objects.filter(next = self).exclude(id = self.id)
+		if len(certQ) == 0:
+			return None
+		else:
+			return certQ[0]
+			
+
+	def getTitle(self):
+		if hasattr(self,'title'):
+			return self.title
+		else:
+			if self.prev():
+				return self.prev().getTitle()
+			else:
+				return None
+
+	def absRank(self):
+		if(self.next):
+			if self.next == next:
+				return 1
+			else:
+				return 1 + self.next.absRank()
+		else:
+			return 1
 
 class CatCert(models.Model):
 	cat = models.ForeignKey('Cat')
-	judge = models.ForeignKey('Judgement')
+	judgement = models.ForeignKey('Judgement', null=True)
 	cert = models.ForeignKey('Cert')
-	ems = models.CharField(max_length = 20)
+	ems = models.CharField(max_length = 20, null=True)
+
+	def title(self):
+		return self.cert.title()
+
+	def absRank(self):
+		return self.cert.absRank()
+
 
 class Title(models.Model):
 	name = models.CharField(max_length = 50)
 	short = models.CharField(max_length = 10)
-	cert = models.ForeignKey('Cert')
+	cert = models.OneToOneField('Cert',null=True)
 
 class Nomination(models.Model):
 	judgement = models.ForeignKey('Judgement')

@@ -44,3 +44,18 @@ def cattery_profile(request,id):
 	cattery = Cattery.objects.get(id=id)
 	context = {'cattery':cattery}
 	return HttpResponse(template.render(context,request))
+
+@decorator_from_middleware(authMiddleWare.ValidateLogin)
+def cats(request):
+	template = loader.get_template("cats/cats.html")
+	
+	
+	context = {}
+	return HttpResponse(template.render(context,request))
+
+@decorator_from_middleware(authMiddleWare.ValidateLogin)
+def cat_profile(request,id):
+	template = loader.get_template("cats/cat_profile.html")
+	cat = Cat.objects.get(id = id)
+	context = {'cat':cat}
+	return HttpResponse(template.render(context,request))

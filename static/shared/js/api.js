@@ -8,11 +8,13 @@ class Api{
     setupURLs() {
         this.urlList.find = "/api/leit/";
         this.urlList.getPerson = "/api/saekja/einstakling";
+        this.urlList.getCat = "/api/saekja/kott";
         this.urlList.getById = "/api/saekja/";
         this.urlList.submitPayment = "/api/skra/greidsla";
         this.urlList.submitPerson = "/api/skra/einstaklingur";
         this.urlList.submitMember = "/api/skra/felagi";
         this.urlList.submitCattery = "/api/skra/raektun";
+        this.urlList.submitNeuter = "/api/skra/geldingu";
     }
 
     /*
@@ -25,9 +27,14 @@ class Api{
     find(data,callback) {
         this.get(this.urlList.find,data, callback);
     }
+    
 
     getPerson(terms, callback) {
         this.get(this.urlList.getPerson, terms, callback);
+    }
+
+    getCat(terms, callback) {
+        this.get(this.urlList.getCat, terms, callback);
     }
 
     /*
@@ -54,6 +61,10 @@ class Api{
 
     submitCattery(data, callback) {
         this.post(this.urlList.submitCattery, data, callback);
+    }
+
+    submitNeuter(data, callback) {
+        this.post(this.urlList.submitNeuter, data, callback);
     }
 
     get(url, data, callback) {

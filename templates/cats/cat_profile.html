@@ -1,0 +1,93 @@
+﻿{% extends "shared/profile.html" %}
+{% load static %}
+{% block sidebar %}
+{%include "catteries/catteries_master.html"%}
+{%endblock%}
+
+{%block profile_name %}{{cat.fullName}}{%endblock%}
+
+{%block scripts%}
+{{block.super}}
+<script src="{% static 'js/cat_profile.js' %}"></script>
+{%endblock%}
+
+{%block details %}
+<ul>
+    <li>{{cat.ems.ems}}</li>
+    <li><emph></emph> 
+        {%if cat.isMale%}
+            {%if cat.neuter %}
+                 <span id="neuterText">Geldur</span>
+            {%else%}
+                <span id="neuterText">Ógeldur</span>
+            {%endif%}
+            Fress
+        {%else%}
+
+        {%if cat.neuter %}
+            <span id="neuterText">Geld</span>
+            {%else%}
+                <span id="neuterText">Ógeld</span>
+            {%endif%}
+            Læða
+        {%endif%}
+        </li>
+    <li><emph>F. </emph> {{cat.birth_date}}</li>
+    <li><emph>Skr.  </emph> {{cat.reg_date}}</li>
+    <li><emph>Örmerki:</emph>  
+     {%if cat.microchip_set.all|first%}
+        {%with cat.microchip_set.all|first as microchip %}
+            {{microchip.microchip}}
+        {%endwith%}
+    {%else%}
+        Ekkert á skrá
+    {%endif%}
+    </li>
+
+    {%if cat.dam %}
+        <li><emph>Móðir :</emph> <a href="/kettir/{{cat.dam.id}}">{{cat.dam.name}}, ({{cat.dam.ems.ems}}), {{cat.dam.reg_full}}</a></li>
+    {%else%}
+    <li><emph>Engin móðir skráð.</emph></li>
+    {%endif%}
+
+    {%if cat.dam %}
+    <li><emph>Faðir :</emph> <a href="/kettir/{{cat.sire.id}}">{{cat.sire.name}}, ({{cat.sire.ems.ems}}), {{cat.sire.reg_full}}</a></li>
+    {%else%}
+    <li><emph>Engin faðir skráður.</emph></li>
+    {%endif%}
+
+</ul>
+{% endblock %}
+
+{%block profile-options %}
+<li data-message="{{cat.id}}" class="module-button" data-module="catOwner">
+    Skrá Eigendaskipti
+</li>
+<li data-message="{{cat.id}}" class="module-button" data-module="catNeuter">
+    Skrá Geldingu
+</li>
+{% endblock %}
+
+
+{% block sections %}
+    <section id="payment-history">
+        <h3>Ræktendur og Eigendur</h3>
+        <ul>
+            {%if cat.cattery%}
+                {%if cat.isMale%}
+                Ræktaður af
+                {%else%}
+                    Ræktuð af 
+                {%endif%}
+                {{cat.cattery.name}}
+            {%endif%}
+
+            {%if cat.owners%}
+                {%for owner in cat.owners%}
+                {{owner.name}}
+                {%endfor%}
+            {%endif%}
+            
+        </ul>
+    </section>
+{% endblock %}
