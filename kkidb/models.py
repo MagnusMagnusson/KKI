@@ -141,6 +141,14 @@ class Owner(models.Model):
 	date = models.DateField(null=True)
 	current = models.BooleanField()
 
+	def toObject(self):
+		owner = {}
+		owner['person'] = self.person.toObject()
+		owner['cat'] = self.cat.toObject()
+		owner['date'] = self.date
+		owner['current'] = self.current 
+		return owner
+
 class Judge(models.Model):
 	person = models.OneToOneField('Person')
 
@@ -295,6 +303,7 @@ class Cat(models.Model):
 			m = entry.person
 			if not m in owners:
 				entry.current = False
+				entry.save()
 				deleted += 1
 		#add all members not currently attatched
 		for person in owners:

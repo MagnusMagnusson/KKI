@@ -76,6 +76,7 @@ class ModuleManager {
                     result
                 }
             });
+            console.log(message, result);
             document.dispatchEvent(event);
         }
     }

@@ -70,7 +70,7 @@
 
 
 {% block sections %}
-    <section id="owner-overview">
+    <section id="ownership-overview">
         <h3>Ræktendur og Eigendur</h3>
         <div>
             {%if cat.cattery%}
@@ -82,7 +82,7 @@
                 {{cat.cattery.name}}
             {%endif%}
 
-            <ul id="owner-overview">
+            <ul id="owner-list">
                 {%if cat.owners%}
                     {%for owner in cat.owners%}
                         <li>

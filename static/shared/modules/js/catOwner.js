@@ -67,7 +67,7 @@
         d = {};
         d['data'] = string;
         window.Api.submitCatOwner(d, function (msg) {
-            window.ModuleManager.saveSuccess("catOwner");
+            window.ModuleManager.saveSuccess("catOwner",msg.results,msg.results);
         });
     })
 

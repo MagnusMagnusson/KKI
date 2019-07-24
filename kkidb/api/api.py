@@ -346,13 +346,16 @@ def submit_ownership_change(request):
 	
 	if 'owners' in post:
 		ownerList = []
+		resultOwnerList = []
 		for people in post['owners']:
 			per = Person.objects.get(id = people)
 			ownerList.append(per)	
 		cat.updateOwners(ownerList, date)
+	else:
+		return JsonResponse({'success':False,'error':"Engir eigendur tilgreinidir"})
 
 	
-	response = {'success':True, "results":ownerList}
+	response = {'success':True, "results":{"owners":[x.toObject() for x in cat.owners()]}}
 	return JsonResponse(response)
 
 
