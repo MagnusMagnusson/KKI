@@ -1,0 +1,7 @@
+﻿#show-result-overview table tr td {
+    text-overflow: ellipsis;
+    width: 10em;
+    max-height: 1px;
+    max-width: 25%;
+    overflow: hidden;
+}

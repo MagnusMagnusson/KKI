@@ -1,14 +1,22 @@
-﻿$("document").ready(function (e) {
+﻿/* Cat_profile.js
+    .js file governing the dynamic behaviours of the cat profiles
+*/
+
+$("document").ready(function (e) {
+    //Module event listeners. 
     document.addEventListener("module-success", function (e) {
         let data = e.detail;
 
         switch (data.module) {
+                //If the CatNeuter module reports a success, change the text from "unneutered" to "neutered"
             case "catNeuter": {
                 let text = $("#neuterText").text();
                 newText = (text == "Ógeld") ? "Geld" : "Geldur";
                 $("#neuterText").text(newText);
                 break;
             }
+                //If the CatOwner module reports a success, update the current owner list
+                // TODO: Update the owner history tab. 
             case "catOwner": {
                 $("#owner-list").empty();
                 for (o of data.result.owners) {

@@ -57,5 +57,26 @@ def cats(request):
 def cat_profile(request,id):
 	template = loader.get_template("cats/cat_profile.html")
 	cat = Cat.objects.get(id = id)
-	context = {'cat':cat}
+	litters = cat.litters()
+	sibling_litter = cat.litterMates()
+	sibling_full = cat.fullSiblings()
+	sibling_maternal = cat.maternalSiblings()
+	sibling_paternal = cat.paternalSiblings()
+	certificates = cat.catcert_set.all()
+	certs = [x for x in certificates]
+	def sortCert(a):
+		score = 0
+		if(a.cert.neuter):
+			score -= 10000
+		return score - a.absRank()
+
+	context = {
+		'cat':cat, 
+		'litters':litters, 
+		'siblings_litter':sibling_litter,
+		'siblings_full': sibling_full,
+		'siblings_maternal': sibling_maternal,
+		'siblings_paternal': sibling_paternal,
+		'certs': certs,
+	}
 	return HttpResponse(template.render(context,request))

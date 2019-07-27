@@ -11,93 +11,284 @@
 <script src="{% static 'js/cat_profile.js' %}"></script>
 {%endblock%}
 
+{% block styles %}
+{{block.super}}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cat_profile.css' %}">
+{% endblock %}
+
 {%block details %}
-<ul>
-    <li>{{cat.ems.ems}}</li>
-    <li><emph></emph> 
-        {%if cat.isMale%}
+<table id="detail-table" style="width:100%">
+    <tr>
+        <td>Litur</td>
+        <td>{{cat.ems.ems}}</td>
+    </tr>
+    <tr>
+        <td>Kyn</td>
+        <td>
+            {%if cat.isMale%}
             {%if cat.neuter %}
-                 <span id="neuterText">Geldur</span>
+            <span id="neuterText">Geldur</span>
             {%else%}
-                <span id="neuterText">Ógeldur</span>
+            <span id="neuterText">Ógeldur</span>
             {%endif%}
             Fress
-        {%else%}
+            {%else%}
 
-        {%if cat.neuter %}
+            {%if cat.neuter %}
             <span id="neuterText">Geld</span>
             {%else%}
-                <span id="neuterText">Ógeld</span>
+            <span id="neuterText">Ógeld</span>
             {%endif%}
             Læða
-        {%endif%}
-        </li>
-    <li><emph>F. </emph> {{cat.birth_date}}</li>
-    <li><emph>Skr.  </emph> {{cat.reg_date}}</li>
-    <li><emph>Örmerki:</emph>  
-     {%if cat.microchip_set.all|first%}
-        {%with cat.microchip_set.all|first as microchip %}
+            {%endif%}
+        </td>
+    </tr>
+    
+    <tr><td><emph>Fæðing </emph></td> <td>{{cat.birth_date}}</td></tr>
+    <tr><td><emph>Skráning  </emph></td> <td>{{cat.reg_date}}</td></tr>
+    <tr>
+        <td><emph>Örmerki</emph></td>
+        <td>
+            {%if cat.microchip_set.all|first%}
+            {%with cat.microchip_set.all|first as microchip %}
             {{microchip.microchip}}
-        {%endwith%}
-    {%else%}
-        Ekkert á skrá
-    {%endif%}
+            {%endwith%}
+            {%else%}
+            Ekkert á skrá
+            {%endif%}
+        </td>
+    </tr>
+    <tr>
+        <td><emph>Móðir </emph></td>
+        {%if cat.dam %}
+        <td>
+            <a href="/kettir/{{cat.dam.id}}">{{cat.dam.name}}, ({{cat.dam.ems.ems}}), {{cat.dam.reg_full}}</a>
+        </td>
+        {%else%}
+        <td>Engin skráð</td>
+        {%endif%}
+    </tr>
+    <tr>
+        <td>Faðir</td>
+        {%if cat.dam %}
+        <td><a href="/kettir/{{cat.sire.id}}">{{cat.sire.name}}, ({{cat.sire.ems.ems}}), {{cat.sire.reg_full}}</a></td>
+        {%else%}
+        <td><emph>Enginn skráður.</emph></td>
+        {%endif%}
+    </tr>
+    </table>
+    {% endblock %}
+
+    {%block profile-options %}
+    <li data-message="{{cat.id}}" class="module-button" data-module="catOwner">
+        Skrá Eigendaskipti
     </li>
-
-    {%if cat.dam %}
-        <li><emph>Móðir :</emph> <a href="/kettir/{{cat.dam.id}}">{{cat.dam.name}}, ({{cat.dam.ems.ems}}), {{cat.dam.reg_full}}</a></li>
-    {%else%}
-    <li><emph>Engin móðir skráð.</emph></li>
-    {%endif%}
-
-    {%if cat.dam %}
-    <li><emph>Faðir :</emph> <a href="/kettir/{{cat.sire.id}}">{{cat.sire.name}}, ({{cat.sire.ems.ems}}), {{cat.sire.reg_full}}</a></li>
-    {%else%}
-    <li><emph>Engin faðir skráður.</emph></li>
-    {%endif%}
-
-</ul>
-{% endblock %}
-
-{%block profile-options %}
-<li data-message="{{cat.id}}" class="module-button" data-module="catOwner">
-    Skrá Eigendaskipti
-</li>
-<li data-message="{{cat.id}}" class="module-button" data-module="catNeuter">
-    Skrá Geldingu
-</li>
-{% endblock %}
+    <li data-message="{{cat.id}}" class="module-button" data-module="catNeuter">
+        Skrá Geldingu
+    </li>
+    {% endblock %}
 
 
-{% block sections %}
-    <section id="ownership-overview">
+    {% block sections %}
+    <section data-name="Ræktun & Eigendur" id="basic-overview">
         <h3>Ræktendur og Eigendur</h3>
         <div>
             {%if cat.cattery%}
-                {%if cat.isMale%}
-                Ræktaður af
-                {%else%}
-                    Ræktuð af 
-                {%endif%}
-                {{cat.cattery.name}}
+            {%if cat.isMale%}
+            Ræktaður af
+            {%else%}
+            Ræktuð af
+            {%endif%}
+            {{cat.cattery.name}}
             {%endif%}
 
             <ul id="owner-list">
                 {%if cat.owners%}
-                    {%for owner in cat.owners%}
-                        <li>
-                            E. {{owner.person.name}}, síðan {{owner.date}}<br />
-                            <small>{{owner.person.fullAddress}}. 
-                            {%if owner.person.phone%}
-                                {{owner.person.phone}}, 
-                            {%endif%}
-                            {%if owner.person.email%}
-                               {{owner.person.email}}
-                            {%endif%}</small>
-                        </li>
-                    {%endfor%}
+                {%for owner in cat.owners%}
+                <li>
+                    {%if owner.person.member %}
+                    <a href="/felagar/{{owner.person.member.id}}">
+                        {%endif%}
+                        E. {{owner.person.name}}, síðan {{owner.date}}<br />
+                        {%if owner.person.member %}
+                    </a>
+                    {%endif%}
+                    <small>
+                        {{owner.person.fullAddress}}.
+                        {%if owner.person.phone%}
+                        {{owner.person.phone}},
+                        {%endif%}
+                        {%if owner.person.email%}
+                        {{owner.person.email}}
+                        {%endif%}
+                    </small>
+
+                </li>
+                {%endfor%}
                 {%endif%}
             </ul>
         </div>
     </section>
+
+    <section data-name="Eigendasaga" id="ownership-overview">
+        <h3>Eigendasaga</h3>
+        <div>
+            {%if cat.groupedOwnerHistory%}
+            {%for date, val in cat.groupedOwnerHistory.items%}
+            <b>{{date}}</b>
+            {%for owner in val%}
+
+            <ul>
+                <li>
+                    {%if owner.person.member %}
+                    <a href="/felagar/{{owner.person.member.id}}">
+                        {%endif%}
+                        {%if owner.current%}
+                        <b>(Núverandi)</b>
+                        {%endif%}
+                        <i>{{owner.person.name}},  ( {{owner.date}} )</i><br />
+                        {%if owner.person.member %}
+                    </a>
+                    {%endif%}
+
+
+                </li>
+                {%endfor%}
+            </ul>
+            {%endfor%}
+            {%endif%}
+        </div>
+    </section>
+
+    <section data-name="Systkin" id="sibling-overview">
+        <h3>Systkin</h3>
+        <b>Gotsystkin</b>
+
+        <ul>       
+            {% if siblings_litter.count == 0 %}
+            <li><i>Engin á skrá</i></li>
+            {% endif %}
+            {% for sibling in siblings_litter %}
+            <li>
+                <a href="/kettir/{{sibling.id}}">
+                    {{sibling.fullName}} <small>({{sibling.ems}}), {{sibling.reg_full}}</small>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <br />
+
+        <b>Alsystkin</b>
+
+        <ul>        
+            {% if siblings_full.count == 0 %}
+            <li><i>Engin á skrá</i></li>
+            {% endif %}
+            {% for sibling in siblings_full %}
+            <li>
+                <a href="/kettir/{{sibling.id}}">
+                    {{sibling.fullName}} <small>({{sibling.ems}}), {{sibling.reg_full}}</small>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <br />
+
+        <b>Sammæðra</b>
+
+        <ul>        
+            {% if siblings_maternal.count == 0 %}
+                <li><i>Engin á skrá</i></li>
+            {% endif %}
+            {% for sibling in siblings_maternal %}
+            <li>
+                <a href="/kettir/{{sibling.id}}">
+                    {{sibling.fullName}} <small>({{sibling.ems}}), {{sibling.reg_full}}</small>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <br />
+
+        <b>Samfeðra</b>
+
+        <ul>        
+            {% if siblings_paternal.count == 0 %}
+            <li><i>Engin á skrá</i></li>
+            {% endif %}
+            {% for sibling in siblings_paternal %}
+            <li>
+                <a href="/kettir/{{sibling.id}}">
+                    {{sibling.fullName}} <small>({{sibling.ems}}), {{sibling.reg_full}}</small> 
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+    </section>
+   
+    <section data-name="Got" id="litter-overview">
+        <h3>Got</h3>
+        {% if litters.count %}
+            <i>Engin got á skrá</i>
+        {% endif %}
+        {% for litter in litters %}
+            <i>{{litter|first}}</i>
+        <ul>
+            {%for kitten in litter|last %}
+            <li>
+                <a href="/kettir/{{kitten.id}}">
+                    {{kitten.fullName}} <small>({{kitten.ems}}), {{kitten.reg_full}}</small>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+            {% endfor %}
+    </section>
+ 
+    <section data-name="Áunnin Stig" id="show-result-overview">
+
+        {% for cert in certs %}
+
+
+            {% ifchanged cert.cert.prev.getTitle %}       
+                {%if not forloop.first %}
+                    </table>
+                {%endif %}           
+                   {% ifchanged cert.cert.neuter %}
+                        <br />
+                        {% if cert.cert.neuter %}
+                            <b>Flokkar Geldra</b><br />
+                        {%else%}
+                            <b>Premier Flokkar</b><br />
+                        {%endif %}
+                   {%endifchanged%}
+                    <i>
+                        <b>
+                            {%if cert.cert.prev.getTitle%}
+                            {{cert.cert.prev.getTitle.name}}<br />
+                            {%else%}
+                            Opinn Flokkur <br />
+                            {%endif%}
+                        </b>
+                    </i>
+
+                    <table>
+                    {%endifchanged%}
+
+
+                <tr>
+                    <td>{{cert.cert.name}} {{cert.cert.rank}}</td>
+
+                    {% if cert.judgement %}
+                    <td>{{cert.judgement.entry.show.date}}</td>
+
+                    <td><a href="/syningar/{{cert.judgement.entry.show.id}}">{{cert.judgement.entry.show.name}}</a></td>
+                    <td>{{cert.judgement.judge.person.name}}</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+                    </table>
+
+</section>
 {% endblock %}

@@ -52,6 +52,11 @@ section{
     margin-left: 13.35em;
 }
 
+#profile-sections section{
+    display:none;
+}
+
+
 #detail-area ul {
     padding-top: .75em;
 }
@@ -79,4 +84,49 @@ section{
 #profile-options ul li:hover {
     background-color:var(--lightorange);
     cursor: pointer;
+}
+
+#detail-table ,
+th,
+td {
+    border-collapse: collapse;
+}
+
+#detail-table tr td:first-child {
+    border-right: 1px solid var(--orange);
+    margin-right: .5em;
+}
+
+
+#detail-table tr td:nth-child(2) {
+    padding-left:1em;
+}
+
+.section-button {
+    background-color: var(--orange);
+    border: .5px solid white;
+    border-radius: .5em;
+    margin-top: 1333px;
+    position: relative;
+    padding-bottom: 1em;
+    padding: .2em;
+    padding-bottom: 0.2em;
+    padding-bottom: 1em;
+    margin-right: .1em;
+    color:white;
+}
+
+.section-button.selected{
+    background-color: var(--lightorange);
+}
+
+.section-button:hover {
+    background-color: var(--lightorange);
+    cursor:pointer;
+}
+
+#profile-sections-buttons {
+    overflow: hidden;
+    height: 1.5em;
+    padding-top: .8em;
 }
