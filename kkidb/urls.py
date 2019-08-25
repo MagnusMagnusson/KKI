@@ -23,10 +23,13 @@ urlpatterns = [
     url(r'api/', include("kkidb.api.urls")),
     url(r'modules/', include("kkidb.modules.urls")),
     url(r"^$",views.index),
+    url(r'kettir/skra/got',views.register_litter),
     url(r'kettir/([0-9]*)',views.cat_profile),
     url("kettir",views.cats),
     url(r'felagar/([0-9]{6})',views.member_profile),
     url("felagar",views.members),
     url(r'raektun/([0-9]*)',views.cattery_profile),
-    url("raektun",views.catteries)
+    url("raektun",views.catteries),
+    url(r'syningar/([0-9]*)',views.show_page),
+    url("syningar",views.shows)
 ]

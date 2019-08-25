@@ -1,0 +1,9 @@
+﻿#show-module-upperform {
+    margin-left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+#show-module-upperform .textinput {
+    width: inherit;
+}

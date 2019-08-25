@@ -16,6 +16,9 @@ class Api{
         this.urlList.submitCattery = "/api/skra/raektun";
         this.urlList.submitNeuter = "/api/skra/geldingu";
         this.urlList.submitCatOwner = "/api/skra/eigendaskipti";
+        this.urlList.submitShow = "/api/skra/syning";
+        this.urlList.submitCat = "/api/skra/kottur";
+        this.urlList.nextRegNr = "/api/util/skraningarnumer";
     }
 
     /*
@@ -29,7 +32,14 @@ class Api{
         this.get(this.urlList.find,data, callback);
     }
     
-
+    /*
+        getPerson{
+            'ssn': ssn to look up,
+            'member': only look up members
+            'name': filter by name
+        }
+        returns a list of all persons that fit *all* specified criteria.
+    */
     getPerson(terms, callback) {
         this.get(this.urlList.getPerson, terms, callback);
     }
@@ -70,6 +80,18 @@ class Api{
 
     submitCatOwner(data, callback) {
         this.post(this.urlList.submitCatOwner, data, callback);
+    }
+
+    submitShow(data, callback) {
+        this.post(this.urlList.submitShow, data, callback);
+    }
+
+    submitCat(data, callback) {
+        this.post(this.urlList.submitCat, data, callback);
+    }
+
+    getNextRegNr(callback) {
+        this.get(this.urlList.nextRegNr, {}, callback);
     }
 
     get(url, data, callback) {

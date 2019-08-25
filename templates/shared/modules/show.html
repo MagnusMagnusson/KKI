@@ -1,0 +1,59 @@
+﻿{% extends "shared/modules/module_master.html" %}
+{% load static %}
+
+{%block module_type%}show{%endblock%}
+
+{% block module_title%}
+    Nýskrá Sýningar
+{%endblock%}
+
+{%block module_sections %}
+    <div data-section="basic" class="button section selected">
+        Sýning
+    </div>
+{%endblock%}
+
+{%block styles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'shared/modules/css/module-show.css' %}">
+{%endblock %}
+
+{%block module_body %}
+    <form id="show-form">
+        <input id="show-oragnizer-mid" name="mid" style="display:none;"><br />
+
+        <section data-section="basic">
+            <div class="centeredContent">
+                <div>
+                    <table id="show-module-upperform">
+                        <tr>
+                            <td>Heiti sýningar</td>
+                            <td>Dagsetning </td>
+                            <td>Staðsetning</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="textinput" name="showName"/>
+                            </td>
+                            <td>
+                                <input type="date" class="textinput" name="showDate"/>
+                            </td>
+                            <td>
+                                <input class="textinput" name="showLocation"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                Nafn Sýningarstjóra<br />
+                <div id="show-organizer-name-wrapper">
+                    <input class="textinput" id="show-organizer-name" placeholder="Sýningarstjóri" />
+                    <div class="result-box">
+                        <ul class="result-box-list">
+                        </ul>
+                    </div>
+                </div>
+                <input id="show-organizer-ssn" name="ssn" class="textinput readonly" readonly><br />
+            </div>
+        </section>
+    </form>
+{%endblock%}
+

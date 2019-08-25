@@ -29,4 +29,7 @@ urlpatterns = [
 	url("skra/raektun",api.submit_cattery),
 	url("skra/gelding",api.submit_neuter),
 	url("skra/eigendaskipti",api.submit_ownership_change),
+	url("skra/syning",api.submit_show),
+	url("skra/kottur",api.submit_cat),
+	url("util/skraningarnumer",api.next_regid),
 ]

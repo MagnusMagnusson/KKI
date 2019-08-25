@@ -1,0 +1,21 @@
+﻿#shows-main{
+    width:100%;
+}
+
+#shows-main h4, #shows-main table tr th {
+    color: var(--orange);
+}
+
+#shows-main table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#shows-main table tr td {
+    text-align: center;
+}
+
+
+#shows-main table tr th{
+    border-bottom: 1px solid var(--orange);
+}

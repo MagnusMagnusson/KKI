@@ -1,0 +1,87 @@
+﻿{% extends "shared/master.html" %}
+{% load static %}
+
+{% block sidebar %}
+{%include "cats/cats_master.html"%}
+{%endblock%}
+
+{%block scripts %}
+{{block.super}}
+<script src='{%static "js/cat_register_litter.js"%}'></script>
+{% endblock %}
+
+{% block styles%}
+{{block.super}}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cat_register_litter.css' %}">
+{% endblock %}
+
+{%block main %}
+<h3>Nýskrá got</h3>
+
+<div>
+        <section id="lr_pairing">
+            <div class="fullPageForm">
+                <input required id="lr_cattery_registry_id" class="hidden" name="cattery"/>
+                <i>Ræktunarnafn</i><br />
+                <input id="lr_cattery_registry" class="textinput" />
+                <div id="lr_cattery_registry_results" class="result-box">
+                    <ul class="result-box-list"></ul>
+                </div>
+            </div>
+            <div>
+                <div class="fullPageForm float-left">
+                    <i>Skráninganúmer Föðurs</i><br />
+                    <div>
+                        <input data-fill="sire" id="lr_sire_registry" class="parent-search textinput" />
+                        <div id="lr_sire_registry_results" class="result-box">
+                            <ul class="result-box-list"></ul>
+                        </div>
+                    </div><br />
+                    <input readonly id="lr_sire_registry_name" class="readonly textinput" placeholder="Nafn Föðurs" /><br />
+                    <input required readonly id="lr_sire_registry_id" class="readonly textinput" placeholder="--" /><br />
+                    <input readonly id="lr_sire_registry_ems" class="readonly textinput" placeholder="EMS Föðurs" />
+                    <input readonly id="lr_sire_registry_micro" class="readonly textinput" placeholder="Örmerki Föðurs" />
+                    <input readonly id="lr_sire_registry_birthdate" class="readonly textinput" placeholder="Fæðingardagur Föðurs" />
+                </div>
+
+                <div class="fullPageForm float-left">
+                    <i>Skráninganúmer Móðurs</i><br />
+                    <div>
+                        <input data-fill="dam" id="lr_dam_registry" class="parent-search textinput" />
+                        <div id="lr_dam_registry_results" class="result-box">
+                            <ul class="result-box-list"></ul>
+                        </div>
+                    </div>
+                    <br />
+                    <input id="lr_dam_registry_name" readonly class="textinput readonly" placeholder="Nafn Móðurs" /><br />
+                    <input required readonly id="lr_dam_registry_id" class="readonly textinput" placeholder="--" /><br />
+                    <input id="lr_dam_registry_ems" readonly class="textinput readonly" placeholder="EMS Móðurs" />
+                    <input id="lr_dam_registry_micro" readonly class="textinput readonly" placeholder="Örmerki Móðurs" />
+                    <input id="lr_dam_registry_birthdate" readonly class="textinput readonly" placeholder="Fæðingardagur Móður" />
+                </div>
+                <div>
+                    <div class="fullPageForm float-left">
+                        <i>Fæðingardagur Gots</i><br />
+                        <input required type="date" id="lr_birthdate" class="textinput" name="litter_birthdate" />
+                    </div>
+                    <div class="fullPageForm float-left">
+                        <i>Fjöldi kettlinga</i><br />
+                        <input required type="number" class="textinput" name="litter_amount" />
+                    </div>
+                </div>
+            </div>
+            <div id="lr_next_button" class="top-space button">
+                Áfram
+            </div>
+        </section>
+        <section style="display:none" id="lr_kitten_section">
+            <i>Vinsamlegast fyllið út viðeigandi reiti fyrir hvern kettling</i>
+            <div id="lr_kitten_formlist">
+
+            </div>
+            <div id="lr_kitten_button">
+                <div id="confirm_litter_button" class="button">Staðfesta</div>
+            </div>
+        </section>
+</div>
+{%endblock%}

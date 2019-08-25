@@ -6,17 +6,19 @@ from django.template import loader
 from django.http import HttpResponse
 from kkidb.auth import authMiddleWare
 from kkidb.models import *
-from django.utils.decorators import decorator_from_middleware
+from django.utils.decorators import decorator_from_middleware_with_args
 # Create your views here.
 
+isLoggedIn = decorator_from_middleware_with_args(authMiddleWare.ValidateLogin)
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+
+@isLoggedIn()
 def index(request):
 	template = loader.get_template('index.html')
 	context = {}
 	return HttpResponse(template.render(context, request))
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+@isLoggedIn()
 def members(request):
 	template = loader.get_template("members/members.html")
 	members = Person.objects.all().exclude(member__isnull = True).order_by('name')[:25]
@@ -24,28 +26,28 @@ def members(request):
 	context = {'members':members}
 	return HttpResponse(template.render(context,request))
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+@isLoggedIn()
 def member_profile(request,id):
 	template = loader.get_template("members/member_profile.html")
 	member = Member.objects.get(id = id)
 	context = {'member':member.person}
 	return HttpResponse(template.render(context,request))
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+@isLoggedIn()
 def catteries(request):
 	template = loader.get_template("catteries/catteries.html")
 	
 	context = {}
 	return HttpResponse(template.render(context,request))
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+@isLoggedIn()
 def cattery_profile(request,id):
 	template = loader.get_template("catteries/cattery_profile.html")
 	cattery = Cattery.objects.get(id=id)
 	context = {'cattery':cattery}
 	return HttpResponse(template.render(context,request))
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+@isLoggedIn()
 def cats(request):
 	template = loader.get_template("cats/cats.html")
 	
@@ -53,7 +55,7 @@ def cats(request):
 	context = {}
 	return HttpResponse(template.render(context,request))
 
-@decorator_from_middleware(authMiddleWare.ValidateLogin)
+@isLoggedIn()
 def cat_profile(request,id):
 	template = loader.get_template("cats/cat_profile.html")
 	cat = Cat.objects.get(id = id)
@@ -79,4 +81,25 @@ def cat_profile(request,id):
 		'siblings_paternal': sibling_paternal,
 		'certs': certs,
 	}
+	return HttpResponse(template.render(context,request))
+
+@isLoggedIn()
+def shows(request):
+	template = loader.get_template("shows/shows.html")
+	context = {'shows':Show.objects.all().order_by("-date")}
+
+	return HttpResponse(template.render(context,request))
+
+@isLoggedIn()
+def show_page(request,show):	
+	template = loader.get_template("shows/show_management.html")
+	context = {'shows':Show.objects.getor404(id = show)}
+
+	return HttpResponse(template.render(context,request))
+
+@isLoggedIn()
+def register_litter(request):	
+	template = loader.get_template("cats/cats_register_litter.html")
+	context = {'catteries':Cattery.objects.all().order_by("name")}
+
 	return HttpResponse(template.render(context,request))

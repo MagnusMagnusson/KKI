@@ -270,6 +270,12 @@ class Cat(models.Model):
 		s += self.name
 		return s
 
+	def microchip(self):
+		chipset = self.microchip_set.all()
+		if len(chipset) > 0:
+			return chipset[len(chipset) - 1]
+		else:
+			return None
 
 	def allEms(self):
 		ems_set = self.catems_set;
@@ -408,6 +414,9 @@ class Cat(models.Model):
 		cat['registry'] = self.reg_full
 		cat['birthdate'] = self.birth_date
 		cat['regdate'] = self.reg_date
+		cat['microchip'] = self.microchip()
+		if cat['microchip']:
+			cat['microchip'] = cat['microchip'].microchip
 		cat['gender'] = "Male" if self.isMale else "Female"
 		cat['owners'] = []
 		for owner in self.owners():
@@ -486,9 +495,14 @@ class CatEms(models.Model):
 
 class Show(models.Model):
 	name = models.CharField(max_length = 51)
-	orginizer = models.ForeignKey('Person')
+	organizer = models.ForeignKey('Person')
 	date = models.DateField()
-	location = models.CharField(max_length = 50)
+	location = models.CharField(max_length = 50, null=True)
+	visibleToPublic = models.BooleanField(default = True)
+	openForRegistration = models.BooleanField(default = False)
+
+	def isOver(self):
+		return date.today() < self.date
 
 class Entry(models.Model):
 	cat = models.ForeignKey('Cat')
@@ -598,24 +612,23 @@ class Award(models.Model):
 
 
 
-
-	#Auth
+  #Auth
 
 class Permissions(models.Model):
-	id = models.BigIntegerField(primary_key = True)
-	name = models.CharField(max_length=20, unique = True)
+       id = models.BigIntegerField(primary_key = True)
+       name = models.CharField(max_length=20, unique = True)
 
 class MemberPermissions(models.Model):
-	user = models.ForeignKey(Member)
-	permission = models.ForeignKey(Permissions)
-	class Meta:
-		unique_together = (('user', 'permission'))
+       user = models.ForeignKey(Member)
+       permission = models.ForeignKey(Permissions)
+       class Meta:
+               unique_together = (('user', 'permission'))
 
 class Login_log(models.Model):
-	id = models.AutoField(primary_key = True)
-	user = models.ForeignKey(Member)
-	time = models.DateTimeField()
-	lastRefresh = models.DateTimeField(null = True)
-	expires = models.BooleanField(default = True)
-	ip = models.CharField(max_length = 50)
-	cookie = models.CharField(max_length = 256, unique = True, null = True)
+       id = models.AutoField(primary_key = True)
+       user = models.ForeignKey(Member)
+       time = models.DateTimeField()
+       lastRefresh = models.DateTimeField(null = True)
+       expires = models.BooleanField(default = True)
+       ip = models.CharField(max_length = 50)
+       cookie = models.CharField(max_length = 256, unique = True, null = True)

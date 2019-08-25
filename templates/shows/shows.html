@@ -1,0 +1,42 @@
+﻿{% extends "shows/show_master.html" %}
+{% load static %}
+
+
+{%block main%}
+<div id="shows-main">
+    <h4>Sýningar Kynjakatta</h4>
+    <table>
+        <tr>
+            <th> Sýningarheiti </th>
+            <th> Dagsetning </th>
+            <th> Staðsetning </th>
+            <th> Sýningarstjóri </th>
+        </tr>
+        {%for show in shows %}
+
+        <tr>
+            <td>
+                <a href="/syningar/{{show.id}}">
+                    {{show.name}}
+                </a>
+            </td> 
+            <td>
+                {{show.date}}
+            </td>
+            <td>
+                {{show.location}}
+            </td>
+            <td>
+                {{show.organizer.name}}
+            </td>
+        </tr>
+        {%endfor%}
+    </table>
+</div>
+
+
+{% endblock %}
+
+{%block styles%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/shows.css' %}"/>
+{%endblock%}
