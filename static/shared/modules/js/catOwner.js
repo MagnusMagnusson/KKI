@@ -42,7 +42,7 @@
             type = "cat";
             id = msg;
             $("#catOwner-id").val(id);
-            data = { type, id };
+            data = { type, "values": {id} };
             window.Api.getById(data, function (result) {
                 for (person of result.results.owners) {
                     addToOwnerList(person);

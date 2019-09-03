@@ -12,7 +12,6 @@ from django.db.models import Max
 from datetime import date
 import json
 
-# Create your views here.
 
 def getObjectset(type):
 	if type == 'member':
@@ -23,6 +22,8 @@ def getObjectset(type):
 		objectset = Cat.objects
 	elif type == 'person':
 		objectset = Person.objects
+	elif type == 'judge':
+		objectset = Person.objects.filter(judge__isnull = False)
 	else:
 		objectset = Cat.objects.none()
 
@@ -165,21 +166,29 @@ def get_cat(request):
 		d = {"success":False,'error':"Tilgreindu í það minnsta einn leitarramma"}
 	return JsonResponse(d)
 
-
-def getById(request):
-	if not request.is_ajax():
+def get(request):
+	if False and not request.is_ajax():
 		d = {
 			'success':False,
 			'error': "óvænt villa kom upp við beiðni þinni"
 		}
 		return JsonResponse(D)
-	type = request.GET['type'].lower()
-	id = request.GET['id']
+
+	dat = json.loads(request.GET['data'])
+	type = dat['type'].lower()
+	values = dat['values']
+
 	objectSet = getObjectset(type)
-	object = objectSet.get(id = id)
-	d = {
+	object = objectSet.filter(**values)
+	if len(object) == 0:
+		d = {
+			'success':True,
+			'results':None
+		}
+	else:
+		d = {
 		'success':True,
-		'results': object.toObject()
+		'results': object[0].toObject()
 	}
 	return JsonResponse(d)
 
@@ -236,6 +245,8 @@ def submit_person(request):
 		person.city = post['city']
 	if "phone" in post:
 		person.phone = post['phone']
+	if "country" in post:
+		person.country = post['country']
 	if "email" in post:
 		person.email = post['email']
 	if "ssn" in post:

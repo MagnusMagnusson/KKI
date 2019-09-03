@@ -278,6 +278,10 @@ a:hover {
     width:4em;
 }
 
-.normal.textinput{
-    width:inherit;
+.tiny {
+    width: 7em;
+}
+
+.normal.textinput {
+    width: inherit;
 }

@@ -62,8 +62,8 @@
     color: white;
 }
 
-.module > section{
-    display:none;
+.module > section {
+    display: none;
 }
 
 section[data-section='basic']{
@@ -108,4 +108,9 @@ span.red {
 
 span.red:hover{
     cursor:pointer;
+}
+
+
+.button.noLeft {
+    left: inherit !important;
 }

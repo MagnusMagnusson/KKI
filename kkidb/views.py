@@ -93,7 +93,7 @@ def shows(request):
 @isLoggedIn()
 def show_page(request,show):	
 	template = loader.get_template("shows/show_management.html")
-	context = {'shows':Show.objects.getor404(id = show)}
+	context = {'show':Show.objects.get(id = show)}
 
 	return HttpResponse(template.render(context,request))
 

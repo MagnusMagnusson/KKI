@@ -4,8 +4,8 @@
         type = "cat";
         id = msg;
         $("#catNeuterForm-id").val(id);
-        data = { type, id };
-        window.Api.getById(data, function (result) {
+        data = { type, "values": { id } };
+        window.Api.get(data, function (result) {
             $("#catNeuterForm-catRegNr").val(result.results.registry)
             $("#catNeuterForm-catName").val(result.results.name)
         })

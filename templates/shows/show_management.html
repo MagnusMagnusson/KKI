@@ -1,12 +1,78 @@
-﻿{% extends "shows/show_master.html" %}
+﻿{% extends "shared/profile.html" %}
 {% load static %}
 
 
-{%block main%}
+{%block profile_name %}
+{{show.name}}
+{%endblock%}
 
+{%block details %}
 
+<table id="detail-table" style="width:100%">
+    <tr>
+        <td>Dagsetning</td>
+        <td>{{show.date}}</td>
+    </tr>
+    <tr>
+        <td>Staðsetning</td>
+        <td>
+            {{show.location}}
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Sýningarstjóri
+        </td>
+        <td>
+            {{show.organizer.name}}
+        </td>
+    </tr>
+    <tr>
+        <td>Skráðir kettir</td>
+        <td>
+            {{show.catsRegistered}}
+        </td>
+    </tr>
+    <tr>
+        <td>Kettir sem bíða dóms</td>
+        <td>
+            {{show.judgementsPending}}
+        </td>
+    </tr>
+    <tr>
+        <td>Kettir sem mættu fyrir dóm</td>
+        <td>{{show.judgementsFilled}}</td>
+    </tr>
+</table>
+   
 {% endblock %}
 
+
+ {%block profile-options %}
+<li data-message="{{show.id}}" class="module-button" data-module="showJudge">
+    Skrá Dómara
+</li>
+
+
+    {% endblock %}
+
+
+ {% block sections %}
+<section data-name="Dómarar" id="judges-overview">
+    <h3>Dómarar sýningar</h3>
+    <div>
+        <ul>
+            {%for judge in show.judges %}
+            <li>{{judge.fullName}}</li>
+            {%endfor%}
+        </ul>
+    </div>
+</section>
+{% endblock %}
+
+
 {%block styles%}
-<link rel="stylesheet" type="text/css" href="{% static 'css/shows.css' %}"/>
+{{block.super}}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cat_profile.css' %}">
 {%endblock%}
+

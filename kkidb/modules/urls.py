@@ -25,5 +25,6 @@ urlpatterns = [
     url("catteryOwner$",modules.catteryOwner),
     url("catNeuter$",modules.catNeuter),
     url("catOwner$",modules.catOwner),
-    url("show",modules.show),
+    url("showJudge$",modules.showJudge),
+    url("show$",modules.show),
 ]

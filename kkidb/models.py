@@ -33,10 +33,14 @@ class Person(models.Model):
 		member['address'] = self.address
 		member['postcode'] = self.postcode
 		member['city'] = self.city
+		member['country'] = self.country
 		member['pid'] = self.id
 		if(hasattr(self, 'member')):
-			member['last_payment'] = self.member.lastPaymentDate() if self.member else None 
-			member['id'] = self.member.id if self.member else None
+			member['last_payment'] = self.member.lastPaymentDate() 
+			member['id'] = self.member.id 
+			
+		if(hasattr(self, 'judge')):
+			member['jid'] = self.judge.id
 		return member
 
 class Member(models.Model):
@@ -151,6 +155,8 @@ class Owner(models.Model):
 
 class Judge(models.Model):
 	person = models.OneToOneField('Person')
+	def fullName(self):
+		return self.person.name + " [ "+ self.person.country+" ]"
 
 class Cattery(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -503,6 +509,22 @@ class Show(models.Model):
 
 	def isOver(self):
 		return date.today() < self.date
+	def catsRegistered(self):
+		return self.entry_set.all().count()
+	def littersRegistered(self):
+		return self.litter_set.all().count()
+	def judges(self):
+		allJudges = ShowJudges.objects.filter(show = self)
+		return allJudges
+	def judgements(self,lower = 0,count = 20):
+		entries = Judgement.objects.filter(entry__show = self).order_by("entry__catalog_nr")[lower:lower+count]
+		return entries
+	def judgementsFilled(self):
+		judgements = Judgement.objects.filter(entry__show = self, abs = False).count()
+		return judgements
+	def judgementsPending(self):
+		judgements = Judgement.objects.filter(entry__show = self, abs__isnull = True).count()
+		return judgements
 
 class Entry(models.Model):
 	cat = models.ForeignKey('Cat')
@@ -519,16 +541,34 @@ class ShowJudges(models.Model):
 	class Meta:
 		unique_together = ('show','judge')
 
+	def fullName(self):
+		return self.judge.fullName()
+
+
 class Judgement(models.Model):
 	entry = models.OneToOneField('Entry', primary_key = True)
 	judge = models.ForeignKey('Judge')
 	judgement = models.CharField(max_length = 10) #EX1
-	biv = models.BooleanField()
-	abs = models.BooleanField()
+	biv = models.BooleanField(default = False)
+	abs = models.NullBooleanField(null = True)
 	comment = models.CharField(max_length = 2048)
 
+	def filled(self):
+		return not abs is None 
 	def date(self):
 		return self.entry.show.date
+	def cert(self):
+		if hasattr(self,'catcert'):
+			return self.catcert.cert
+		else:
+			return None
+	def nom(self):
+		if hasattr(self,'Nomination'):
+			return self.Nomination
+		else:
+			return None
+
+		
 
 class Litter(models.Model):
 	class Meta:
@@ -560,7 +600,9 @@ class Cert(models.Model):
 			return None
 		else:
 			return certQ[0]
-			
+		
+	def fullName(self):
+		return self.name + str(self.rank)
 
 	def getTitle(self):
 		if hasattr(self,'title'):
@@ -582,7 +624,7 @@ class Cert(models.Model):
 
 class CatCert(models.Model):
 	cat = models.ForeignKey('Cat')
-	judgement = models.ForeignKey('Judgement', null=True)
+	judgement = models.OneToOneField('Judgement', null=True)
 	cert = models.ForeignKey('Cert')
 	ems = models.CharField(max_length = 20, null=True)
 
@@ -599,7 +641,7 @@ class Title(models.Model):
 	cert = models.OneToOneField('Cert',null=True)
 
 class Nomination(models.Model):
-	judgement = models.ForeignKey('Judgement')
+	judgement = models.OneToOneField('Judgement')
 	award = models.ForeignKey('Award')
 	bis = models.BooleanField()
 

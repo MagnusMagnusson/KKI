@@ -1,0 +1,51 @@
+﻿{% extends "shared/modules/module_master.html" %}
+{% load static %}
+
+{%block module_type%}showJudge{%endblock%}
+
+{% block module_title%}
+    Skrá Dómara á Sýningu
+{%endblock%}
+
+{%block module_sections %}
+<div data-section="basic" class="button section selected">
+    Dómari
+</div>
+{%endblock%}
+
+
+{%block module_body %}
+    <form id="showJudge-form">
+        <input id="show-id" name="show" class="hidden readonly">
+        <section data-section="basic">
+            <div class="centeredContent">
+                <div>
+                    <div id="showJudge_search_wrapper">
+                        <input id="showJudge_id" name="judgeId" class="hidden readonly"><br />
+                        <input id="showJudge_judgename" placeholder="nafn" name="name" class="textinput" />
+                        <div id="showJudge_judgename_results" class="result-box">
+                            <ul class="result-box-list"></ul>
+                        </div>
+                    </div>
+                    <select class="tiny" id="showJudge-country" name="country">
+                        {%include "shared/AllCountriesSnipped.html"%}
+                    </select>
+                    <div id="addJudge-button" class="button noLeft">Leita</div>
+                </div>
+                <div id="showJudge-list-window" class="list-window">
+                    <ul></ul>
+                </div>
+            </div>
+        </section>
+    </form>
+<div style ="display:none;" id="confirm-new-judge">
+    <div  class="centeredContent">
+        <h3>Óþekktur dómari</h3>
+        <p>Dómarinn <emph id="confirm-judge-name">Nafn</emph> frá <emph id="confirm-judge-nation">landi</emph> er ekki þekktur. </p>
+        <p>Viltu bæta honum á skrá?</p>
+        <div id="confirmJudge" class="button noLeft">Já</div>
+        <div id="confirmJudge" class="button noLeft">Nei</div>
+    </div>
+</div>
+{%endblock%}
+

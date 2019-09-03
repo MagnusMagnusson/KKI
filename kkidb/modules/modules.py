@@ -163,3 +163,22 @@ def show(request):
 	scripts.append("/static/shared/modules/js/show.js")
 	d['js'] = scripts
 	return JsonResponse(d)
+
+def showJudge(request):
+	if not request.is_ajax():
+		d = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(d)
+	
+	template = loader.get_template("shared/modules/showJudge.html")
+	
+	d = {}
+	context = {}
+	d['name'] = 'showJudge'
+	d['html'] = template.render(context,request);
+	scripts = moduleJS[:]
+	scripts.append("/static/shared/modules/js/showJudge.js")
+	d['js'] = scripts
+	return JsonResponse(d)
