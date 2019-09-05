@@ -15,6 +15,7 @@ class Command(BaseCommand):
 		
 		person = Person.objects.get(ssn=ssn)
 		member = person.member
+		password = pWord.encode("utf-8")
 		password = auth.hash_password(pWord)
 		member.password = password[0]
 		member.salt = password[1]

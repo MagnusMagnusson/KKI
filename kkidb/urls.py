@@ -20,16 +20,16 @@ from django.conf.urls import include
 
 
 urlpatterns = [
-    url(r'api/', include("kkidb.api.urls")),
-    url(r'modules/', include("kkidb.modules.urls")),
-    url(r"^$",views.index),
-    url(r'kettir/skra/got',views.register_litter),
-    url(r'kettir/([0-9]*)',views.cat_profile),
-    url("kettir",views.cats),
-    url(r'felagar/([0-9]{6})',views.member_profile),
-    url("felagar",views.members),
-    url(r'raektun/([0-9]*)',views.cattery_profile),
-    url("raektun",views.catteries),
-    url(r'syningar/([0-9]*)',views.show_page),
-    url("syningar",views.shows)
+    path(r'api/', include("kkidb.api.paths")),
+    path(r'modules/', include("kkidb.modules.paths")),
+    path(r"^$",views.index),
+    path(r'kettir/skra/got',views.register_litter),
+    path(r'kettir/<int:id>',views.cat_profile),
+    path("kettir",views.cats),
+    path(r'felagar<int:id>',views.member_profile),
+    path("felagar",views.members),
+    path(r'raektun/<int:id>',views.cattery_profile),
+    path("raektun",views.catteries),
+    path(r'syningar/<int:id>',views.show_page),
+    path("syningar",views.shows)
 ]

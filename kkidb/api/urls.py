@@ -13,23 +13,35 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.urls import path
 from django.contrib import admin
 from kkidb.api import api
 
 urlpatterns = [
-    url("login",api.login),
-	url("leit",api.find),
-	url("saekja/einstakling",api.get_person),
-	url("saekja/kott",api.get_cat),
-	url("saekja/",api.get),
-	url("skra/greidsla",api.submit_payment),
-	url("skra/einstaklingur",api.submit_person),
-	url("skra/felagi",api.submit_member),
-	url("skra/raektun",api.submit_cattery),
-	url("skra/gelding",api.submit_neuter),
-	url("skra/eigendaskipti",api.submit_ownership_change),
-	url("skra/syning",api.submit_show),
-	url("skra/kottur",api.submit_cat),
-	url("util/skraningarnumer",api.next_regid),
+    path("login",api.login),
+	path("kettir/<int:id>", api.cat),
+	path("kettir",api.cats),
+	path("felagar/<int:id>",api.member),
+	path("felagar",api.members),
+	path("raektanir/<int:id>", api.cattery),
+	path("raektanir",api.catteries),
+	path("syningar/<int:id>/keppendur", api.entrants),
+	path("syningar/<int:sid>/keppendur/<int:eid>", api.entrant),
+	path("syningar/<int:id>", api.show),
+	path("syningar", api.shows),
+
+
+#	url("leit",api.find),
+#	url("saekja/einstakling",api.get_person),
+#	url("saekja/kott",api.get_cat),
+#	url("saekja/",api.get),
+#	url("skra/greidsla",api.submit_payment),
+#	url("skra/einstaklingur",api.submit_person),
+#	url("skra/felagi",api.submit_member),
+#	url("skra/raektun",api.submit_cattery),
+#	url("skra/gelding",api.submit_neuter),
+#	url("skra/eigendaskipti",api.submit_ownership_change),
+#	url("skra/syning",api.submit_show),
+#	url("skra/kottur",api.submit_cat),
+#	url("util/skraningarnumer",api.next_regid),
 ]

@@ -135,13 +135,13 @@ class Payment(models.Model):
 
 class MemberPayment(models.Model):
 	member = models.ForeignKey(Member, on_delete=models.CASCADE)
-	payment = models.ForeignKey(Payment)
+	payment = models.ForeignKey(Payment,on_delete=models.CASCADE)
 	class Meta:
 		unique_together = ("member","payment")
 
 class Owner(models.Model):
-	person = models.ForeignKey('Person')
-	cat = models.ForeignKey('Cat')
+	person = models.ForeignKey('Person',on_delete=models.CASCADE)
+	cat = models.ForeignKey('Cat', on_delete=models.CASCADE)
 	date = models.DateField(null=True)
 	current = models.BooleanField()
 
@@ -154,7 +154,7 @@ class Owner(models.Model):
 		return owner
 
 class Judge(models.Model):
-	person = models.OneToOneField('Person')
+	person = models.OneToOneField('Person',on_delete=models.CASCADE)
 	def fullName(self):
 		return self.person.name + " [ "+ self.person.country+" ]"
 
@@ -164,7 +164,7 @@ class Cattery(models.Model):
 	name = models.CharField(max_length = 50, unique=True)
 	country = models.CharField(max_length = 3, null=True)
 	prefix = models.BooleanField()
-	organization = models.ForeignKey("Organization",null = True)
+	organization = models.ForeignKey("Organization",null = True, on_delete=models.CASCADE)
 	email = models.CharField(max_length=1024,null=True)
 	address = models.CharField(max_length = 50, null = True)
 	city = models.CharField(max_length = 50, null = True)
@@ -229,8 +229,8 @@ class Cattery(models.Model):
 		return str
 
 class CatteryOwner(models.Model):
-	cattery = models.ForeignKey('Cattery')
-	owner = models.OneToOneField('Person')
+	cattery = models.ForeignKey('Cattery', on_delete=models.CASCADE)
+	owner = models.OneToOneField('Person',on_delete=models.CASCADE)
 
 class Cat(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -240,9 +240,9 @@ class Cat(models.Model):
 	birth_date = models.DateField(null = True)
 	reg_date = models.DateField(null = True)
 	isMale = models.BooleanField()
-	dam = models.ForeignKey('Cat',related_name='dam_children',null=True)
-	sire = models.ForeignKey('Cat',related_name='sire_children', null=True)
-	cattery = models.ForeignKey('Cattery',null=True)
+	dam = models.ForeignKey('Cat',related_name='dam_children',null=True, on_delete=models.PROTECT)
+	sire = models.ForeignKey('Cat',related_name='sire_children', null=True,on_delete=models.PROTECT)
+	cattery = models.ForeignKey('Cattery',null=True, on_delete=models.CASCADE)
 
 
 	def owners(self):
@@ -437,19 +437,19 @@ class Cat(models.Model):
 
 
 class Import(models.Model):
-	cat = models.OneToOneField('Cat')
-	organization = models.ForeignKey('organization')
+	cat = models.OneToOneField('Cat',on_delete=models.CASCADE)
+	organization = models.ForeignKey('organization',on_delete=models.CASCADE)
 	country = models.CharField(max_length = 3)
 	original_reg_date = models.DateField()
 	original_reg_id = models.CharField(max_length = 20)
 
 class Neuter(models.Model):
-	cat = models.OneToOneField('Cat', primary_key = True)
+	cat = models.OneToOneField('Cat', primary_key = True,on_delete=models.CASCADE)
 	date = models.DateField(null = True)
 
 class Microchip(models.Model):
 	id = models.AutoField(primary_key = True)
-	cat = models.ForeignKey('Cat')
+	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
 	microchip = models.CharField(max_length = 30)
 
 class Organization(models.Model):
@@ -469,8 +469,8 @@ class Color(models.Model):
 	desc = models.CharField(max_length=1024)
 
 class EMS(models.Model):
-	breed = models.ForeignKey('Breed')
-	color = models.ForeignKey('Color')
+	breed = models.ForeignKey('Breed',on_delete=models.CASCADE)
+	color = models.ForeignKey('Color',on_delete=models.CASCADE)
 	group = models.IntegerField(null = True)
 	
 	def toObject(self):
@@ -485,8 +485,8 @@ class EMS(models.Model):
 		unique_together = ('breed', 'color')
 
 class CatEms(models.Model):
-	cat = models.ForeignKey('Cat')
-	ems = models.ForeignKey('EMS')
+	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
+	ems = models.ForeignKey('EMS',on_delete=models.CASCADE)
 	date = models.DateField()
 	def __str__(self):
 		return str(self.ems)
@@ -501,7 +501,7 @@ class CatEms(models.Model):
 
 class Show(models.Model):
 	name = models.CharField(max_length = 51)
-	organizer = models.ForeignKey('Person')
+	organizer = models.ForeignKey('Person',on_delete=models.CASCADE)
 	date = models.DateField()
 	location = models.CharField(max_length = 50, null=True)
 	visibleToPublic = models.BooleanField(default = True)
@@ -527,8 +527,8 @@ class Show(models.Model):
 		return judgements
 
 class Entry(models.Model):
-	cat = models.ForeignKey('Cat')
-	show = models.ForeignKey('Show')
+	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
+	show = models.ForeignKey('Show',on_delete=models.CASCADE)
 	catalog_nr = models.IntegerField()
 	guest = models.BooleanField() 	
 	class Meta:
@@ -536,8 +536,8 @@ class Entry(models.Model):
 		unique_together = ('show', 'catalog_nr')
 
 class ShowJudges(models.Model):
-	show = models.ForeignKey(Show)
-	judge = models.ForeignKey(Judge)
+	show = models.ForeignKey(Show,on_delete=models.CASCADE)
+	judge = models.ForeignKey(Judge,on_delete=models.CASCADE)
 	class Meta:
 		unique_together = ('show','judge')
 
@@ -546,8 +546,8 @@ class ShowJudges(models.Model):
 
 
 class Judgement(models.Model):
-	entry = models.OneToOneField('Entry', primary_key = True)
-	judge = models.ForeignKey('Judge')
+	entry = models.OneToOneField('Entry', primary_key = True,on_delete=models.CASCADE)
+	judge = models.ForeignKey('Judge',on_delete=models.CASCADE)
 	judgement = models.CharField(max_length = 10) #EX1
 	biv = models.BooleanField(default = False)
 	abs = models.NullBooleanField(null = True)
@@ -574,24 +574,24 @@ class Litter(models.Model):
 	class Meta:
 		unique_together = ('show', 'catalog')
 	catalog = models.CharField(max_length = 3)
-	show = models.ForeignKey('Show')
+	show = models.ForeignKey('Show',on_delete=models.CASCADE)
 
 class LitterCat(models.Model):
-	litter = models.ForeignKey('Litter')
-	entry = models.OneToOneField('Entry', primary_key = True)
+	litter = models.ForeignKey('Litter',on_delete=models.CASCADE)
+	entry = models.OneToOneField('Entry', primary_key = True,on_delete=models.CASCADE)
 
 class LitterJudgement(models.Model):
-	show = models.ForeignKey('Show')
-	judge = models.ForeignKey('Judge')
+	show = models.ForeignKey('Show',on_delete=models.CASCADE)
+	judge = models.ForeignKey('Judge',on_delete=models.CASCADE)
 	abs = models.BooleanField()
 	rank = models.IntegerField()
 	comment = models.CharField(max_length = 2048)
-	litter = models.ForeignKey('Litter')
+	litter = models.ForeignKey('Litter',on_delete=models.CASCADE)
 
 class Cert(models.Model):
 	name = models.CharField(max_length = 10)
 	rank = models.IntegerField()
-	next = models.ForeignKey('Cert', null=True)
+	next = models.ForeignKey('Cert', null=True,on_delete=models.CASCADE)
 	neuter = models.BooleanField()
 
 	def prev(self):
@@ -623,9 +623,9 @@ class Cert(models.Model):
 			return 1
 
 class CatCert(models.Model):
-	cat = models.ForeignKey('Cat')
-	judgement = models.OneToOneField('Judgement', null=True)
-	cert = models.ForeignKey('Cert')
+	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
+	judgement = models.OneToOneField('Judgement', null=True,on_delete=models.CASCADE)
+	cert = models.ForeignKey('Cert',on_delete=models.CASCADE)
 	ems = models.CharField(max_length = 20, null=True)
 
 	def title(self):
@@ -638,16 +638,16 @@ class CatCert(models.Model):
 class Title(models.Model):
 	name = models.CharField(max_length = 50)
 	short = models.CharField(max_length = 10)
-	cert = models.OneToOneField('Cert',null=True)
+	cert = models.OneToOneField('Cert',null=True,on_delete=models.CASCADE)
 
 class Nomination(models.Model):
-	judgement = models.OneToOneField('Judgement')
-	award = models.ForeignKey('Award')
+	judgement = models.OneToOneField('Judgement',on_delete=models.CASCADE)
+	award = models.ForeignKey('Award',on_delete=models.CASCADE)
 	bis = models.BooleanField()
 
 class LitterNomination(models.Model):
-	judgement = models.ForeignKey('LitterJudgement')
-	award = models.ForeignKey('Award')
+	judgement = models.ForeignKey('LitterJudgement',on_delete=models.CASCADE)
+	award = models.ForeignKey('Award',on_delete=models.CASCADE)
 
 class Award(models.Model):
 	name = models.CharField(max_length = 50)
@@ -661,14 +661,14 @@ class Permissions(models.Model):
        name = models.CharField(max_length=20, unique = True)
 
 class MemberPermissions(models.Model):
-       user = models.ForeignKey(Member)
-       permission = models.ForeignKey(Permissions)
+       user = models.ForeignKey(Member,on_delete=models.CASCADE)
+       permission = models.ForeignKey(Permissions,on_delete=models.CASCADE)
        class Meta:
                unique_together = (('user', 'permission'))
 
 class Login_log(models.Model):
        id = models.AutoField(primary_key = True)
-       user = models.ForeignKey(Member)
+       user = models.ForeignKey(Member,on_delete=models.CASCADE)
        time = models.DateTimeField()
        lastRefresh = models.DateTimeField(null = True)
        expires = models.BooleanField(default = True)
