@@ -7,6 +7,9 @@ $(document).ready(function () {
         var value = $("#leitargluggi").text();
         var type = $("#leitargluggi").data('type');
         var term = $("#leitargluggi").data('term');
-        window.Api.find({ value,type,term }, searchCallback);
+        console.log(term);
+        var search = {}
+        search[term] = value;
+        window.Api.find(type, search, searchCallback);
     });
 })

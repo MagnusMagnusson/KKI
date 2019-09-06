@@ -237,6 +237,9 @@ class Cat(models.Model):
 	name = models.CharField(max_length = 50)
 	reg_full = models.CharField(max_length = 50, null = True, unique=True)
 	reg_nr = models.IntegerField(null = True)
+	registration_class = models.CharField(max_length = 3, null = True, default = "")
+	country = models.CharField(max_length = 3, null = True, default = "")
+	organization = models.ForeignKey("Organization", null=True, on_delete=models.PROTECT)
 	birth_date = models.DateField(null = True)
 	reg_date = models.DateField(null = True)
 	isMale = models.BooleanField()
@@ -416,23 +419,142 @@ class Cat(models.Model):
 		else:
 			cat['ems'] = None
 		cat['name'] = self.name
-		cat['fullName'] = self.fullName()
-		cat['registry'] = self.reg_full
+		cat['full_name'] = self.fullName()
+		cat['registry_number'] = self.reg_full
+		cat['country'] = self.country
+		cat['registration_class'] = self.registration_class
+		cat['organization'] = self.organization
+
 		cat['birthdate'] = self.birth_date
-		cat['regdate'] = self.reg_date
+		cat['registration_date'] = self.reg_date
 		cat['microchip'] = self.microchip()
 		if cat['microchip']:
 			cat['microchip'] = cat['microchip'].microchip
 		cat['gender'] = "Male" if self.isMale else "Female"
 		cat['owners'] = []
 		for owner in self.owners():
-			cat['owners'].append(owner.person.toObject())
+			cat['owners'].append(owner.person.id)
 		if self.cattery:
-			cat['cattery'] = self.cattery.toObject()
+			cat['cattery'] = self.cattery.id
 		else:
 			cat['cattery'] = None
+		cat['sire'] = self.sire_id 
+		cat['dam'] = self.dam_id
+		if hasattr(self,"neuter"):
+			cat['neutered'] = True 
+			cat['neutered_date'] = self.neuter.date
+		else:
+			cat['neutered'] = False 
+			cat['neutered_date'] = None
+		cat['dam'] = self.dam_id
 		return cat
 
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"name":"name",
+			"neutered":"neuter__isnull",
+			"registry_number":"reg_full",
+			"registry_digits":"reg_nr",
+			"country":"country",
+			"registration_class":"registration_class",
+			"organization":"organization__name",
+			"gender":"isMale",
+			"cattery":"cattery__name",
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		if "neutered_isnull" in translatedFilter:
+			translatedFilter["neutered_isnull"] = not translatedFilter["neutered_isnull"]
+		if "isMale" in translatedFilter:
+			translatedFilter["isMale"] = True if translatedFilter["isMale"] =="male" else "female" 
+
+		return translatedFilter
+
+	@staticmethod 
+	def create(id, resourceDict):
+		cat = Cat()
+		cat.id = id 
+		cat.name = "N/A"
+		cat.save()
+		cat.patch(id,resourceDict)
+		return cat 
+
+	def patch(self, id,resourceDict):
+		if "ems" in resourceDict:
+			breedString = resourceDict['ems'][:3].upper().strip()
+			colorString = resourceDict['ems'][3:].lower().strip()
+			breed = Breed.objects.filter(short = breedString)
+			if len(breed) > 0:
+				breed = breed[0]
+			else:
+				raise ValueError("Unkown breed "+breed)
+		
+			color = Color.objects.filter(short = colorString)
+			if len(color) > 0:
+				color = color[0]
+			else:
+				color = Color()
+				color.short = colorString
+				color.save()
+			ems = EMS.objects.filter(breed = breed, color = color)
+			if len(ems) == 1:
+				ems = ems[0]
+			elif len(ems) == 0:
+				ems = EMS()
+				ems.breed = breed
+				ems.color = color 
+				ems.save()
+			cems = CatEms()
+			cems.ems = ems
+			cems.date = today
+			cems.cat = self 
+			cems.save()
+
+		self.name = resourceDict['name'] if "name" in resourceDict else self.name 
+		self.country = resourceDict['country'] if "country" in resourceDict else self.country 
+		self.registration_class = resourceDict['registration_class'] if "registration_class" in resourceDict else self.country 
+		if "organization" in resourceDict:
+			self.orginization_id = resourceDict["organization"]
+		self.birth_date = resourceDict['birthdate'] if "birthdate" in resourceDict else self.birth_date
+		if "gender" in resourceDict:
+			self.isMale = resourceDict['gender'] == "male"
+		self.sire_id = resourceDict['sire'] if "sire" in resourceDict else self.sire_id
+		self.dam_id = resourceDict['dam'] if "dam" in resourceDict else self.dam_id
+		self.cattery_id = resourceDict['cattery'] if "cattery" in resourceDict else self.cattery_id
+		if "microchip" in resourceDict:
+			mic = self.microchip()
+			if mic:
+				mic.microchip = resourceDict["microchip"]
+				mic.save()
+			else:
+				mic = Microchip()
+				mic.cat = self
+				mic.microchip = resourceDict["microchip"]
+		if "neutered" in resourceDict:
+			neuter = resourceDict['neutered']
+			if neuter and 'neutered_date' in resourceDict:
+				if hasattr(cat,"neuter"):
+					self.neuter.date = resourceDict['neutered_date']
+					self.neuter.save()
+				else:
+					n = Neuter()
+					n.cat = self 
+					n.date = resourceDict['neutered_date']
+					n.save()
+			elif neuter == False:
+				if hasattr(self,"neuter"):
+					self.neuter.delete()
+		self.save()
+
+
+
+
+		
 
 
 

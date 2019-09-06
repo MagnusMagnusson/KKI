@@ -13,6 +13,129 @@ from datetime import date
 import json
 
 
+#NewApi
+
+#Cat
+# operates on a single cat entity
+def cat(request,id):
+	if request.method == "GET":
+		cat = Cat.objects.get(id = id)
+		#Returns the cat with the designated id. 
+		#Accepts no data.
+		return JsonResponse({"success":True,"results":cat.toObject()})
+	elif request.method == "POST":
+		#Attempts to create a cat with the given ID. If the resource in question already exists 409(conflict) is returned. Returns 201(created) if successful 
+		#Arguments: <str:birthdate> <int:cattery> <str:class> <str:country> <str:organization> <str:registry_digits> 
+		#<int:dam> <int:sire> <str:ems> <str:gender> <str:microchip_number> <str:name> 
+		#required: birthdate, class, organization, registry_digits, country, gender, microchip, name.
+		#Returns the created object
+		
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		catTest = Cat.objects.filter(id = id)
+		if len(catTest) > 0:
+			return invalid("Resource already exists. use PUT or PATCH",False,409)
+		else:
+			c = Cat.create(id, data)
+			return JsonResponse(valid(c.toObject,201))
+	elif request.method == "PUT":
+		#Attempts to create a cat with the given ID. If the resource in question already exists it will be patched. returns 201 for created, 200 if patched 
+		#Arguments: <str:birthdate> <int:cattery> <str:class> <str:country> <str:organization> <str:registry_digits> 
+		#<int:dam> <int:sire> <str:ems> <str:gender> <str:microchip_number> <str:name> 
+		#required: birthdate, class, organization, registry_digits, country, gender, microchip, name.
+		#Returns the affected object
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		catTest = Cat.objects.filter(id = id)
+		if len(catTest) > 0:
+			catTest[0].patch(data)
+			return JsonResponse(valid(c.toObject(),200))
+		else:
+			c = Cat.create(id, resource)
+			return JsonResponse(valid(c.toObject(),201))
+	elif request.method == "DELETE":
+		return invalid("Illegal Method " + request.method, True, 403)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
+
+#Cats
+#Operates on the set of all gets
+def cats(request):
+	if request.method == "GET":
+		#Returns the set of all cats (by default 25, can be modified via offset) that matches the filters and search terms 
+		#Valid keys: <int:page>, <int:offset>, <dict:filter>, <dict:search>
+		#returns: success, results
+		if 'data' in request.GET:
+			data = json.loads(request.GET['data'])
+		else:
+			data = {}
+		page = 0
+		offset = 25
+		if "page" in data:
+			page = data['page']
+		if "offset" in data:
+			offset = data['offset']
+		cats = Cat.objects.all()
+		if "filter" in data:
+			filters = data['filter']
+			filters = Cat.apiMap(filters)
+			cats = cats.filter(**filters)
+		if "search" in data:
+			terms = data['search']
+			terms = Cat.apiMap(terms)
+			for term in terms.keys():
+				cats = cats.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
+		lower = offset * page
+		upper = offset * (page + 1)
+		d = {'success':True, 'results':[]}
+		for res in cats[lower:upper]:
+			results = res.toObject()
+			d['results'].append(results)
+		d['results'] = list(d['results'])
+		return JsonResponse(d)
+	elif request.method == "POST":
+		#Attempts to create a cat. returns 201 if successful  
+		#Arguments: <str:birthdate> <int:cattery> <str:class> <str:country> <str:organization> <str:registry_digits> 
+		#<int:dam> <int:sire> <str:ems> <str:gender> <str:microchip_number> <str:name> 
+		#required: birthdate, class, organization, registry_digits, country, gender, microchip, name.
+		#Returns the new object
+		if 'data' in request.GET:
+			data = json.loads(request.GET['data'])
+		else:
+			data = {}
+		c = Cat()
+		c.name = "N/A"
+		c.save()
+		c.patch(data)
+		return valid(c.toObject(),201)
+	elif request.method == "PUT":
+		return invalid("Invalid method " + request.method +", use POST instead", True, 405)
+	elif request.method == "PATCH":
+		return invalid("Multi-resource PATCH not implemented " + request.method, True, 501)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
+
+
+
+
+#	if request.method == "GET":
+#		return invalid("Invalid method " + request.method, True, 405)
+#	elif request.method == "POST":
+#		return invalid("Invalid method " + request.method, True, 405)
+#	elif request.method == "PUT":
+#		return invalid("Invalid method " + request.method, True, 405)
+#		return invalid("Invalid method " + request.method, True, 405)
+#	elif request.method == "DELETE":
+#		return invalid("Invalid method " + request.method, True, 405)
+#	else:
+#		return invalid("Unknown method " + request.method, True, 400)
+
 def getObjectset(type):
 	if type == 'member':
 		objectset = Person.objects.filter(member__isnull = False)
@@ -28,6 +151,8 @@ def getObjectset(type):
 		objectset = Cat.objects.none()
 
 	return objectset
+
+
 
 def applyFilters(querySet, filters, objectType):
 	if objectType == 'cat':
@@ -302,8 +427,6 @@ def submit_cattery(request):
 		cattery = Cattery()
 	if 'name' in post:
 		cattery.name = post['name']
-	if 'date' in post:
-		cattery.registry_date = post['date']
 	if 'country' in post:
 		cattery.country = post['country']
 	if 'orginization' in post:
@@ -361,118 +484,6 @@ def submit_neuter(request):
 		neuter.save()
 
 	response = {'success':True}
-	return JsonResponse(response)
-
-def submit_cat(request):
-	if not request.is_ajax():
-		d = {
-			'success':False,
-			'error': "óvænt villa kom upp við beiðni þinni"
-		}
-		return JsonResponse(D)
-
-	post = json.loads(request.POST['data'])
-	new = 'id' not in post
-	if('id' in post and post['id'] != ""):
-		cat = Cat.objects.get(id = post['id'])
-	else:
-		cat = Cat()
-
-	today = date.today()
-	cat.reg_date = today
-	if "birth" in post:
-		cat.birth_date = post['birth']
-	elif new:
-		return invalid("field 'birth' not specified in request")
-	if 'cattery' in post:
-		cat.cattery = Cattery.objects.get(id = post['cattery'])
-	elif new:
-		return invalid("field 'cattery' not specified in request")
-
-	if 'class' in post and 'country' in post and 'org' in post and 'reg_nr' in post:
-		full_reg = post['country'] + " " + post['org'] + " " + post['class'] + " " + post['reg_nr']
-		if post['country'].strip() == "" or post['org'].strip() == "" or post['class'] == "" or post['reg_nr'] == "":
-			return invalid ("Malformed registration number")
-		cat.reg_full = full_reg 
-		cat.reg_nr = post['reg_nr']
-	elif new:
-		return invalid("Malformed registration number")
-
-	if 'dam' in post:
-		cat.dam = Cat.objects.get(id = post['dam'])
-	elif new:
-		return invalid("No dam specified")
-
-	if 'sire' in post:
-		cat.sire = Cat.objects.get(id = post['sire'])
-	elif new:
-		return invalid("no sire specified")
-
-	if 'ems' in post:
-		breedString = post['ems'][:3].upper().strip()
-		colorString = post['ems'][3:].lower().strip()
-		breed = Breed.objects.filter(short = breedString)
-		if len(breed) > 0:
-			breed = breed[0]
-		else:
-			return invalid("Unknown breed " + breedString)
-		
-		color = Color.objects.filter(short = colorString)
-		if len(color) > 0:
-			color = color[0]
-		else:
-			color = Color()
-			color.short = colorString
-			color.save()
-		ems = EMS.objects.filter(breed = breed, color = color)
-		if len(ems) == 1:
-			ems = ems[0]
-		elif len(ems) == 0:
-			ems = EMS()
-			ems.breed = breed
-			ems.color = color 
-			ems.save()
-		else:
-			return invalid("Contact administrator, multiple EMS match string")
-		cems = CatEms()
-		cems.ems = ems
-		cems.date = today
-	elif new:
-		return invalid("No EMS specified")
-
-	if 'gender' in post:
-		if post['gender'] == 'male':
-			cat.isMale = True
-		elif post['gender'] == 'female':
-			cat.isMale = False
-		else:
-			return invalid("gender must be 'male' or 'female'")
-	elif new:
-		return invalid('gender not specified')
-
-	if 'microchip' in post:
-		chipNumber = post['microchip'].strip()
-		if len(chipNumber) <= 3:
-			return invalid("Microchip number must be longer than three characters")
-		micro = Microchip()
-		micro.microchip = chipNumber
-	elif new:
-		return invalid("Microchip not specified")
-
-	if 'name' in post:
-		if len(post['name'].strip()) == 0:
-			return invalid("Cat name cannot be empty")
-		cat.name = post['name']
-	elif new:
-		return invalid('Name not specified')
-
-	cat.save()
-	cems.cat = cat 
-	cems.save()
-	micro.cat = cat
-	micro.save()
-
-	response = {'success':True, 'result':{'id':cat.id}}
 	return JsonResponse(response)
 
 
@@ -555,10 +566,17 @@ def validate_login(request):
 		return None
 
 
-def invalid(message, fatal = False):
+def invalid(message, fatal = False, code = 200):
 	d = {
 		'success':False,
 		'error': message,
 		'fatal': fatal
 	}
-	return JsonResponse(d)
+	return JsonResponse( d, status = code)
+
+def valid(message, code = 200):
+	d = {
+		'success':True ,
+		'results':message
+	}
+	return JsonResponse(d,status = code)

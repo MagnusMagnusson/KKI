@@ -18,16 +18,15 @@
         console.log(res);
         $("#nidurstodur ol").empty()
         for (let cat of res) {
-            cat = cat[1];
             let last_litter = null;
 
             let li = $("<li></li>");
             let a = $("<a href='/kettir/" + cat.id + "'></a>");
             let upper = $("<span></span>");
 
-            let strong = $("<strong>" + cat.fullName + ", </strong>");
+            let strong = $("<strong>" + cat.full_name + ", </strong>");
             let ems = cat.ems;
-            let registry = cat.registry;
+            let registry = cat.registry_number;
             let birth = cat.birthdate;
             let small = $("<small'>(" + ems + "), "+registry+  ", f: "+birth+" </span>")
 

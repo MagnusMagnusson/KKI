@@ -6,20 +6,22 @@ class Api{
     }
 
     setupURLs() {
-        this.urlList.find = "/api/leit/";
-        this.urlList.getPerson = "/api/saekja/einstakling";
-        this.urlList.getCat = "/api/saekja/kott";
-        this.urlList.get = "/api/saekja/";
-        this.urlList.submitPayment = "/api/skra/greidsla";
-        this.urlList.submitPerson = "/api/skra/einstaklingur";
-        this.urlList.submitMember = "/api/skra/felagi";
-        this.urlList.submitCattery = "/api/skra/raektun";
-        this.urlList.submitNeuter = "/api/skra/geldingu";
-        this.urlList.submitCatOwner = "/api/skra/eigendaskipti";
-        this.urlList.submitShow = "/api/skra/syning";
-        this.urlList.submitCat = "/api/skra/kottur";
-        this.urlList.submitJudge = "/api/skra/domari";
-        this.urlList.nextRegNr = "/api/util/skraningarnumer";
+        this.urlList.cats = "/api/kettir";
+
+        //this.urlList.find = "/api/leit/";
+        //this.urlList.getPerson = "/api/saekja/einstakling";
+        //this.urlList.getCat = "/api/saekja/kott";
+        //this.urlList.get = "/api/saekja/";
+        //this.urlList.submitPayment = "/api/skra/greidsla";
+        //this.urlList.submitPerson = "/api/skra/einstaklingur";
+        //this.urlList.submitMember = "/api/skra/felagi";
+        //this.urlList.submitCattery = "/api/skra/raektun";
+        //this.urlList.submitNeuter = "/api/skra/geldingu";
+        //this.urlList.submitCatOwner = "/api/skra/eigendaskipti";
+        //this.urlList.submitShow = "/api/skra/syning";
+        //this.urlList.submitCat = "/api/skra/kottur";
+        //this.urlList.submitJudge = "/api/skra/domari";
+        //this.urlList.nextRegNr = "/api/util/skraningarnumer";
     }
 
     prepare(dictionary) {
@@ -30,13 +32,27 @@ class Api{
 
     /*
         find {
-            type : 'Model',
+            type : 'Model'
             terms : 'field',
             value : 'blue'
         }
     */
-    find(data,callback) {
-        this._get(this.urlList.find,data, callback);
+    find(model, searchDict, callback) {
+        let url = null;
+        switch (model) {
+            case "cat": {
+                url = this.urlList.cats;
+                break;
+            }
+            default: {
+                throw "No resource fitting description " + model;
+            }
+        }
+        let d = {
+            "search": searchDict
+        };
+        d = this.prepare(d);
+        this._get(url,d, callback);
     }
     
     /*
@@ -51,8 +67,9 @@ class Api{
         this._get(this.urlList.getPerson, terms, callback);
     }
 
-    getCat(terms, callback) {
-        this._get(this.urlList.getCat, terms, callback);
+    getCat(data, callback) {
+        let dat = this.prepare(data);
+        this._get(this.urlList.cats, dat, callback);
     }
 
     /*

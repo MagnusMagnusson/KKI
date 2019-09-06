@@ -33,8 +33,9 @@ $(document).ready(function () {
     $(document).on('click', "#catNeuter-regnr-search", function (e) {
         e.stopPropagation();
         let kt = $(this).siblings("#catNeuterForm-catRegNr").val();
-        data = {}
-        data.registry = kt
+        data = { "search": {}}
+        data.filter()
+        data.search = { "registry_number": kt };
         window.Api.getCat(data, function (result) {
             $("#catNeuterForm-catRegNr").val(result.results[0].registry)
             $("#catNeuterForm-id").val(result.results[0].id)
