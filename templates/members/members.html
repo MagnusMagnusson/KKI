@@ -19,7 +19,6 @@
         console.log(res);
         $("#nidurstodur ol").empty()
         for (let member of res) {
-            member = member[1];
             let payment;
             let last_payment = null;
             if (member.last_payment) {
@@ -37,7 +36,7 @@
             }
 
             let li = $("<li></li>");
-            let a = $("<a href='/felagar/" + member.id + "'></a>");
+            let a = $("<a href='/felagar/" + member.member_id + "'></a>");
             let strong = $("<strong>" + member.name + " </strong> ");
             let emm = null;
             if (member.email) {

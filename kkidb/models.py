@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 
 from django.db import models
 import random
+import uuid
+from datetime import date
 
+def Randstring(n = 6):
+	return  uuid.uuid4().hex[0:n]
 
 class Person(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -24,30 +28,107 @@ class Person(models.Model):
 		if self.postcode:
 			str += " ("+self.postcode+")"
 		return str
+	
+	@staticmethod
+	def apiMap( filters):
+		keyMapping = {
+			"name":"name",
+			"ssn":"ssn",
+			"is_member":"member__isnull",
+			"email":"email",
+			"address":"address",
+			"postcode":"postcode",
+			"city":"city",
+			"country":"country",
+			"is_judge":"judge__isnull",
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		if "member" in translatedFilter:
+			translatedFilter["member"] = not translatedFilter["member"]
+		if "judge" in translatedFilter:
+			translatedFilter["judge"] = not translatedFilter["judge"]
+	
+		return translatedFilter
 
 	def toObject(self):
 		member = {}
-		member['name'] = self.name.encode('utf-8')
+		member['name'] = self.name
 		member['ssn'] = self.ssn
 		member['email'] = self.email
 		member['address'] = self.address
 		member['postcode'] = self.postcode
 		member['city'] = self.city
 		member['country'] = self.country
-		member['pid'] = self.id
+		member['id'] = self.id
 		if(hasattr(self, 'member')):
+			member['is_member'] = True
 			member['last_payment'] = self.member.lastPaymentDate() 
-			member['id'] = self.member.id 
+			member['member_id'] = self.member.id 
+		else:
+			member['is_member'] = False
 			
 		if(hasattr(self, 'judge')):
-			member['jid'] = self.judge.id
+			member['is_judge'] = True
+		else:
+			member['is_judge'] = False
 		return member
+	
+
+	@staticmethod 
+	def create( resourceDict, id = None):
+		person = Person()
+		if id:
+			person.id = id 
+		person.name = "N/A"
+		person.save()
+		person.patch(resourceDict)
+		return person 
+
+	def patch(self, resourceDict):
+		if "name" in resourceDict:
+			self.name = resourceDict["name"]
+		if "ssn" in resourceDict:
+			self.ssn = resourceDict["ssn"]
+		if "email" in resourceDict:
+			self.email = resourceDict["email"]
+		if "address" in resourceDict:
+			self.address = resourceDict["address"]
+		if "postcode" in resourceDict:
+			self.postcode = resourceDict["postcode"]
+		if "city" in resourceDict:
+			self.city = resourceDict["city"]
+		if "is_member" in resourceDict:
+			if resourceDict["is_member"] == True:
+				if not hasattr(self,"member"):
+					membership = Member()
+					membership.person = self
+					membership.salt = "NOT SET"
+					membership.password = "NOT SET"
+					membership.save()
+			elif resourceDict["is_member"] == False:
+				if hasattr(self,"member"):
+					self.member.delete()
+		if "is_judge" in resourceDict:
+			if resourceDict["is_judge"] == True:
+				if not hasattr(self,"judge"):
+					judgeship = Judge()
+					judgeship.person = self
+					judgeship.save()
+			elif resourceDict["is_judge"] == False:
+				if hasattr(self,"judge"):
+					self.member.delete()
+		self.save()
 
 class Member(models.Model):
 	id = models.CharField(primary_key=True, max_length=6)
 	person = models.OneToOneField('Person', on_delete=models.CASCADE)
-	salt = models.CharField(max_length=256)
-	password = models.CharField(max_length = 256)
+	salt = models.CharField(max_length=256, default = "NOT SET")
+	password = models.CharField(max_length = 256, default = "NOT SET")
 
 	def allPayments(self):
 		payment_set = self.memberpayment_set;
@@ -90,6 +171,7 @@ class Payment(models.Model):
 	comment = models.CharField(max_length = 1024, null = True)
 	method = models.CharField(max_length=128)
 	payer = models.ForeignKey(Member, related_name='payer', null=True, on_delete=models.CASCADE)
+	uri = models.CharField(max_length = 6, null = False, unique= True, default = Randstring)
 
 	def updateMembers(self, newMembers):
 		currentMembers = self.memberEntries()
@@ -110,8 +192,8 @@ class Payment(models.Model):
 			if person.member is None:
 				newMember = Member()
 				newMember.person = person
-				newMember.password = ""
-				newMember.salt = ""
+				newMember.password = "NOT SET"
+				newMember.salt = "NOT SET"
 				newMember.save()
 				new += 1
 			if(person.member not in currentMemberInstances):
@@ -133,11 +215,67 @@ class Payment(models.Model):
 			members.append(mp.member.person)
 		return members
 
+	def toObject(self):
+		p = {}
+		p['date'] = self.date 
+		p['method'] = self.method 
+		p['comment'] = self.comment 
+		p['id'] = self.uri
+		p['is_giftyear'] = self.giftYear
+		if self.payer:
+			p['payer'] = self.payer.id
+		else:
+			p['payer'] = None
+		p['beneficieries'] = []
+		for mem in self.members():
+			p['beneficieries'].append(mem.member.id)
+		return p
+
+	def patch(self, data):
+		if "date" in data:
+			self.date = data["date"]
+		if "is_giftYear" in data:
+			self.giftYear = data["is_giftYear"]
+		if "comment" in data:
+			self.comment = data["comment"]
+		if "payer" in data:
+			self.payer_id = data["payer"]
+		if "method" in data:
+			self.method = data["method"]
+		if "beneficiary" in data:
+			newMembers = []
+			for id in data["beneficiary"]:
+				m = Member.objects.get(id = id)
+				newMembers.append(m.person)
+			self.updateMembers(newMembers)
+		self.save()
+
+	
 class MemberPayment(models.Model):
 	member = models.ForeignKey(Member, on_delete=models.CASCADE)
 	payment = models.ForeignKey(Payment,on_delete=models.CASCADE)
 	class Meta:
 		unique_together = ("member","payment")
+
+	@staticmethod
+	def apiMap(map):
+		keyMapping = {
+			"date":"payment__date",
+			"is_giftYear":"payment__giftYear",
+			"comment":"payment__comment",
+			"payer":"payment__payer_id",
+			"method":"payment__method",
+			"beneficiary":"member_id",
+			"beneficiary_name":"member__person__name",
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+	
+		return translatedFilter
 
 class Owner(models.Model):
 	person = models.ForeignKey('Person',on_delete=models.CASCADE)
@@ -177,6 +315,7 @@ class Cattery(models.Model):
 		cattery['id'] = self.id
 		cattery['name'] = self.name
 		cattery['country'] = self.country
+		cattery['is_prefix'] = self.prefix
 		if self.organization:
 			cattery['organization'] = self.organization.name
 		else:
@@ -186,10 +325,10 @@ class Cattery(models.Model):
 		cattery['postcode'] = self.postcode
 		cattery['city'] = self.city
 		cattery['website'] = self.website
-		cattery['phone'] = self.phone
+		cattery['phone_number'] = self.phone
 		cattery['owners'] = []
 		for person in self.catteryowner_set.all():
-			cattery['owners'].append(person.owner.toObject())
+			cattery['owners'].append(person.owner.id)
 		return cattery 
 
 	def memberEntries(self):
@@ -227,6 +366,70 @@ class Cattery(models.Model):
 		if self.postcode:
 			str += " ("+self.postcode+")"
 		return str
+
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"name":"name",
+			"registry_date":"registry_date",
+			"country":"country",
+			"is_prefix":"prefix",
+			"organization":"organization",
+			"email":"email",
+			"address":"address",
+			"city":"city",
+			"postcode":"postcode",
+			"website":"website",
+			"phone_number":"phone",
+			"owners": "catteryowner_set__owner__id"
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		return translatedFilter
+
+	@staticmethod 
+	def create(resourceDict, id = None):
+		cat = Cattery()
+		if id:
+			cat.id = id 
+		cat.name = "N/A"
+		cat.prefix = True
+		cat.save()
+		cat.patch(resourceDict)
+		return cat 
+
+	def patch(self, resourceDict):
+		rd = resourceDict
+		if "name" in rd:
+			self.name = rd["name"]
+		if "registry_date" in rd:
+			self.registry_date = rd["registry_date"]
+		if "country" in rd:
+			self.country = rd["country"]
+		if "is_prefix" in rd:
+			self.prefix = rd["is_prefix"]
+		if "organization" in rd:
+			self.organization = rd["organization"]
+		if "email" in rd:
+			self.email = rd['email']
+		if address in rd:
+			self.address = rd['address']
+		if "city" in rd:
+			self.city = rd['city']
+		if "postcode" in rd:
+			self.postcode = rd['postcode']
+		if "website" in rd:
+			self.website = rd['website']
+		if "phone_number" in rd:
+			self.phone = rd['phone_number']
+		if "owners" in rd:
+			self.updateMembers(rd['owners'])
+		self.save()
+		
 
 class CatteryOwner(models.Model):
 	cattery = models.ForeignKey('Cattery', on_delete=models.CASCADE)
@@ -476,15 +679,16 @@ class Cat(models.Model):
 		return translatedFilter
 
 	@staticmethod 
-	def create(id, resourceDict):
+	def create( resourceDict, id=None):
 		cat = Cat()
-		cat.id = id 
+		if id:
+			cat.id = id 
 		cat.name = "N/A"
 		cat.save()
-		cat.patch(id,resourceDict)
+		cat.patch(resourceDict)
 		return cat 
 
-	def patch(self, id,resourceDict):
+	def patch(self, resourceDict):
 		if "ems" in resourceDict:
 			breedString = resourceDict['ems'][:3].upper().strip()
 			colorString = resourceDict['ems'][3:].lower().strip()
@@ -628,9 +832,11 @@ class Show(models.Model):
 	location = models.CharField(max_length = 50, null=True)
 	visibleToPublic = models.BooleanField(default = True)
 	openForRegistration = models.BooleanField(default = False)
+	international = models.BooleanField(default = True)
 
 	def isOver(self):
 		return date.today() < self.date
+	@property
 	def catsRegistered(self):
 		return self.entry_set.all().count()
 	def littersRegistered(self):
@@ -647,6 +853,73 @@ class Show(models.Model):
 	def judgementsPending(self):
 		judgements = Judgement.objects.filter(entry__show = self, abs__isnull = True).count()
 		return judgements
+
+	
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"name":"name",
+			"organizer":"organizer_id",
+			"date":"date",
+			"is_international":"international",
+			"location":"location",
+			"accepts_registrations":"openForRegistration",
+			"is_visible_to_public":"visibleToPublic",
+			"entrant_count":"catsRegistered",
+			"judges":"showjudges_set__judge__id"
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		return translatedFilter
+
+	@staticmethod 
+	def create(resourceDict, id = None):
+		show = Show()
+		if id:
+			show.id = id 
+		show.name = "N/A"
+		show.organizer = None
+		show.date = date.today()
+		show.save()
+		show.patch(resourceDict)
+		return cat 
+
+	def patch(self, resourceDict):
+		rd = resourceDict
+		if "name" in rd:
+			self.name = rd['name']
+		if "organizer" in rd:
+			self.organizer_id = rd['organizer']
+		if "date" in rd:
+			self.date = rd['date']
+		if "is_international" in rd:
+			self.international = rd['is_international']
+		if "location" in rd:
+			self.location = rd['location']
+		if "accepts_registrations" in rd:
+			self.openForregistration = rd['accepts_registrations']
+		if "is_visible_to_public" in rd:
+			self.visibleToPublic = rd['is_visible_to_public']
+		self.save()
+
+	def toObject(self):
+		obj = {}
+		obj["name"] = self.name 
+		obj["organizer"] = self.organizer.id
+		obj["date"] = self.date 
+		obj["is_international"] = self.international
+		obj["location"] = self.location 
+		obj["accepts_registrations"] = self.openForRegistration
+		obj["is_visible_to_public"] = self.visibleToPublic
+		obj["entrant_count"] = self.catsRegistered 
+		obj["judges"] = []
+		for j in self.showjudges_set.all():
+			obj['judges'].append(j.judge.id)
+		return obj
 
 class Entry(models.Model):
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)

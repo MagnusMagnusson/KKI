@@ -5,66 +5,186 @@ from django.shortcuts import render
 from django.template import loader
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.http import QueryDict
 from kkidb.auth import auth
+from django.core.exceptions import ObjectDoesNotExist
 from kkidb.models import *
 from django.contrib.postgres.search import TrigramDistance
 from django.db.models import Max
+from django.db import transaction
 from datetime import date
 import json
 
 
-#NewApi
+def _get(model, id):
+	_o = model.objects.get(id = id)
+	return JsonResponse({"success":True,"results":_o.toObject()})
 
-#Cat
-# operates on a single cat entity
-def cat(request,id):
+def _gets(model,data):
+	page = 0
+	offset = 25
+	if "page" in data:
+		page = data['page']
+	if "offset" in data:
+		offset = data['offset']
+	_objects = model.objects.all()
+	if "filter" in data:
+		filters = data['filter']
+		filters = model.apiMap(filters)
+		_objects = _objects.filter(**filters)
+	if "search" in data:
+		terms = data['search']
+		terms = model.apiMap(terms)
+		for term in terms.keys():
+			_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
+	lower = offset * page
+	upper = offset * (page + 1)
+	d = {'success':True, 'results':[]}
+	for res in _objects[lower:upper]:
+		results = res.toObject()
+		d['results'].append(results)
+	d['results'] = list(d['results'])
+	return JsonResponse(d)
+
+def _post(model, data, id = None):
+		if(id):
+			_otest = model.objects.filter(id = id)
+			if len(_otest) > 0:
+				return invalid("Resource already exists with id " +str(id)+" (Did you mean to use PUT or PATCH?)",True,409)
+		_o = model.create(data,id)
+		return valid(_o.toObject(),201)
+
+def _put(model, data, id):
+	try:
+		_o = model.objects.get(id = id)
+		return patch(model,data,id)
+	except ObjectDoesNotExist:
+		return post(model,data,id)
+
+def _patch(model,data,id):
+	try:
+		_o = model.objects.get(id = id)
+		_o.patch(data)
+		return valid(_o.toObject(),200)
+	except ObjectDoesNotExist:
+		return invalid("No resource located here with id "+str(id),True,404)
+
+def defaultProcessGroup(model,request):
 	if request.method == "GET":
-		cat = Cat.objects.get(id = id)
-		#Returns the cat with the designated id. 
-		#Accepts no data.
-		return JsonResponse({"success":True,"results":cat.toObject()})
+		if 'data' in request.GET:
+			data = json.loads(request.GET['data'])
+		else:
+			data = {}
+		return _gets(model,data)
 	elif request.method == "POST":
-		#Attempts to create a cat with the given ID. If the resource in question already exists 409(conflict) is returned. Returns 201(created) if successful 
-		#Arguments: <str:birthdate> <int:cattery> <str:class> <str:country> <str:organization> <str:registry_digits> 
-		#<int:dam> <int:sire> <str:ems> <str:gender> <str:microchip_number> <str:name> 
-		#required: birthdate, class, organization, registry_digits, country, gender, microchip, name.
-		#Returns the created object
-		
 		if 'data' in request.POST:
 			data = json.loads(request.POST['data'])
 		else:
 			data = {}
-		catTest = Cat.objects.filter(id = id)
+		return _posts(model,data)
+	elif request.method == "PUT":
+		return invalid("Invalid method " + request.method +", use POST instead", True, 405)
+	elif request.method == "PATCH":
+		return invalid("Multi-resource PATCH not implemented " + request.method, True, 501)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
+
+def defaultProcessSingular(model,request,id):
+	if request.method == "GET":
+		return _get(model,id)
+	elif request.method == "POST":
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		catTest = model.objects.filter(id = id)
 		if len(catTest) > 0:
 			return invalid("Resource already exists. use PUT or PATCH",False,409)
 		else:
-			c = Cat.create(id, data)
-			return JsonResponse(valid(c.toObject,201))
+			return post(Cat,data,id)
 	elif request.method == "PUT":
-		#Attempts to create a cat with the given ID. If the resource in question already exists it will be patched. returns 201 for created, 200 if patched 
-		#Arguments: <str:birthdate> <int:cattery> <str:class> <str:country> <str:organization> <str:registry_digits> 
-		#<int:dam> <int:sire> <str:ems> <str:gender> <str:microchip_number> <str:name> 
-		#required: birthdate, class, organization, registry_digits, country, gender, microchip, name.
-		#Returns the affected object
-		if 'data' in request.POST:
-			data = json.loads(request.POST['data'])
+		put = QueryDict(request.body)
+		if 'data' in put:
+			data = json.loads(put['data'])
 		else:
 			data = {}
-		catTest = Cat.objects.filter(id = id)
-		if len(catTest) > 0:
-			catTest[0].patch(data)
-			return JsonResponse(valid(c.toObject(),200))
-		else:
-			c = Cat.create(id, resource)
-			return JsonResponse(valid(c.toObject(),201))
+		return _put(model,data,id)
 	elif request.method == "DELETE":
 		return invalid("Illegal Method " + request.method, True, 403)
 	else:
 		return invalid("Unknown method " + request.method, True, 400)
 
+#Cat
+# operates on a single cat entity
+
+def cat(request,id):
+	return defaultProcessSingular(Cat,request,id)
+
 #Cats
 #Operates on the set of all gets
 def cats(request):
+	return defaultProcessGroup(Cat,request)
+
+def member(request, id):
+	if request.method == "GET":
+		member = Member.objects.get(id = id)
+		person = member.person
+		return valid(person.toObject())
+	elif request.method == "POST":
+		#Attempts to create a member with the given ID. If the resource in question already exists 409(conflict) is returned. Returns 201(created) if successful.
+		#If The
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		member = Member.objects.filter(id = id)
+		if len(member) == 0:
+			p = Person.create(-1,data)
+			m = Member(id = id)
+			m.person = p
+			m.salt = "NOT SET"
+			m.password = "NOT SET"
+			m.save()
+			return valid(p.toObject(),201)
+		else:
+			return invalid("Resource already exists",True,409)
+	elif request.method == "PUT":
+		put = QueryDict(request.body)
+		if 'data' in put:
+			data = json.loads(put['data'])
+		else:
+			data = {}
+		memberTest = Member.objects.filter(id = id)
+		if len(memberTest) > 0:
+			memberTest[0].patch(data)
+			return JsonResponse(valid(c.toObject(),200))
+		else:
+			p = Person.create(-1, data)
+			m = Member(id = id)
+			m.person = p
+			m.salt = "NOT SET"
+			m.password = "NOT SET"
+			m.save()
+			return valid(p.toObject(),201)
+	elif request.method == "PATCH":
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		member = Member.objects.filter(id = id)
+		if len(member) == 0:
+			return invalid("No member with the identification "+id,True,404)
+		else:
+			member[0].patch(data)
+			return valid(member[0].toObject(),200)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400) 
+
+def members(request):
 	if request.method == "GET":
 		#Returns the set of all cats (by default 25, can be modified via offset) that matches the filters and search terms 
 		#Valid keys: <int:page>, <int:offset>, <dict:filter>, <dict:search>
@@ -79,39 +199,41 @@ def cats(request):
 			page = data['page']
 		if "offset" in data:
 			offset = data['offset']
-		cats = Cat.objects.all()
+		members = Person.objects.filter(member__isnull = False)
 		if "filter" in data:
 			filters = data['filter']
-			filters = Cat.apiMap(filters)
-			cats = cats.filter(**filters)
+			filters = Person.apiMap(filters)
+			members = members.filter(**filters)
 		if "search" in data:
 			terms = data['search']
-			terms = Cat.apiMap(terms)
+			terms = Person.apiMap(terms)
 			for term in terms.keys():
-				cats = cats.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
+				members = members.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
 		lower = offset * page
 		upper = offset * (page + 1)
 		d = {'success':True, 'results':[]}
-		for res in cats[lower:upper]:
+
+		for res in members[lower:upper]:
 			results = res.toObject()
 			d['results'].append(results)
 		d['results'] = list(d['results'])
 		return JsonResponse(d)
 	elif request.method == "POST":
-		#Attempts to create a cat. returns 201 if successful  
-		#Arguments: <str:birthdate> <int:cattery> <str:class> <str:country> <str:organization> <str:registry_digits> 
-		#<int:dam> <int:sire> <str:ems> <str:gender> <str:microchip_number> <str:name> 
-		#required: birthdate, class, organization, registry_digits, country, gender, microchip, name.
+		#Attempts to create a member. returns 201 if successful  
 		#Returns the new object
-		if 'data' in request.GET:
-			data = json.loads(request.GET['data'])
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
 		else:
 			data = {}
-		c = Cat()
-		c.name = "N/A"
-		c.save()
-		c.patch(data)
-		return valid(c.toObject(),201)
+		p = Person()
+		p.name = "N/A"
+		p.save()
+		p.patch(data)
+		if not hasattr(p, "member"):
+			m = Member()
+			m.person = p
+			m.save()
+		return valid(p.toObject(),201)
 	elif request.method == "PUT":
 		return invalid("Invalid method " + request.method +", use POST instead", True, 405)
 	elif request.method == "PATCH":
@@ -121,7 +243,93 @@ def cats(request):
 	else:
 		return invalid("Unknown method " + request.method, True, 400)
 
+@transaction.atomic
+def payments(request,id):
+	if request.method == "GET":
+		if 'data' in request.GET:
+			data = json.loads(request.GET['data'])
+		else:
+			data = {}
+		page = 0
+		offset = 25
+		if "page" in data:
+			page = data['page']
+		if "offset" in data:
+			offset = data['offset']
+		member = Member.objects.get(id = id)
+		payments = MemberPayment.objects.filter(member = member)
+		if "filter" in data:
+			filters = data['filter']
+			filters = MemberPayment.apiMap(filters)
+			payments = payments.filter(**filters)
+		if "search" in data:
+			terms = data['search']
+			terms = MemberPayment.apiMap(terms)
+			for term in terms.keys():
+				payments = payments.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
+		lower = offset * page
+		upper = offset * (page + 1)
+		d = {'success':True, 'results':[]}
 
+		for res in payments[lower:upper]:
+			results = res.payment.toObject()
+			d['results'].append(results)
+		d['results'] = list(d['results'])
+		return JsonResponse(d)
+	elif request.method == "POST":
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		payment = Payment()
+		payment.patch(data)
+		payment.save()
+	elif request.method == "PUT":
+		return invalid("Invalid method " + request.method+", use POST instead", True, 405)
+	elif request.method == "PATCH":
+		return invalid("Invalid method " + request.method, True, 405)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
+
+def payment(request,mid,gid):
+	if request.method == "GET":
+		#verify that the payment in question matches the member
+		try:
+			payment = Payment.objects.get(uri = gid)
+			member = Member.objects.get(id = mid)
+		except Exception as ex:
+			return invalid("No payment with id " + gid + " and member " + str(mid)+ " found", 404)
+		memberPayment = MemberPayment.objects.filter(member = member, payment = payment)
+		if len(memberPayment) == 0:
+			return invalid("No payment with specified ID "+gid+" belonging to member " +mid,404)
+		else:
+			return valid(payment.toObject())
+
+	elif request.method == "POST":
+		#pass
+		pass
+	elif request.method == "PUT":
+		return invalid("Invalid method " + request.method, True, 405)
+	elif request.method == "PATCH":
+		return invalid("Invalid method " + request.method, True, 405)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
+	
+def cattery(request, id):
+	return defaultProcessSingular(Cattery,request,id)
+
+def catteries(request):
+	return defaultProcessGroup(Cattery,request)
+
+def shows(request):
+	return defaultProcessGroup(Show,request)
+
+def show(request,id):
+	return defaultProcessSingular(Show,request,id)
 
 
 #	if request.method == "GET":
@@ -151,8 +359,6 @@ def getObjectset(type):
 		objectset = Cat.objects.none()
 
 	return objectset
-
-
 
 def applyFilters(querySet, filters, objectType):
 	if objectType == 'cat':

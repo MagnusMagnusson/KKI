@@ -7,7 +7,8 @@ class Api{
 
     setupURLs() {
         this.urlList.cats = "/api/kettir";
-
+        this.urlList.members = "/api/felagar";
+        this.urlList.catteries = "/api/raektanir"
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -44,6 +45,14 @@ class Api{
                 url = this.urlList.cats;
                 break;
             }
+            case "member": {
+                url = this.urlList.members;
+                break;
+            }
+            case "cattery": {
+                url = this.urlList.catteries;
+                break;
+            }
             default: {
                 throw "No resource fitting description " + model;
             }
@@ -54,17 +63,37 @@ class Api{
         d = this.prepare(d);
         this._get(url,d, callback);
     }
-    
+
+    get(model, filterDict, callback) {
+        let url;
+        switch (model) {
+            case "cat": {
+                url = this.urlList.cats;
+                break;
+            }
+            case "member": {
+                url = this.urlList.members;
+                break;
+            }
+            default: {
+                throw "No resource fitting description " + model;
+            }
+        }
+        let d = {
+            "filter": filterDict
+        }
+        d = this.prepare(d);
+        this._get(url, d, callback);
+    }
+
     /*
         getPerson{
-            'ssn': ssn to look up,
-            'member': only look up members
-            'name': filter by name
+            <dict:terms>, key:value dict stating which properties must be present 
         }
         returns a list of all persons that fit *all* specified criteria.
     */
     getPerson(terms, callback) {
-        this._get(this.urlList.getPerson, terms, callback);
+        this.get("member", terms, callback);
     }
 
     getCat(data, callback) {
@@ -81,7 +110,7 @@ class Api{
                 the value being the string that has to be matched.
         }
     */
-    get(data, callback) {
+    __get(data, callback) {
         data = this.prepare(data);
         this._get(this.urlList.get, data, callback);
     }

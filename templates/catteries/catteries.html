@@ -18,15 +18,6 @@
         console.log(res);
         $("#nidurstodur ol").empty()
         for (let cattery of res) {
-            cattery = cattery[1];
-            let last_litter = null;
-            if (cattery.last_litter) {
-                last_litter = cattery.last_litter.split("-")[0];
-                litter = $("<span class='green payment-bubble'>" + last_payment + "</span>");
-            } else {
-                litter = $("<span class='red payment-bubble'>-</span>");
-            }
-
             let li = $("<li></li>");
             let a = $("<a href='/raektun/" + cattery.id + "'></a>");
             let strong = $("<strong>" + cattery.name + " </strong> ");
@@ -36,7 +27,6 @@
             }
             let address = cattery.address + ", " + cattery.postcode + ", " + cattery.city;
             let span = $("<span class='result-subtext'><i>" + address + "</i></span>")
-            $(a).append(litter);
             $(a).append(strong);
             if (emm) {
                 $(a).append(emm);
