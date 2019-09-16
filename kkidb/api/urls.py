@@ -27,8 +27,8 @@ urlpatterns = [
 	path("felagar",api.members),
 	path("raektanir/<int:id>", api.cattery),
 	path("raektanir",api.catteries),
-	#path("syningar/<int:sid>/keppendur/<int:eid>", api.entrant),
-	#path("syningar/<int:id>/keppendur", api.entrants),
+	path("syningar/<int:sid>/keppendur/<int:eid>", api.entrant),
+	path("syningar/<int:sid>/keppendur", api.entrants),
 	path("syningar/<int:id>", api.show),
 	path("syningar", api.shows),
 

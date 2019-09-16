@@ -919,6 +919,9 @@ class Show(models.Model):
 		obj["judges"] = []
 		for j in self.showjudges_set.all():
 			obj['judges'].append(j.judge.id)
+		obj["awards_offered"] = []
+		for a in showAward.objects.filter(show = self):
+			obj["awards_offered"].append(a.award.name)
 		return obj
 
 class Entry(models.Model):
@@ -929,6 +932,92 @@ class Entry(models.Model):
 	class Meta:
 		unique_together = ('show', 'cat')
 		unique_together = ('show', 'catalog_nr')
+
+	
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"name":"name",
+			"organizer":"organizer_id",
+			"date":"date",
+			"is_international":"international",
+			"location":"location",
+			"accepts_registrations":"openForRegistration",
+			"is_visible_to_public":"visibleToPublic",
+			"entrant_count":"catsRegistered",
+			"judges":"showjudges_set__judge__id"
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		return translatedFilter
+
+	@staticmethod 
+	def create(resourceDict, id = None):
+		entry = Entry()
+		if id:
+			show.id = id 
+		show.name = resourceDict['name']
+		show.organizer = None
+		show.date = date.today()
+		show.save()
+		show.patch(resourceDict)
+		return cat 
+
+	def patch(self, resourceDict):
+		rd = resourceDict
+		if "name" in rd:
+			self.name = rd['name']
+		if "organizer" in rd:
+			self.organizer_id = rd['organizer']
+		if "date" in rd:
+			self.date = rd['date']
+		if "is_international" in rd:
+			self.international = rd['is_international']
+		if "location" in rd:
+			self.location = rd['location']
+		if "accepts_registrations" in rd:
+			self.openForregistration = rd['accepts_registrations']
+		if "is_visible_to_public" in rd:
+			self.visibleToPublic = rd['is_visible_to_public']
+		self.save()
+
+	def toObject(self):
+		obj = {}
+		obj["catalog_number"] = self.catalog_nr 
+		obj["show"] = self.show.id
+		obj["is_guest"] = self.guest 
+		obj["cat"] = self.cat.id
+		obj["judge"] = self.judgement.judge.id
+		if self.judgement.filled():
+			obj["judgement_ready"] = True
+			obj["is_biv"] = self.judgement.biv
+			obj["was_absent"] = self.judgement.abs 
+			obj["judgement"] = self.judgement.judgement
+			obj["judgement_comment"] = self.judgement.comment
+			if hasattr(self.judgement,"catcert"):
+				obj["recieved_certification"] = True
+				obj["certification"] = self.judgement.catcert.cert.fullName()
+				if hasattr(self.judgement.catcert.cert,"title"):
+					obj["recieved_title"] = True
+					obj["title"] = self.judgement.catcert.cert.getTitle().name
+				else:
+					obj["recieved_title"] = False
+			else:
+				obj["recieved_certification"] = False
+			obj["nominations"] = []
+			obj["awards"] = []
+			nomSet = Nomination.objects.filter(judgement = self.judgement)
+			for nom in nomSet:
+				obj["nominations"].append(nom.award.name)
+				if nom.bis:
+					obj["awards"].append(nom.award.name)
+		else:
+			obj["judgement_ready"] = False
+		return obj
 
 class ShowJudges(models.Model):
 	show = models.ForeignKey(Show,on_delete=models.CASCADE)
@@ -1024,7 +1113,7 @@ class CatCert(models.Model):
 	ems = models.CharField(max_length = 20, null=True)
 
 	def title(self):
-		return self.cert.title()
+		return self.cert.getTitle()
 
 	def absRank(self):
 		return self.cert.absRank()
@@ -1046,6 +1135,11 @@ class LitterNomination(models.Model):
 
 class Award(models.Model):
 	name = models.CharField(max_length = 50)
+	coreAward = models.BooleanField(default = False)
+
+class showAward(models.Model):
+	show = models.ForeignKey('Show', on_delete = models.CASCADE)
+	award = models.ForeignKey('Award', on_delete = models.CASCADE)
 
 
 

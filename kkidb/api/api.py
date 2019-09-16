@@ -16,18 +16,22 @@ from datetime import date
 import json
 
 
-def _get(model, id):
-	_o = model.objects.get(id = id)
+def _get(model, id, queryObject = None):
+	if queryObject == None:
+		queryObject = model.objects.all()
+	_o = queryObject.get(id = id)
 	return JsonResponse({"success":True,"results":_o.toObject()})
 
-def _gets(model,data):
+def _gets(model,data, queryObject = None):
 	page = 0
 	offset = 25
+	if queryObject == None:
+		queryObject = model.objects.all()
 	if "page" in data:
 		page = data['page']
 	if "offset" in data:
 		offset = data['offset']
-	_objects = model.objects.all()
+	_objects = queryObject
 	if "filter" in data:
 		filters = data['filter']
 		filters = model.apiMap(filters)
@@ -69,13 +73,13 @@ def _patch(model,data,id):
 	except ObjectDoesNotExist:
 		return invalid("No resource located here with id "+str(id),True,404)
 
-def defaultProcessGroup(model,request):
+def defaultProcessGroup(model,request, queryObject = None):
 	if request.method == "GET":
 		if 'data' in request.GET:
 			data = json.loads(request.GET['data'])
 		else:
 			data = {}
-		return _gets(model,data)
+		return _gets(model,data,queryObject)
 	elif request.method == "POST":
 		if 'data' in request.POST:
 			data = json.loads(request.POST['data'])
@@ -91,9 +95,9 @@ def defaultProcessGroup(model,request):
 	else:
 		return invalid("Unknown method " + request.method, True, 400)
 
-def defaultProcessSingular(model,request,id):
+def defaultProcessSingular(model,request,id, queryObject = None):
 	if request.method == "GET":
-		return _get(model,id)
+		return _get(model,id,queryObject)
 	elif request.method == "POST":
 		if 'data' in request.POST:
 			data = json.loads(request.POST['data'])
@@ -329,8 +333,84 @@ def shows(request):
 	return defaultProcessGroup(Show,request)
 
 def show(request,id):
-	return defaultProcessSingular(Show,request,id)
+	return defaultProcessSingular(Show,request,id,)
 
+@transaction.atomic
+def entrants(request,sid):
+	if request.method == "GET":
+		if 'data' in request.GET:
+			data = json.loads(request.GET['data'])
+		else:
+			data = {}
+		page = 0
+		offset = 25
+		if "page" in data:
+			page = data['page']
+		if "offset" in data:
+			offset = data['offset']
+		entrants = Entry.objects.filter(show_id = sid)
+		if "filter" in data:
+			filters = data['filter']
+			filters = Entry.apiMap(filters)
+			entrants = payments.filter(**filters)
+		if "search" in data:
+			terms = data['search']
+			terms = Entry.apiMap(terms)
+			for term in terms.keys():
+				entrants = entrants.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
+		lower = offset * page
+		upper = offset * (page + 1)
+		d = {'success':True, 'results':[]}
+
+		for res in entrants[lower:upper]:
+			results = res.toObject()
+			d['results'].append(results)
+		d['results'] = list(d['results'])
+		return JsonResponse(d)
+	elif request.method == "POST":
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		entrant = Entry()
+		entrant.show_id = sid
+		entrant.patch(data)
+		payment.save()
+	elif request.method == "PUT":
+		return invalid("Invalid method " + request.method+", use POST instead", True, 405)
+	elif request.method == "PATCH":
+		return invalid("Invalid method " + request.method, True, 405)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
+
+@transaction.atomic
+def entrant(request,sid,eid):
+	if request.method == "GET":
+		#verify that the payment in question matches the member
+		try:
+			e = Entry.objects.get(show_id = sid, catalog_nr = eid)
+			return valid(e.toObject(),200)
+		except ObjectDoesNotExist:
+			return invalid("No entrant "+str(eid)+ " in show "+str(show_id),404)
+
+	elif request.method == "POST":
+		if 'data' in request.POST:
+			data = json.loads(request.POST['data'])
+		else:
+			data = {}
+		data['show'] = sid 
+		e = Entry.create(data,eid)
+		return valid(e.toObject(),201)
+	elif request.method == "PUT":
+		return invalid("Invalid method " + request.method, True, 405)
+	elif request.method == "PATCH":
+		return invalid("Invalid method " + request.method, True, 405)
+	elif request.method == "DELETE":
+		return invalid("Invalid method " + request.method, True, 405)
+	else:
+		return invalid("Unknown method " + request.method, True, 400)
 
 #	if request.method == "GET":
 #		return invalid("Invalid method " + request.method, True, 405)
