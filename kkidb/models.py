@@ -886,7 +886,7 @@ class Show(models.Model):
 		show.date = date.today()
 		show.save()
 		show.patch(resourceDict)
-		return cat 
+		return show 
 
 	def patch(self, resourceDict):
 		rd = resourceDict
@@ -937,15 +937,20 @@ class Entry(models.Model):
 	@staticmethod
 	def apiMap(filters):
 		keyMapping = {
-			"name":"name",
-			"organizer":"organizer_id",
-			"date":"date",
-			"is_international":"international",
-			"location":"location",
-			"accepts_registrations":"openForRegistration",
-			"is_visible_to_public":"visibleToPublic",
-			"entrant_count":"catsRegistered",
-			"judges":"showjudges_set__judge__id"
+			"catalog_number":"catalog_nr",
+			"show":"show_id",
+			"is_guest":"guest",
+			"cat":"cat_id",
+			"judge":"judgement__judge__id",
+			"judgement_ready":"judgement__filled",
+			"is_biv":"judgement__biv",
+			"was_absent":"judgement__abs",
+			"judgement":"judgement__judgement",
+			"judgement_comment":"judgement__comment",
+			"recieved_certification":"judgement__catcert__isnull",
+			"certification":"judgement__catcert__cert__fullname",
+			"recieved_title":"judgement__catcert__cert__isnull",
+			"title":"judgement__catcert__cert__title"
 		}
 		translatedFilter = {}
 		for key in filters.keys():
@@ -953,36 +958,61 @@ class Entry(models.Model):
 			if key in keyMapping:
 				truekey = keyMapping[key]
 				translatedFilter[truekey] = value
+		if "judgement__catcert__isnull" in translatedFilter:
+			translatedFilter["judgement__catcert__isnull"] = not translatedFilter["judgement__catcert__isnull"]
+		if "judgement__catcert__cert__isnull" in translatedFilter:
+			translatedFilter["judgement__catcert__cert__isnull"] = not translatedFilter["judgement__catcert__cert__isnull"]
+
 		return translatedFilter
 
 	@staticmethod 
 	def create(resourceDict, id = None):
 		entry = Entry()
 		if id:
-			show.id = id 
-		show.name = resourceDict['name']
-		show.organizer = None
-		show.date = date.today()
-		show.save()
-		show.patch(resourceDict)
-		return cat 
+			entry.id = id 
+		entry.patch(resourceDict)
+		entry.save()
+		return entry 
 
 	def patch(self, resourceDict):
 		rd = resourceDict
-		if "name" in rd:
-			self.name = rd['name']
-		if "organizer" in rd:
-			self.organizer_id = rd['organizer']
-		if "date" in rd:
-			self.date = rd['date']
-		if "is_international" in rd:
-			self.international = rd['is_international']
-		if "location" in rd:
-			self.location = rd['location']
-		if "accepts_registrations" in rd:
-			self.openForregistration = rd['accepts_registrations']
-		if "is_visible_to_public" in rd:
-			self.visibleToPublic = rd['is_visible_to_public']
+		j = Judgement.objects.filter(entry = self)
+		if len(j) == 0:
+			j = Judgement()
+			j.entry = self 
+			j.judge = None
+			self.save()
+			j.save()
+		else:
+			j = self.judgement 
+		if "catalog_number" in rd:
+			catnr = rd["catalog_number"]
+			replacementTest = Entry.objects.filter(show = self.show, catalog_nr = catnr)
+			if len(replacementTest) == 0:
+				self.catalog_nr = catnr
+			else:
+				raise ValueError("Each entry at a show must have a unique catalog number. " + catnr +"is reserved for cat "+replacementTest[0].id)
+		if "is_guest" in rd:
+			self.guest = rd["is_guest"]
+		if "cat" in rd:
+			self.cat_id = rd["cat"]
+		if "judge" in rd:
+			j.judge_id = rd["judge"]
+		if "is_biv" in rd:
+			j.biv = rd["is_biv"]
+		if "was_absent" in rd:
+			j.abs = rd["was_absent"]
+		if "judgement" in rd:
+			j.judgement = rd["judgement"]
+		if "judgement_comment" in rd:
+			j.comment = rd["judgement_comment"]
+		if "recieved_certification" in rd:
+			j.certifications(rd["recieved_certification"])
+		if "nominations" in rd:
+			j.nominations(rd["nominations"])
+		if "awards" in rd:
+			j.awards(rd["awards"])
+		j.save()
 		self.save()
 
 	def toObject(self):
@@ -1019,6 +1049,8 @@ class Entry(models.Model):
 			obj["judgement_ready"] = False
 		return obj
 
+
+
 class ShowJudges(models.Model):
 	show = models.ForeignKey(Show,on_delete=models.CASCADE)
 	judge = models.ForeignKey(Judge,on_delete=models.CASCADE)
@@ -1031,12 +1063,13 @@ class ShowJudges(models.Model):
 
 class Judgement(models.Model):
 	entry = models.OneToOneField('Entry', primary_key = True,on_delete=models.CASCADE)
-	judge = models.ForeignKey('Judge',on_delete=models.CASCADE)
-	judgement = models.CharField(max_length = 10) #EX1
+	judge = models.ForeignKey('Judge', null=True, on_delete=models.CASCADE)
+	judgement = models.CharField(max_length = 10, default = "") #EX1
 	biv = models.BooleanField(default = False)
 	abs = models.NullBooleanField(null = True)
-	comment = models.CharField(max_length = 2048)
+	comment = models.CharField(max_length = 2048, default = "")
 
+	@property
 	def filled(self):
 		return not abs is None 
 	def date(self):

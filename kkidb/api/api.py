@@ -375,7 +375,6 @@ def entrants(request,sid):
 		entrant = Entry()
 		entrant.show_id = sid
 		entrant.patch(data)
-		payment.save()
 	elif request.method == "PUT":
 		return invalid("Invalid method " + request.method+", use POST instead", True, 405)
 	elif request.method == "PATCH":
@@ -406,7 +405,12 @@ def entrant(request,sid,eid):
 	elif request.method == "PUT":
 		return invalid("Invalid method " + request.method, True, 405)
 	elif request.method == "PATCH":
-		return invalid("Invalid method " + request.method, True, 405)
+		try:
+			_o = model.objects.get(show_id = sid, catalog_nr = eid)
+			_o.patch(data)
+			return valid(_o.toObject(),200)
+		except ObjectDoesNotExist:
+			return invalid("No resource located here with id "+str(eid),True,404)
 	elif request.method == "DELETE":
 		return invalid("Invalid method " + request.method, True, 405)
 	else:
