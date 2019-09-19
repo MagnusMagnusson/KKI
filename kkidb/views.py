@@ -91,9 +91,16 @@ def shows(request):
 	return HttpResponse(template.render(context,request))
 
 @isLoggedIn()
-def show_page(request,show):	
+def show_page(request,id):	
 	template = loader.get_template("shows/show_management.html")
-	context = {'show':Show.objects.get(id = show)}
+	context = {'show':Show.objects.get(id = id)}
+
+	return HttpResponse(template.render(context,request))
+
+@isLoggedIn()
+def show_operate(request,id):
+	template = loader.get_template("shows/show_runner.html")
+	context = {'show':Show.objects.get(id = id)}
 
 	return HttpResponse(template.render(context,request))
 

@@ -115,6 +115,9 @@ def defaultProcessSingular(model,request,id, queryObject = None):
 		else:
 			data = {}
 		return _put(model,data,id)
+	elif request.method == "PATCH":
+		put = QueryDict(request.body)
+		return _patch(model,data,id)
 	elif request.method == "DELETE":
 		return invalid("Illegal Method " + request.method, True, 403)
 	else:
@@ -173,7 +176,8 @@ def member(request, id):
 			m.save()
 			return valid(p.toObject(),201)
 	elif request.method == "PATCH":
-		if 'data' in request.POST:
+		put = QueryDict(request.body)
+		if 'data' in put:
 			data = json.loads(request.POST['data'])
 		else:
 			data = {}
@@ -352,7 +356,7 @@ def entrants(request,sid):
 		if "filter" in data:
 			filters = data['filter']
 			filters = Entry.apiMap(filters)
-			entrants = payments.filter(**filters)
+			entrants = entrants.filter(**filters)
 		if "search" in data:
 			terms = data['search']
 			terms = Entry.apiMap(terms)
@@ -406,7 +410,8 @@ def entrant(request,sid,eid):
 		return invalid("Invalid method " + request.method, True, 405)
 	elif request.method == "PATCH":
 		try:
-			_o = model.objects.get(show_id = sid, catalog_nr = eid)
+			data = getData(request.body)
+			_o = Entry.objects.get(show_id = sid, catalog_nr = eid)
 			_o.patch(data)
 			return valid(_o.toObject(),200)
 		except ObjectDoesNotExist:
@@ -870,3 +875,11 @@ def valid(message, code = 200):
 		'results':message
 	}
 	return JsonResponse(d,status = code)
+
+def getData(body):
+	_d = QueryDict(body)
+	if 'data' in _d:
+		data = json.loads(_d['data'])
+	else:
+		data = {}
+	return data

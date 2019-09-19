@@ -1,4 +1,5 @@
-﻿$(document).ready(function () {
+﻿ENV = {};
+$(document).ready(function () {
     window.Api = new Api();
     window.ModuleManager = new ModuleManager();
     var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();

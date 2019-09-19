@@ -30,6 +30,7 @@ urlpatterns = [
     path("felagar",views.members),
     path('raektun/<int:id>',views.cattery_profile),
     path("raektun",views.catteries),
+    path('syningar/<int:id>/syningarritun',views.show_operate),
     path('syningar/<int:id>',views.show_page),
     path("syningar",views.shows)
 ]

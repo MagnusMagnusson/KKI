@@ -1,0 +1,20 @@
+﻿.main-section{
+    display:none;
+    position:absolute;
+}
+
+.main-section.primary{
+    display:block;
+    position:inherit;
+}
+
+.judge-abs-list li:hover{
+    cursor:pointer;
+    background-color:rgba(255,0,0,0.2);
+}
+
+.centered{
+    margin-left:50%;
+    transform:translateX(-50%);
+    text-align:center;
+}

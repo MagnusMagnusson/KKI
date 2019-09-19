@@ -976,6 +976,7 @@ class Entry(models.Model):
 
 	def patch(self, resourceDict):
 		rd = resourceDict
+		print(rd)
 		j = Judgement.objects.filter(entry = self)
 		if len(j) == 0:
 			j = Judgement()
@@ -1022,7 +1023,7 @@ class Entry(models.Model):
 		obj["is_guest"] = self.guest 
 		obj["cat"] = self.cat.id
 		obj["judge"] = self.judgement.judge.id
-		if self.judgement.filled():
+		if self.judgement.filled:
 			obj["judgement_ready"] = True
 			obj["is_biv"] = self.judgement.biv
 			obj["was_absent"] = self.judgement.abs 

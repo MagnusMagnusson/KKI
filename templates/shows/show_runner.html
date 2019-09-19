@@ -1,0 +1,90 @@
+﻿{% extends "shared/master.html" %}
+{% load static %}
+
+
+{% block sidebar %}
+<li id="sidebar-list">
+    <a href="#" data-section="overview" id="sidebar-show-overview">Almennt</a>
+    <a href="#" data-section="abs" id="sidebar-show-abs">ABS-kettir</a>
+    <a href="#" data-section="color" id="sidebar-show-color">Litadómur</a>
+    <a href="#" data-section="cat" id="sidebar-show-cat">Kattardómur</a>
+    <a href="#" data-section="litter" id ="sidebar-show-litter">Got  </a>
+    <a href="#" data-section="nominations" id="sidebar-show-nominations">Tilnefningar  </a>
+    <a href="#" data-section="finals" id="sidebar-show-finals">Úrslit  </a>
+</li>
+{%endblock%}
+
+{%block main %}
+    <section class="primary main-section" id="section-overview">
+        <h3>{{show.name}} </h3>  
+    </section>   
+    <section class="main-section" id="section-abs">
+        <h3>Fjarverandi kettir (ABS)</h3>
+        <p>Vinsamlegast sláið inn sýningarnúmer fjarverandi katta, aðskilda með kommu (,)</p>
+        <p>Til að fjarlægja kött af ABS listanum, einfaldlega smellið á nafn hans.</p>
+        <div id="abs-form">
+            <textarea class="text-area large" id="textarea-abs"></textarea>
+            <button id="button-confirm-abs" class="button nofloat">Staðfesta</button>
+        </div>
+        <div id="abs-list">
+            
+            <ul>
+                {%for judge in show.judges%}
+
+                <li>
+                    <b>{{judge.judge.person.name}}</b>
+                    <ul class="judge-abs-list" id="abs-list-judge-{{judge.judge.id}}">
+
+                    </ul>
+                </li>
+                {%endfor%}
+            </ul>
+        </div>
+    </section>
+    <section class="main-section" id="section-color">
+        <h3>Litadómur</h3>
+        <p>Sláið inn sýningarnúmer kattar. Sláið svo inn nýja tegund eða lit</p>
+        <input class="centered textinput small" id="color-cat-id" placeholder="000" />
+        <div class="hidden centered" id="color-change-form">
+
+            <i><emph id="color-change-name">Köttur-00</emph>, nú með EMS kóða</i> <br />
+            <input class="textinput small" placeholder="PER" />
+            <input class="textinput small" placeholder="n 20" /><br />
+            <i>Hefur hlotið litadóm og er nú með EMS kóða</i><br />
+
+            <input class="textinput small" placeholder="PER" />
+            <input class="textinput small" placeholder="n 20" />
+            <br />
+            <br /><button id="button-confirm-color" class="button nofloat">Staðfesta</button><br />
+        </div>
+
+    </section>
+    <section class="main-section" id="section-cat">
+        cat
+    </section>
+    <section class="main-section" id="section-litter">
+        litter
+    </section>
+    <section class="main-section" id="section-nominations">
+        nominations
+    </section>
+    <section class="main-section" id="section-finals">
+        finals
+    </section>
+
+{%endblock%}
+
+{%block styles%}
+{{block.super}}
+<link rel="stylesheet" type="text/css" href="{% static 'css/show_runner.css' %}">
+{%endblock%}
+
+
+{%block scripts%}
+{{block.super}}
+<script src="{% static 'js/show_runner.js' %}"></script>
+
+<script>
+    ENV.show = {{show.id}}
+</script>
+{%endblock%}

@@ -1,5 +1,4 @@
-﻿
-class Api{
+﻿class Api{
     constructor() {
         this.urlList = {};
         this.setupURLs();
@@ -8,7 +7,8 @@ class Api{
     setupURLs() {
         this.urlList.cats = "/api/kettir";
         this.urlList.members = "/api/felagar";
-        this.urlList.catteries = "/api/raektanir"
+        this.urlList.catteries = "/api/raektanir";
+        this.urlList.shows = "/api/syningar";
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -25,6 +25,54 @@ class Api{
         //this.urlList.nextRegNr = "/api/util/skraningarnumer";
     }
 
+    getUrl(model, idArray = []) {
+        switch (model) {
+            case "cat": {
+                if (idArray.length == 0){
+                    return this.urlList.cats;
+                } else {
+                    return this.urlList.cats + "/"+idArray[0]
+                }
+                break;
+            }
+            case "member": {
+                if (idArray.length == 0) {
+                    return this.urlList.members;
+                } else {
+                    return this.urlList.members + "/" + idArray[0]
+                }
+                break;
+            }
+            case "cattery": {
+                if (idArray.length == 0) {
+                    return this.urlList.catteries;
+                } else {
+                    return this.urlList.catteries + "/" + idArray[0]
+                }
+                break;
+            }
+            case "show": {
+                if (idArray.length == 0) {
+                    return this.urlList.shows;
+                } else {
+                    return this.urlList.shows + "/" + idArray[0]
+                }
+                break;
+            }
+            case "entry": {
+                if (idArray.length == 0) {
+                    throw "Not enough information to fetch entrants. Specify show";
+                } else if (idArray.length == 1) {
+                    return this.urlList.shows + "/" + idArray[0] + "/keppendur";
+                } else {
+                    return this.urlList.shows + "/" + idArray[0] + "/keppendur/" + idArray[1];
+                }
+                break;
+            }
+        }
+        throw "No resource exists with name "+model;
+    }
+
     prepare(dictionary) {
         let dat = {}
         dat['data'] = JSON.stringify(dictionary);
@@ -38,25 +86,9 @@ class Api{
             value : 'blue'
         }
     */
-    find(model, searchDict, callback) {
-        let url = null;
-        switch (model) {
-            case "cat": {
-                url = this.urlList.cats;
-                break;
-            }
-            case "member": {
-                url = this.urlList.members;
-                break;
-            }
-            case "cattery": {
-                url = this.urlList.catteries;
-                break;
-            }
-            default: {
-                throw "No resource fitting description " + model;
-            }
-        }
+    find(model, searchDict, callback, idArray = []) {
+        let url;
+        url = this.getUrl(model, idArray);
         let d = {
             "search": searchDict
         };
@@ -64,26 +96,20 @@ class Api{
         this._get(url,d, callback);
     }
 
-    get(model, filterDict, callback) {
+    get(model, filterDict, callback, idArray = []) {
         let url;
-        switch (model) {
-            case "cat": {
-                url = this.urlList.cats;
-                break;
-            }
-            case "member": {
-                url = this.urlList.members;
-                break;
-            }
-            default: {
-                throw "No resource fitting description " + model;
-            }
-        }
+        url = this.getUrl(model, idArray);
         let d = {
             "filter": filterDict
         }
         d = this.prepare(d);
         this._get(url, d, callback);
+    }
+
+    edit(model, patchDict, callback, idArray = []) {
+        let url = this.getUrl(model, idArray);
+        let d = this.prepare(patchDict);
+        this._ajax("PATCH", url, d, callback);
     }
 
     /*
@@ -100,6 +126,8 @@ class Api{
         let dat = this.prepare(data);
         this._get(this.urlList.cats, dat, callback);
     }
+
+    
 
     /*
         will retrieve any items that have fields exactly matching the specified terms and values
@@ -152,18 +180,20 @@ class Api{
     }
 
     _get(url, data, callback) {
-        $.ajax({
-            method: "GET",
-            url: url,
-            data:data,
-        }).done(function (msg) {
-            callback(msg);
-        });
+        this._ajax("GET", url, data, callback);
     }
 
     _post(url, data, callback) {
+        this._ajax("POST", url, data, callback);
+    }
+
+    _patch(url, data, callback) {
+        this._ajax("PATCH", url, data, callback);
+    }
+
+    _ajax(method, url, data, callback) {
         $.ajax({
-            method: "POST",
+            method: method.toUpperCase(),
             url: url,
             data: data,
         }).done(function (msg) {
