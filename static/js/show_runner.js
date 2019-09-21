@@ -9,6 +9,13 @@
     $(document).on("click touchstart", ".judge-abs-list li", abs_remove_entry_handler);
 
     $(document).on("click touchstart", "#button-confirm-abs", abs_press_button_handler);
+    $("#color-cat-id").on("focusout", colorGetEntrant);
+    $('#color-cat-id').keyup(function (e) {
+        if (e.keyCode == 13) {
+            $(this).blur()
+        }
+    });
+    $("#button-confirm-color").on("click touchstart", colorSaveEntrant);
 });
 
 function updateData(section) {
@@ -107,4 +114,83 @@ function abs_remove_entry_handler(e) {
             }
         }, [ENV.show, e]);
     }
+}
+
+//COLOR HANDLERS
+function colorGetEntrant(e) {
+    e = parseInt($(this).val());
+    if (e) {
+        $("#color-change-form").hide();
+        $("#color-warning").show();
+        window.Api.get("entry", {}, function (msg) {
+            let c = msg.results.cat;
+            window.ENV.color_cat = c;
+            window.Api.get("cat", {}, function (msg) {
+                let cat = msg.results;
+                let ems = cat.ems.split(" ");
+                let breed = ems[0];
+                let color = ems.slice(1).join(" ");
+                $("#color-old-breed").val(breed);
+                $("#color-old-color").val(color);
+                $("#color-new-breed").val("");
+                $("#color-new-color").val("");
+                $("#color-new-breed").attr("placeholder", breed);
+                $("#color-new-color").attr("placeholder", color);
+                $("#color-change-form").show();
+                $("#color-warning").hide();
+                $("#color-change-name").text(`${cat.name} (#${e})`)
+            }, [c]);
+        }, [ENV.show, e]);
+    }
+}
+function colorSaveEntrant(e) {
+    let breed = $("#color-new-breed").val();
+    let color = $("#color-new-color").val();
+    if (breed == "") {
+        breed = $("#color-old-breed").val();
+    }
+    if (color == "") {
+        color = $("#color-old-color").val();
+    }
+    ems = breed + " " + color;
+    d = {
+        "ems": ems
+    };
+    window.Api.get("ems", d, function (msg) {
+        if (msg.results.length == 0) {
+            d2 = {
+                "breed": breed
+            };
+            window.Api.get("ems", d2, function (msg) {
+                if (msg.results.length == 0) {
+                    warning("color", "'" + breed + "' er ekki löggild tegund");
+                } else {
+                    if (confirm("'" + color + "' er óþekktur litur fyrir tegund '"+breed+"'. Viltu skapa litinn núna?")) {
+                        window.Api.create("ems", d, function (msg) {
+                            colorSaveEntrant(e);
+                        });
+                    }
+                }
+            })
+            
+        } else {
+            window.Api.edit("cat", d, function (msg) {
+                $("#color-new-breed").val("");
+                $("#color-new-color").val("");
+                $("#color-old-breed").val("");
+                $("#color-old-color").val("");
+                warning("color", "");
+                $("#color-change-form").hide();
+                success("color", "Litadómur staðfestur. "+msg.results.name + " er nú " + msg.results.ems);
+            }, [ENV.color_cat]);
+        }
+    });
+}
+
+
+function warning(section,warning) {
+    $("#warning-" + section).text(warning);
+}
+function success(section, text) {
+    $("#success-" + section).text(text);
 }

@@ -9,6 +9,7 @@
         this.urlList.members = "/api/felagar";
         this.urlList.catteries = "/api/raektanir";
         this.urlList.shows = "/api/syningar";
+        this.urlList.ems = "/api/ems"
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -69,6 +70,16 @@
                 }
                 break;
             }
+            case "ems": {
+                if (idArray.length == 0) {
+                    return this.urlList.ems;
+                } else if (idArray.length == 1) {
+                    return this.urlList.ems + "/" + idArray[0];
+                } else {
+                    return this.urlList.ems + "/" + idArray[0] + "/" + idArray[1];
+                }
+                break;
+            }
         }
         throw "No resource exists with name "+model;
     }
@@ -110,6 +121,12 @@
         let url = this.getUrl(model, idArray);
         let d = this.prepare(patchDict);
         this._ajax("PATCH", url, d, callback);
+    }
+
+    create(model, patchDict, callback, idArray = []) {
+        let url = this.getUrl(model, idArray);
+        let d = this.prepare(patchDict);
+        this._ajax("POST", url, d, callback);
     }
 
     /*

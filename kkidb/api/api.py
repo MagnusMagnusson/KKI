@@ -19,7 +19,10 @@ import json
 def _get(model, id, queryObject = None):
 	if queryObject == None:
 		queryObject = model.objects.all()
-	_o = queryObject.get(id = id)
+	if id:
+		_o = queryObject.get(id = id)
+	else:
+		_o = queryObject
 	return JsonResponse({"success":True,"results":_o.toObject()})
 
 def _gets(model,data, queryObject = None):
@@ -85,7 +88,7 @@ def defaultProcessGroup(model,request, queryObject = None):
 			data = json.loads(request.POST['data'])
 		else:
 			data = {}
-		return _posts(model,data)
+		return _post(model,data)
 	elif request.method == "PUT":
 		return invalid("Invalid method " + request.method +", use POST instead", True, 405)
 	elif request.method == "PATCH":
@@ -109,14 +112,10 @@ def defaultProcessSingular(model,request,id, queryObject = None):
 		else:
 			return post(Cat,data,id)
 	elif request.method == "PUT":
-		put = QueryDict(request.body)
-		if 'data' in put:
-			data = json.loads(put['data'])
-		else:
-			data = {}
+		data = getData(request.body)
 		return _put(model,data,id)
 	elif request.method == "PATCH":
-		put = QueryDict(request.body)
+		data = getData(request.body)
 		return _patch(model,data,id)
 	elif request.method == "DELETE":
 		return invalid("Illegal Method " + request.method, True, 403)
@@ -158,11 +157,7 @@ def member(request, id):
 		else:
 			return invalid("Resource already exists",True,409)
 	elif request.method == "PUT":
-		put = QueryDict(request.body)
-		if 'data' in put:
-			data = json.loads(put['data'])
-		else:
-			data = {}
+		data = getData(request.body)
 		memberTest = Member.objects.filter(id = id)
 		if len(memberTest) > 0:
 			memberTest[0].patch(data)
@@ -176,11 +171,7 @@ def member(request, id):
 			m.save()
 			return valid(p.toObject(),201)
 	elif request.method == "PATCH":
-		put = QueryDict(request.body)
-		if 'data' in put:
-			data = json.loads(request.POST['data'])
-		else:
-			data = {}
+		data = getData(request.body)
 		member = Member.objects.filter(id = id)
 		if len(member) == 0:
 			return invalid("No member with the identification "+id,True,404)
@@ -420,6 +411,19 @@ def entrant(request,sid,eid):
 		return invalid("Invalid method " + request.method, True, 405)
 	else:
 		return invalid("Unknown method " + request.method, True, 400)
+
+def ems(request):
+	return defaultProcessGroup(EMS,request)
+
+def breed(request,breed):
+	_b = Breed.objects.get(short = breed.upper().strip())
+	_e = EMS.objects.filter(breed = _b)
+	return defaultProcessGroup(EMS,request,_e)
+
+def color(request,breed,color):
+	col = " ".join(color.split("_"))
+	ems = EMS.getEMS(breed + " " + col)
+	return defaultProcessSingular(EMS,request,None,ems)
 
 #	if request.method == "GET":
 #		return invalid("Invalid method " + request.method, True, 405)

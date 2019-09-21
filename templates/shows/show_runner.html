@@ -45,18 +45,22 @@
         <h3>Litadómur</h3>
         <p>Sláið inn sýningarnúmer kattar. Sláið svo inn nýja tegund eða lit</p>
         <input class="centered textinput small" id="color-cat-id" placeholder="000" />
+        <p id="color-warning" class="hidden">Sæki kött...</p>
         <div class="hidden centered" id="color-change-form">
 
-            <i><emph id="color-change-name">Köttur-00</emph>, nú með EMS kóða</i> <br />
-            <input class="textinput small" placeholder="PER" />
-            <input class="textinput small" placeholder="n 20" /><br />
+            <i><emph id="color-change-name">Köttur-00</emph> er núna með EMS kóða</i> <br />
+            <input id="color-old-breed"class="readonly textinput small" placeholder="PER" />
+            <input id="color-old-color"class="readonly textinput small" placeholder="n 20" /><br />
             <i>Hefur hlotið litadóm og er nú með EMS kóða</i><br />
 
-            <input class="textinput small" placeholder="PER" />
-            <input class="textinput small" placeholder="n 20" />
+            <input id="color-new-breed" class="textinput small" placeholder="PER" />
+            <input id="color-new-color" class="textinput small" placeholder="n 20" />
             <br />
             <br /><button id="button-confirm-color" class="button nofloat">Staðfesta</button><br />
-        </div>
+            <i id="warning-color" class="warning"></i>
+        </div><br />
+        <i id="success-color"></i>
+
 
     </section>
     <section class="main-section" id="section-cat">

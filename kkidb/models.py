@@ -496,10 +496,20 @@ class Cat(models.Model):
 			ems_list.append(ems)
 		return ems_list
 
+	@property
 	def ems(self):
 		emss = self.allEms()
 		if len(emss) > 0:
 			return emss[0]
+
+	@ems.setter
+	def ems(self,value):
+		ems = EMS.getEMS(value)
+		ce = CatEms()
+		ce.ems = ems
+		ce.cat = self 
+		ce.date = date.today()
+		ce.save()
 
 	def highestCert(self,neutered = False):
 		catSet = self.catcert_set.all().filter(cert__neuter = neutered)
@@ -617,8 +627,8 @@ class Cat(models.Model):
 	def toObject(self):
 		cat = {} 
 		cat['id'] = self.id 
-		if self.ems():
-			cat['ems'] = str(self.ems().ems)
+		if self.ems:
+			cat['ems'] = str(self.ems.ems)
 		else:
 			cat['ems'] = None
 		cat['name'] = self.name
@@ -689,35 +699,9 @@ class Cat(models.Model):
 		return cat 
 
 	def patch(self, resourceDict):
+		print(resourceDict)
 		if "ems" in resourceDict:
-			breedString = resourceDict['ems'][:3].upper().strip()
-			colorString = resourceDict['ems'][3:].lower().strip()
-			breed = Breed.objects.filter(short = breedString)
-			if len(breed) > 0:
-				breed = breed[0]
-			else:
-				raise ValueError("Unkown breed "+breed)
-		
-			color = Color.objects.filter(short = colorString)
-			if len(color) > 0:
-				color = color[0]
-			else:
-				color = Color()
-				color.short = colorString
-				color.save()
-			ems = EMS.objects.filter(breed = breed, color = color)
-			if len(ems) == 1:
-				ems = ems[0]
-			elif len(ems) == 0:
-				ems = EMS()
-				ems.breed = breed
-				ems.color = color 
-				ems.save()
-			cems = CatEms()
-			cems.ems = ems
-			cems.date = today
-			cems.cat = self 
-			cems.save()
+			self.ems = resourceDict['ems']
 
 		self.name = resourceDict['name'] if "name" in resourceDict else self.name 
 		self.country = resourceDict['country'] if "country" in resourceDict else self.country 
@@ -799,11 +783,116 @@ class EMS(models.Model):
 	color = models.ForeignKey('Color',on_delete=models.CASCADE)
 	group = models.IntegerField(null = True)
 	
+	@staticmethod 
+	def splitEms(emsString):
+		b = emsString.split(" ")[0].upper().strip()
+		c = " ".join(emsString.split(" ")[1:]).lower().strip()
+		return (b,c)
+
 	def toObject(self):
 		ems = {}
 		ems['ems'] = str(self)
+		ems['breed'] = self.breed.breed
+		ems['category'] = self.breed.category
+		ems['breed_short'] = self.breed.short 
+		ems['color'] = self.color.color
+		ems['color_short'] = self.color.short
+		ems['color_description'] = self.color.desc
+		ems['group'] = self.group 
 		return ems
+
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"ems":"ems",
+			"breed":"breed__breed",
+			"category":"breed__category",
+			"breed_short":"breed__short",
+			"color":"color__color",
+			"color_short":"color__short",
+			"color_description":"color__desc",
+			"group":"group"
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		if "ems" in translatedFilter:
+			ems = translatedFilter['ems']
+			translatedFilter.pop("ems",None)
+			b = ems.split(" ")[0].upper().strip()
+			c = " ".join(ems.split(" ")[1:]).lower().strip()
+			if not "breed__short" in translatedFilter:
+				translatedFilter["breed__short"] = b
+			if not "color__short" in translatedFilter:
+				translatedFilter["color__short"] = c
+		return translatedFilter
+
+	@staticmethod 
+	def create(resourceDict, id=None):
+		ems = EMS()
+		rd = resourceDict
+		if "ems" in rd:
+			b,c = EMS.splitEms(rd["ems"])
+			rd["breed_short"] = b if "breed_short" not in rd else rd["breed_short"]
+			rd["color_short"] = c if "color_short" not in rd else rd["color_short"]
+		if "breed_short" in rd:
+			breed = Breed.objects.filter(short = rd["breed_short"])
+			if len(breed) == 0:
+				breed = Breed()
+				if "breed" in rd:
+					breed.breed = rd["breed"]
+				else:
+					breed.breed = rd["breed_short"]
+				breed.short = rd["breed_short"]
+				breed.category = rd["category"]
+				breed.save()
+			else:
+				breed = breed[0]
+			ems.breed = breed 
+		if "color_short" in rd:
+			color = Color.objects.filter(short = rd["color_short"])
+			if len(color) == 0:
+				color = Color()
+				if "color" in rd:
+					color.color = rd["color"]
+				else:
+					color.color = rd["color_short"]
+				if "color_description" in rd:
+					color.desc = rd["color_description"]
+				color.short = rd["color_short"]
+				color.save()
+			else:
+				color = color[0]
+			ems.color = color 
+		if "group" in rd:
+			ems.group = rd["group"]
+		else:
+			ems.group = None
+		ems.save()
+
+		return ems 
+
+	def patch(self, resourceDict):
+		pass
+		
 	
+	@staticmethod
+	def getEMS(emsString):
+		_a = emsString.split(" ")
+		_b = _a[0].upper().strip()
+		_c = " ".join(_a[1:]).lower().strip()
+		b = Breed.objects.get(short = _b)
+		c = Color.objects.get(short = _c)
+		ems = EMS.objects.get(breed = b, color = c)
+		return ems
+
+	@property
+	def ems(self):
+	   return str(self)
+
 	def __str__(self):
 		return self.breed.short + " " + self.color.short
 	

@@ -31,6 +31,10 @@ urlpatterns = [
 	path("syningar/<int:sid>/keppendur", api.entrants),
 	path("syningar/<int:id>", api.show),
 	path("syningar", api.shows),
+	path("ems/<slug:breed>/<slug:color>",api.color),
+	path("ems/<slug:breed>",api.breed),
+	path("ems",api.ems)
+	
 
 
 #	url("leit",api.find),
