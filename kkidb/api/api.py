@@ -332,7 +332,13 @@ def shows(request):
 	return defaultProcessGroup(Show,request)
 
 def show(request,id):
-	return defaultProcessSingular(Show,request,id,)
+	return defaultProcessSingular(Show,request,id)
+
+def award(request,id):
+	return defaultProcessSingular(Award,request,id)
+
+def awards(request):
+	return defaultProcessGroup(Award,request)
 
 @transaction.atomic
 def entrants(request,sid):

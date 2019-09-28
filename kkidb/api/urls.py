@@ -36,7 +36,9 @@ urlpatterns = [
 	path("ems",api.ems),
 	path("stig/<slug:name>-<int:rank>",api.cert),
 	path("stig/HP",api.hpCert),
-	path("stig",api.certs)
+	path("stig",api.certs),
+	path("verdlaun/<slug:id>",api.award),
+	path("verdlaun",api.awards)
 	
 
 

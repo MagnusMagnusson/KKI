@@ -1398,7 +1398,7 @@ class Cert(models.Model):
 
 
 	@staticmethod
-	def create(rd):
+	def create(rd, id=None):
 		pass
 
 	def patch(self, rd):
@@ -1440,6 +1440,46 @@ class LitterNomination(models.Model):
 class Award(models.Model):
 	name = models.CharField(max_length = 50)
 	coreAward = models.BooleanField(default = False)
+
+	@staticmethod 
+	def create(rd, id = None):
+		award = Award()
+		award.name = rd["name"]
+		if "is_core" in rd:
+			award.coreAward = rd["is_core"]
+		else:
+			award.coreAward = False
+		award.save()
+
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"name":"name",
+			"is_core":"coreAward",
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+
+		return translatedFilter
+
+	def toObject(self):
+		o = {}
+		o['id'] = self.id
+		o['name'] = self.name
+		o['is_core'] = self.coreAward 
+		return o 
+	def patch(self,rd):
+		if "name" in rd:
+			self.name = rd['name']
+
+		if "is_core" in rd:
+			self.coreAward = rd['is_core']
+		self.save()
+
 
 class showAward(models.Model):
 	show = models.ForeignKey('Show', on_delete = models.CASCADE)

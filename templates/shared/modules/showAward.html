@@ -1,0 +1,43 @@
+﻿{% extends "shared/modules/module_master.html" %}
+{% load static %}
+
+{%block module_type%}showAward{%endblock%}
+
+{% block module_title%}
+    Skrá Verðlaun sýningar
+{%endblock%}
+
+{%block module_sections %}
+<div data-section="basic" class="button section selected">
+    Verðlaun
+</div>
+{%endblock%}
+
+{%block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'shared/modules/css/module-showAward.css' %}">
+{%endblock %}
+
+{%block module_body %}
+    <form id="showAward-form">
+        <input id="show-id" name="show" class="hidden readonly">
+        <section data-section="basic">
+            <div class="centeredContent">
+                <div class="halfsize-container">
+                    <div id="showAward-list-window" class="halfsize left list-window">
+                        <b>Verðlaun á skrá</b>
+                        <ul id="showAward-avaliable-awards">
+                            <li>Sæki upplýsingar...</li>
+                        </ul>
+                    </div>
+                    <div id="showAward-list-window" class="halfsize left list-window">
+                        <b>Verðlaun á sýningu</b>
+                        <ul id="showJudge">
+                            <li>Sæki upplýsingar...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </form>
+{%endblock%}
+
