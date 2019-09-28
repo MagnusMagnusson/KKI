@@ -5,6 +5,8 @@ from django.db import models
 import random
 import uuid
 from datetime import date
+from dateutil.relativedelta import relativedelta
+from datetime import date
 
 def Randstring(n = 6):
 	return  uuid.uuid4().hex[0:n]
@@ -496,11 +498,42 @@ class Cat(models.Model):
 			ems_list.append(ems)
 		return ems_list
 
+	@property 
+	def isNeutered(self):
+		return hasattr(self,"neuter")
+
+	def isKitten(self):	
+		kitten_cutoff = date.today() + relativedelta(months=-7)
+		return self.birth_date >= kitten_cutoff
+
+	def isJunior(self):
+		youngling_cutoff = date.today() + relativedelta(months=-10)
+		return self.birth_date >= youngling_cutoff
+
+
+	@property
+	def division(self):
+		g = "Male" if self.isMale else "Female"
+		if self.isKitten():
+			return g+" Kitten"
+		elif self.isJunior():
+			return g+ " Junior"
+		else:
+			cat = self.ems.category if self.ems else 0
+			if cat == 5:
+				return "Housecat " + g
+			if hasattr(self,"neuter"):
+				return "Cat."+  str(cat) + " neutered " + g
+			else:
+				return "Cat."+ str(cat) + " "+g
+
 	@property
 	def ems(self):
 		emss = self.allEms()
 		if len(emss) > 0:
 			return emss[0]
+		else:
+			return None
 
 	@ems.setter
 	def ems(self,value):
@@ -637,6 +670,15 @@ class Cat(models.Model):
 		cat['country'] = self.country
 		cat['registration_class'] = self.registration_class
 		cat['organization'] = self.organization
+		cat['age_class'] = "Kitten" if self.isKitten() else "Junior" if self.isJunior() else "Adult"
+		if self.ems:
+			cat['category'] = self.ems.category
+			cat['breed'] = self.ems.breed.breed
+		else:
+			cat['category'] = None 
+			cat['breed'] = None
+		cat['division'] = self.division
+		
 
 		cat['birthdate'] = self.birth_date
 		cat['registration_date'] = self.reg_date
@@ -726,7 +768,7 @@ class Cat(models.Model):
 		if "neutered" in resourceDict:
 			neuter = resourceDict['neutered']
 			if neuter and 'neutered_date' in resourceDict:
-				if hasattr(cat,"neuter"):
+				if hasattr(self,"neuter"):
 					self.neuter.date = resourceDict['neutered_date']
 					self.neuter.save()
 				else:
@@ -738,11 +780,6 @@ class Cat(models.Model):
 				if hasattr(self,"neuter"):
 					self.neuter.delete()
 		self.save()
-
-
-
-
-		
 
 
 
@@ -893,6 +930,10 @@ class EMS(models.Model):
 	def ems(self):
 	   return str(self)
 
+	@property 
+	def category(self):
+	   return self.breed.category
+
 	def __str__(self):
 		return self.breed.short + " " + self.color.short
 	
@@ -903,6 +944,13 @@ class CatEms(models.Model):
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
 	ems = models.ForeignKey('EMS',on_delete=models.CASCADE)
 	date = models.DateField()
+
+	@property
+	def category(self):
+		return self.ems.category if self.ems else None
+	@property 
+	def breed(self):
+		return self.ems.breed
 	def __str__(self):
 		return str(self.ems)
 	def toObject(self):
@@ -1121,13 +1169,40 @@ class Entry(models.Model):
 			if hasattr(self.judgement,"catcert"):
 				obj["recieved_certification"] = True
 				obj["certification"] = self.judgement.catcert.cert.fullName()
+				if  self.judgement.catcert.cert.prev():
+					obj["current_certification"] = self.judgement.catcert.cert.prev()
+					t = self.judgement.catcert.cert.prev().getTitle()
+					if t:
+						obj["current_title"] = t.short
+					else:
+						obj["current_title"] = None
+
+				else:
+					obj["current_certification"] = None
+					obj["current_title"] = None
+
+				obj["next_certification"] = obj["certification"]
 				if hasattr(self.judgement.catcert.cert,"title"):
 					obj["recieved_title"] = True
-					obj["title"] = self.judgement.catcert.cert.getTitle().name
+					obj["title"] = self.judgement.catcert.cert.getTitle().short
 				else:
 					obj["recieved_title"] = False
 			else:
 				obj["recieved_certification"] = False
+				if self.cat.highestCert():
+					obj["current_certification"] = self.cat.highestCert().cert
+					t = self.cat.highestCert().cert.getTitle()
+					if t:
+						obj["current_title"]  = t.short
+					else:
+						obj["current_title"] = None
+				else:
+					obj["current_certification"] = None
+					obj["current_title"] = None
+				if self.cat.highestCert():
+					obj["next_certification"] = self.cat.highestCert().cert.next.fullName()
+				else:
+					obj["next_certification"] = Cert.base(neutered = self.cat.isNeutered).fullName()
 			obj["nominations"] = []
 			obj["awards"] = []
 			nomSet = Nomination.objects.filter(judgement = self.judgement)
@@ -1137,6 +1212,38 @@ class Entry(models.Model):
 					obj["awards"].append(nom.award.name)
 		else:
 			obj["judgement_ready"] = False
+			if self.cat.highestCert():
+				obj["current_certification"] = self.cat.highestCert().cert
+				obj["next_certification"] = self.cat.highestCert.cert.next.fullName()
+				t =  self.cat.highestCert.cert.getTitle()
+				if t:
+					obj["current_title"] = t.short
+				else:
+					obj["current_title"] = None
+			else:
+				obj["current_certification"] = None
+				obj["next_certification"] = Cert.base(neutered = self.cat.isNeutered).fullName()
+				obj["current_title"] = None
+		
+		k = self.show.date + relativedelta(months=-7)
+		j = self.show.date + relativedelta(months=-10)
+		isKitten = self.cat.birth_date >= k
+		isJunior = self.cat.birth_date >= j
+	
+		if isKitten:
+			obj["current_certification"] = None
+			obj["next_certification"] = None 
+			obj['class'] = 12
+		elif isJunior:
+			obj["current_certification"] = None
+			obj["next_certification"] = None 
+			obj['class'] = 11
+		else:
+			if obj["current_certification"]:
+				obj["class"] = obj["current_certification"].certClass
+				obj["current_certification"] = obj["current_certification"].fullName()
+			else:
+				obj["class"] = Cert.base(neutered = self.cat.isNeutered).certClass
 		return obj
 
 
@@ -1169,11 +1276,38 @@ class Judgement(models.Model):
 			return self.catcert.cert
 		else:
 			return None
+	def _catcert(self):
+		if hasattr(self,'catcert'):
+			return self.catcert
+		else:
+			return None
 	def nom(self):
 		if hasattr(self,'Nomination'):
 			return self.Nomination
 		else:
 			return None
+	
+	#certifications(recieved). Sets or removes the certification relevant to this judgement. 
+	def certifications(self, recieved):
+		if recieved: #Award certification if not already awarded
+			if self._catcert():
+				pass
+			else:
+				c = CatCert()
+				c.cat = self.entry.cat
+				c.judgement = self
+				cert = self.entry.cat.highestCert(self.entry.cat.isNeutered)
+				if cert:
+					c.cert = cert.next
+				else:
+					c.cert = Cert.base(self.entry.cat.isNeutered)
+				c.ems = self.entry.cat.ems.ems #Todo, use the EMS code that the cat *had* at the date of the show, not the most recent. 
+				c.save()
+		else: 
+			#If the certification has already been given out, delete.
+			#Future functionality: what to do if editing a show that's already passed? If the cat has other certifications above?
+			if  self._catcert():
+				self._catcert().delete()
 
 		
 
@@ -1199,6 +1333,7 @@ class Cert(models.Model):
 	name = models.CharField(max_length = 10)
 	rank = models.IntegerField()
 	next = models.ForeignKey('Cert', null=True,on_delete=models.CASCADE)
+	certClass = models.IntegerField()
 	neuter = models.BooleanField()
 
 	def prev(self):
@@ -1209,7 +1344,10 @@ class Cert(models.Model):
 			return certQ[0]
 		
 	def fullName(self):
-		return self.name + str(self.rank)
+		if self.next == self:
+			return self.name
+		else:
+			return self.name + "-" + str(self.rank)
 
 	def getTitle(self):
 		if hasattr(self,'title'):
@@ -1228,6 +1366,49 @@ class Cert(models.Model):
 				return 1 + self.next.absRank()
 		else:
 			return 1
+
+	def toObject(self):
+		c = {}
+		c['certification_group'] = self.name 
+		c['rank'] = self.rank
+		p = self.prev()
+		if p:
+			c['previous_certification'] = p.fullName()
+		else:
+			c['previous_certification'] = None
+
+		
+		n = self.next
+		if n:
+			c['next_certification'] = n.fullName()
+			c['ultimate'] = n.name != self.name 
+		else:
+			c['next_certification'] = None
+			c['ultimate'] = False
+		c['certification'] = self.fullName()
+		t = self.getTitle()
+		c['title'] = t.name if t else None
+		c['title_group'] = t.short if t else None
+		c['is-neutered'] = self.neuter
+		return c
+		
+
+	def apiMap(filters):
+		pass
+
+
+	@staticmethod
+	def create(rd):
+		pass
+
+	def patch(self, rd):
+		pass 
+	@staticmethod
+	def base(neutered = False):
+		if neutered:
+			return Cert.objects.get(name = "CAP", rank = 1)
+		else:
+			return Cert.objects.get(name = "CAC", rank = 1)
 
 class CatCert(models.Model):
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)

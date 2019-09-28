@@ -33,7 +33,10 @@ urlpatterns = [
 	path("syningar", api.shows),
 	path("ems/<slug:breed>/<slug:color>",api.color),
 	path("ems/<slug:breed>",api.breed),
-	path("ems",api.ems)
+	path("ems",api.ems),
+	path("stig/<slug:name>-<int:rank>",api.cert),
+	path("stig/HP",api.hpCert),
+	path("stig",api.certs)
 	
 
 

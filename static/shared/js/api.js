@@ -10,6 +10,7 @@
         this.urlList.catteries = "/api/raektanir";
         this.urlList.shows = "/api/syningar";
         this.urlList.ems = "/api/ems"
+        this.urlList.cert = "/api/stig"
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -79,6 +80,13 @@
                     return this.urlList.ems + "/" + idArray[0] + "/" + idArray[1];
                 }
                 break;
+            }
+            case "cert": {
+                if (idArray.length == 0) {
+                    return this.urlList.cert;
+                } else {
+                    return this.urlList.cert + "/" + idArray[0]
+                }
             }
         }
         throw "No resource exists with name "+model;

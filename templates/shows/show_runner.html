@@ -64,7 +64,70 @@
 
     </section>
     <section class="main-section" id="section-cat">
-        cat
+        <h3>Dómur katta</h3>
+        <p>Sláið inn sýningarnúmer kattar. Sláið svo inn dóminn sem kötturinn hlaut.</p>
+        <p>Breyta má dómum sem köttur hefur fengið á sama hátt of um nýjan dóm væri að ræða.</p>
+
+        <input class="centered textinput small" id="judgement-cat-id" placeholder="Sýningarnúmer" />
+        <div class="button nofloat small">Leita</div>
+        <div id="judgement-form">
+            <div class="judgement-form-div" id="judgement-form-l1">
+                <span>
+                    <i>EMS</i><br />
+                    <input id="judgement-form-ems" readonly class="readonly textinput"/>
+                </span>
+                <span>
+                    <i>Dómari</i><br />
+                    <select id="judgement-form-judge" class="textinput">
+                        {% for judge in show.judges %}
+                            <option value="{{judge.judge.id}}">{{judge.judge.person.name}}</option>
+                        {%endfor%}
+                    </select>
+                    </span>
+                <span>
+                    <i>Flokkur (Class)</i><br />
+                    <input id="judgement-form-class" readonly class = "textinput readonly" />
+                </span>
+            </div>
+            <div class="judgement-form-div" id="judgement-form-l2">
+                <span>
+                    <i>Núv. Stig</i><br />
+                    <input id="judgement-form-current-cert" readonly class = "textinput readonly"  />
+                </span>
+                <span>
+                    <i>Stig í húfi</i><br />
+                    <input id="judgement-form-next-cert" readonly class="readonly textinput"  />
+                </span>
+                <span>
+                    <i>Titill í húfi</i><br />
+                    <input id="judgement-form-next-title" readonly class="readonly textinput"  />
+                </span>
+            </div>
+            <div class="judgement-form-div" id="judgement-form-l3">
+                <span>
+                    <i>Dómur gefinn</i><br />
+                    <input  id="judgement-form-judgement-given" class="textinput" />
+                </span>
+                <span>
+                    <i>BIV</i><br />
+                    <input id="judgement-form-biv" type="checkbox">
+                </span>
+                <span>
+                    <i>CERT</i><br />
+                    <input id="judgement-form-cert" type="checkbox">
+                </span>
+                <span>
+                    <i>ABS</i><br />
+                    <input id="judgement-form-abs" type="checkbox">
+                </span>
+                <span>
+                    <i>Athugasemd</i><br />
+                    <input id="judgement-form-comment" class="textinput"  />
+                </span>
+            </div>
+        </div>
+        <div id="judgement-save-button"class="button float-left">Vista</div>
+
     </section>
     <section class="main-section" id="section-litter">
         litter

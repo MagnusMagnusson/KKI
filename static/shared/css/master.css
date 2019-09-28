@@ -163,6 +163,10 @@ a:hover {
     left: 1em;
 }
 
+.button.small{
+    width:6em;
+}
+
 .button.nofloat {
     float: none;
 }
@@ -316,4 +320,8 @@ a:hover {
 .warning{
     color:red;
     font-weight:100;
+}
+
+.textinput::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: rgba(100,100,120,0.5);
 }

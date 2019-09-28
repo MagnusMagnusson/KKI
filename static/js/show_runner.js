@@ -1,4 +1,15 @@
 ﻿$(document).ready(function () {
+    $(".textinput").val("");
+    $("input").prop("checked", false);
+
+    $("#judgement-form-abs").change(function () {
+        if (this.checked) {
+            judgement_lockout(true);
+        } else {
+            judgement_lockout(false);
+        }
+    });
+
     $("#sidebar-list a").on("click touchstart", function (e) {
         $(".main-section").hide();
         newSection = $(this).data("section")
@@ -16,6 +27,13 @@
         }
     });
     $("#button-confirm-color").on("click touchstart", colorSaveEntrant);
+    $("#judgement-save-button").on("click touchstart", judgement_save);
+    $("#judgement-cat-id").on("focusout", judgementGetEntrant);
+    $('#judgement-cat-id').keyup(function (e) {
+        if (e.keyCode == 13) {
+            $(this).blur()
+        }
+    });
 });
 
 function updateData(section) {
@@ -185,6 +203,157 @@ function colorSaveEntrant(e) {
             }, [ENV.color_cat]);
         }
     });
+}
+
+//JUDGEMENT HANDLERS
+function judgementGetEntrant(e) {
+    ent = parseInt($(this).val());
+    if (ent) {
+        window.Api.get("entry", {}, function (entrant) {
+            let biv, cert, abs, judgement, comment;
+            entrant = entrant.results;
+            ENV.entry = entrant.catalog_number;
+            let judge = entrant.judge;
+            let current_cert = entrant.current_certification;
+            let next_cert = entrant.next_certification;
+            let judgement_recieved = entrant.judgement_ready;
+            let _class = entrant.class;
+            let guest = entrant.is_guest;
+            if (judgement_recieved && !guest) {
+                biv = entrant.is_biv;
+                cert = entrant.recieved_certification;
+                abs = entrant.was_absent;
+                judgement = entrant.judgement;
+                comment = entrant.judgement_comment;
+            } else {
+                biv = false;
+                cert = false;
+                abs = false;
+                judgement = "";
+                comment = "";
+            }
+
+            console.log(judgement)
+            window.Api.get("cat", {}, function (cat) {
+                let ems = cat.results.ems;
+                if (!guest && next_cert){
+                    window.Api.get("cert", {}, function (certificate) {
+                        certificate = certificate.results;
+                        let next_title;
+                        if (certificate.ultimate) {
+                            next_title = certificate.title_group;
+                        } else {
+                            next_title = " Enginn Titill ";
+                        }
+
+                        judgement_lockout(abs);
+                        $("#judgement-form-cert").data("locked", false);
+                        $("#judgement-form-biv").data("locked", false);
+                        $("#judgement-form-biv").prop('disabled', false);
+                        $("#judgement-form-abs").data("locked", false);
+                        $("#judgement-form-abs").prop('disabled', false);
+                        $("#judgement-form-cert").prop('disabled', false);
+
+                        $("#judgement-form-ems").val(ems);
+                        $("#judgement-form-judge").val(judge);
+                        $("#judgement-form-class").val(_class);
+                        $("#judgement-form-current-cert").val(current_cert);
+                        $("#judgement-form-next-cert").val(next_cert);
+                        $("#judgement-form-next-title").val(next_title);
+                        console.log(judgement);
+                        $("#judgement-form-judgement-given").val(judgement);
+                        $("#judgement-form-biv").prop('checked', biv);
+                        $("#judgement-form-abs").prop('checked', abs);
+                        $("#judgement-form-cert").prop('checked', cert);
+                        $("#judgement-form-comment").val(comment);
+                    }, [next_cert]);
+                } else {
+                    $("#judgement-form-cert").data("locked", true);
+                    $("#judgement-form-cert").prop('disabled', true);
+                    if (is_guest) {
+                        $("#judgement-form-abs").data("locked", true);
+                        $("#judgement-form-biv").data("locked", true);
+                        $("#judgement-form-biv").prop('disabled', true);
+                        $("#judgement-form-abs").prop('disabled', true);
+                        abs = true;
+                    } 
+                    judgement_lockout(abs);
+                    $("#judgement-form-ems").val(ems);
+                    $("#judgement-form-judge").val(judge);
+                    $("#judgement-form-class").val(_class);
+                    $("#judgement-form-current-cert").val(current_cert);
+                    $("#judgement-form-next-cert").val(next_cert);
+                    $("#judgement-form-next-title").val("Enginn Titill");
+                    $("#judgement-form-judgement-given").val(judgement);
+                    $("#judgement-form-biv").prop('checked', biv);
+                    $("#judgement-form-abs").prop('checked', abs);
+                    $("#judgement-form-cert").prop('checked', cert);
+                    $("#judgement-form-comment").val(comment);
+                }
+            }, [entrant.cat]);
+        }, [ENV.show, ent]);
+    }
+}
+function judgement_lockout(locked) {
+    if (locked) {
+        $("#judgement-form-cert").data('old', $("#judgement-form-cert").prop("checked"));
+        $("#judgement-form-biv").data('old', $("#judgement-form-biv").prop("checked"));
+        $("#judgement-form-judgement-given").data("old", $("#judgement-form-judgemen-given").val());
+
+        $("#judgement-form-judgement-given").val("");
+        $("#judgement-form-cert").prop('checked', false);
+        $("#judgement-form-biv").prop('checked', false);
+        
+        $("#judgement-form-biv").prop('disabled', true);
+        $("#judgement-form-cert").prop('disabled', true);
+        $("#judgement-form-judgement-given").prop('readonly', true);
+        $("#judgement-form-judgement-given").addClass('readonly');
+    } else {
+        let cert = $("#judgement-form-cert").data('old');
+        let biv = $("#judgement-form-biv").data('old', );
+        let judgement = $("#judgement-form-judgement-given").data("old");
+
+        $("#judgement-form-judgement-given").val(judgement);
+        $("#judgement-form-cert").prop('checked', cert);
+        $("#judgement-form-biv").prop('checked', biv);
+        if ($("#judgement-form-cert").data('locked')) {
+
+        } else {
+            $("#judgement-form-biv").prop('disabled', false);
+            $("#judgement-form-cert").prop('disabled', false);
+        }
+        $("#judgement-form-judgement-given").prop('readonly', false);
+        $("#judgement-form-judgement-given").removeClass('readonly');
+    }
+}
+function judgement_save() {
+    let judge, judgement, biv, cert, abs, comment, entry;
+    judge = $("#judgement-form-judge").val();
+    judgement = $("#judgement-form-judgement-given").val();
+    comment = $("#judgement-form-comment").val();
+    biv = $("#judgement-form-biv").prop('checked');
+    abs = $("#judgement-form-abs").prop('checked');
+    cert = $("#judgement-form-cert").prop('checked');
+    let d;
+    d = {
+        "is_biv": biv,
+        "was_absent": abs,
+        "recieved_certification": cert,
+        "judgement": judgement,
+        "judgement_comment": comment,
+        "judge":judge
+    }
+    window.Api.edit("entry", d, function (entrant) {
+        let entrant = entrant.results;
+        if (entrant.recieved_title) {
+            $("#judgement-form-next-title").addClass("glow-green");
+        } else {
+            judgement_clear();
+        }
+    }, [ENV.show, ENV.entry]);
+}
+function judgement_clear() {
+
 }
 
 

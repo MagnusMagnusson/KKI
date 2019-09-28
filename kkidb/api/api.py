@@ -15,6 +15,7 @@ from django.db import transaction
 from datetime import date
 import json
 
+DEBUG = True
 
 def _get(model, id, queryObject = None):
 	if queryObject == None:
@@ -73,8 +74,11 @@ def _patch(model,data,id):
 		_o = model.objects.get(id = id)
 		_o.patch(data)
 		return valid(_o.toObject(),200)
-	except ObjectDoesNotExist:
-		return invalid("No resource located here with id "+str(id),True,404)
+	except ObjectDoesNotExist as ex:
+		if not DEBUG:
+			return invalid("No resource located here with id "+str(id),True,404)
+		else:
+			raise ex
 
 def defaultProcessGroup(model,request, queryObject = None):
 	if request.method == "GET":
@@ -387,7 +391,7 @@ def entrant(request,sid,eid):
 			e = Entry.objects.get(show_id = sid, catalog_nr = eid)
 			return valid(e.toObject(),200)
 		except ObjectDoesNotExist:
-			return invalid("No entrant "+str(eid)+ " in show "+str(show_id),404)
+			return invalid("No entrant "+str(eid)+ " in show "+str(sid),404)
 
 	elif request.method == "POST":
 		if 'data' in request.POST:
@@ -405,8 +409,11 @@ def entrant(request,sid,eid):
 			_o = Entry.objects.get(show_id = sid, catalog_nr = eid)
 			_o.patch(data)
 			return valid(_o.toObject(),200)
-		except ObjectDoesNotExist:
-			return invalid("No resource located here with id "+str(eid),True,404)
+		except ObjectDoesNotExist as ex:
+			if not DEBUG:
+				return invalid("No resource located here with id "+str(eid),True,404)
+			else:
+				raise ex
 	elif request.method == "DELETE":
 		return invalid("Invalid method " + request.method, True, 405)
 	else:
@@ -424,6 +431,27 @@ def color(request,breed,color):
 	col = " ".join(color.split("_"))
 	ems = EMS.getEMS(breed + " " + col)
 	return defaultProcessSingular(EMS,request,None,ems)
+
+def cert(request,name,rank):
+	if request.method == "GET":
+		try:
+			print(name,rank)
+			c = Cert.objects.get(name = name, rank = rank)
+			return valid(c.toObject(),200)
+		except ObjectDoesNotExist as ex:
+			if not DEBUG:
+				return invalid("No resource at this location",True,404)
+			else:
+				raise ex
+	else: 
+		return invalid("Invalid method " + request.method, True, 405)
+
+def hpCert(request):
+	c = Cert.objects.filter(name = "HP")
+	a = [e.toObject() for e in c]
+	return valid(a,200)
+def certs(request):
+	return defaultProcessGroup(Cert,request)
 
 #	if request.method == "GET":
 #		return invalid("Invalid method " + request.method, True, 405)

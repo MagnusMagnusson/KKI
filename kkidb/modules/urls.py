@@ -13,18 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.urls import path
 from django.contrib import admin
 from kkidb.modules import modules
 
 urlpatterns = [
-    url("payment$",modules.payment),
-    url("member$",modules.member),
-    url("person$",modules.person),
-    url("cattery$",modules.cattery),
-    url("catteryOwner$",modules.catteryOwner),
-    url("catNeuter$",modules.catNeuter),
-    url("catOwner$",modules.catOwner),
-    url("showJudge$",modules.showJudge),
-    url("show$",modules.show),
+    path("<slug:module>",modules.getModule)
 ]
