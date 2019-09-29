@@ -1058,7 +1058,7 @@ class Show(models.Model):
 			obj['judges'].append(j.judge.id)
 		obj["awards_offered"] = []
 		for a in showAward.objects.filter(show = self):
-			obj["awards_offered"].append(a.award.name)
+			obj["awards_offered"].append(a.award.id)
 		return obj
 
 class Entry(models.Model):

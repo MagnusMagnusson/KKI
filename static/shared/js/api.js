@@ -11,6 +11,7 @@
         this.urlList.shows = "/api/syningar";
         this.urlList.ems = "/api/ems"
         this.urlList.cert = "/api/stig"
+        this.urlList.award = "/api/verdlaun"
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -86,6 +87,13 @@
                     return this.urlList.cert;
                 } else {
                     return this.urlList.cert + "/" + idArray[0]
+                }
+            }
+            case "award": {
+                if (idArray.length == 0) {
+                    return this.urlList.award;
+                } else {
+                    return this.urlList.award + "/" + idArray[0]
                 }
             }
         }
