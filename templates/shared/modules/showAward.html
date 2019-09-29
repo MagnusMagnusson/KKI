@@ -8,8 +8,11 @@
 {%endblock%}
 
 {%block module_sections %}
-<div data-section="basic" class="button section selected">
+<div id="showAward-basic-section" data-section="basic" class="button section selected">
     Verðlaun
+</div>
+<div data-section="showAward-new-award" class="button section">
+    Ný Verðlaun
 </div>
 {%endblock%}
 
@@ -38,6 +41,17 @@
                 </div>
             </div>
         </section>
+        <section data-section="showAward-new-award">
+            <div class="centeredContent">               
+                Nafn verðlauna<br />
+                <input id="showAward-form-newAward-name"class="textinput" />              <br /> 
+                Eru þetta aukaverðlaun?<br />
+                <input id="showAward-form-newAward-core" type="checkbox" class="textinput" /> <br />
+                <div id="showAward-form-newAward-save" class="fixed-button">Skrá ný verðlaun</div>
+
+            </div>
+        </section>
+
     </form>
 {%endblock%}
 

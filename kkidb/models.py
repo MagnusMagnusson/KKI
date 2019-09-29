@@ -1041,7 +1041,20 @@ class Show(models.Model):
 			self.openForregistration = rd['accepts_registrations']
 		if "is_visible_to_public" in rd:
 			self.visibleToPublic = rd['is_visible_to_public']
-		self.save()
+		if "awards_offered" in rd:
+			aw = [x.award.id for x in self.showaward_set.all()]
+			for award in rd['awards_offered']:
+				if award not in aw:
+					offer = showAward()
+					offer.show = self
+					offer.award_id = award 
+					offer.save()
+			for removed in aw:
+				if removed not in rd['awards_offered']:
+					award = ShowAward.objects.filter(show = self, award_id = removed)
+					if len(award) == 1:
+						award[0].delete()
+
 
 	def toObject(self):
 		obj = {}
@@ -1450,6 +1463,7 @@ class Award(models.Model):
 		else:
 			award.coreAward = False
 		award.save()
+		return award
 
 	@staticmethod
 	def apiMap(filters):
@@ -1468,7 +1482,7 @@ class Award(models.Model):
 
 	def toObject(self):
 		o = {}
-		o['id'] = self.id
+		o['id'] = self.id 
 		o['name'] = self.name
 		o['is_core'] = self.coreAward 
 		return o 

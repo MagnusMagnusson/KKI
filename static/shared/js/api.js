@@ -123,11 +123,16 @@
         this._get(url,d, callback);
     }
 
-    get(model, filterDict, callback, idArray = []) {
+    get(model, filterDict, callback, idArray = [], page = 0) {
         let url;
+        console.log("aaa");
+        console.log(idArray);
+        console.log(page);
+        console.log("bb");
         url = this.getUrl(model, idArray);
         let d = {
-            "filter": filterDict
+            "filter": filterDict,
+            "page":page
         }
         d = this.prepare(d);
         this._get(url, d, callback);

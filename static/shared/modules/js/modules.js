@@ -19,5 +19,9 @@
         let myName = $(this).parents(".module").data("module");
         window.ModuleManager.saveModule(myName);
     });
+
+    $(".module.popup").show();
     
+
 });
+

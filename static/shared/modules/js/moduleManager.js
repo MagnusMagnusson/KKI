@@ -34,6 +34,13 @@ class ModuleManager {
 
     activateModule(module) {
         if (this.modules[module]) {
+            $(".module_body section").hide();
+            let buttons = $(".module_sections .button.section.selected");
+            for (let button of buttons) {
+                let sect = $(button).data("section");
+                $(".module_body section[data-section = '" + sect + "']").show();
+
+            }
             this.modules[module].activate();
         } else {
             throw "No module named " + module;
@@ -124,7 +131,7 @@ class ModuleManager {
                 t.loadedScripts.push(script);
                 $.getScript(script);
             } else {
-                console.log("Blocked loading same script twice");
+                console.log("Blocked loading same script twice " + script);
             }
         }
     }
@@ -201,3 +208,4 @@ class Module {
         this.handler[name] = handler;
     }
 }
+

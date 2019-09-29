@@ -1,19 +1,17 @@
 ﻿{% load static %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'shared/modules/css/modules.css' %}">
 {%block styles %}
 {%endblock %}
-
 <div data-module="{%block module_type %}{% endblock %}" class="module popup">
     <div id="module_header">
         <h3>{% block module_title%}{%endblock%}</h3>
-        <div id="module_sections">
+        <div class="module_sections">
             {%block module_sections %}
             {%endblock%}
         </div>
     </div>
 
-    <div id="module_body">
+    <div class="module_body">
         {%block module_body %}
         {%endblock%}
     </div>

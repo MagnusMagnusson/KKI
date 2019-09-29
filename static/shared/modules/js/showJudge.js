@@ -7,7 +7,7 @@
             $("#showJudge_search_wrapper .result-box").hide();
             return;
         }
-        window.Api.find({ 'type': 'judge', 'term': 'name', 'value': text }, function (e) {
+        window.Api.find("judge", { "name": text }, function (e) {
             let list = $("#showJudge_search_wrapper .result-box .result-box-list");
             $(list).empty();
             i = 0;

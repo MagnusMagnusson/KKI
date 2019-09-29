@@ -343,8 +343,9 @@ function judgement_save() {
         "judgement_comment": comment,
         "judge":judge
     }
+    let entrant
     window.Api.edit("entry", d, function (entrant) {
-        let entrant = entrant.results;
+        entrant = entrant.results;
         if (entrant.recieved_title) {
             $("#judgement-form-next-title").addClass("glow-green");
         } else {

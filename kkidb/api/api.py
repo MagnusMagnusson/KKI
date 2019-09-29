@@ -12,6 +12,7 @@ from kkidb.models import *
 from django.contrib.postgres.search import TrigramDistance
 from django.db.models import Max
 from django.db import transaction
+import math
 from datetime import date
 import json
 
@@ -47,7 +48,8 @@ def _gets(model,data, queryObject = None):
 			_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
 	lower = offset * page
 	upper = offset * (page + 1)
-	d = {'success':True, 'results':[]}
+	totalPage = math.ceil(len(_objects) / offset)
+	d = {'success':True, 'results':[], 'count':len(_objects), "page":page, "total_pages":totalPage}
 	for res in _objects[lower:upper]:
 		results = res.toObject()
 		d['results'].append(results)

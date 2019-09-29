@@ -1,4 +1,5 @@
 ﻿.popup.module {
+    display:block;
     position: absolute;
     background-color: #fff8e8;
     border: 1px solid #eeac39;
@@ -12,6 +13,7 @@
     text-align: center;
     min-width: 50%;
 }
+
 
 .centered{
     text-align:center;
@@ -113,4 +115,18 @@ span.red:hover{
 
 .button.noLeft {
     left: inherit !important;
+}
+
+.fixed-button {
+    background-color: var(--orange);
+    width: 40%;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    border-radius: 1em;
+    color: white;
+    margin-bottom: 1em;
+    margin-top: 1em;
+    cursor: pointer;
+    padding-top: .2em;
+    padding-bottom: .2em;
 }
