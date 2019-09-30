@@ -1,0 +1,12 @@
+﻿#showJudge-new-judge-list li {
+    font-size: 0.85em;
+}
+#showJudge-new-judge-list li:hover {
+    cursor:pointer;
+    background-color:var(--lightorange);
+}
+
+#showJudge-new-judge-list{
+    max-height:12em;
+    overflow-y:scroll;
+}

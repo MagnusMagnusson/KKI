@@ -30,12 +30,15 @@ def _get(model, id, queryObject = None):
 def _gets(model,data, queryObject = None):
 	page = 0
 	offset = 25
+	search_threshold = 0.9
 	if queryObject == None:
 		queryObject = model.objects.all()
 	if "page" in data:
 		page = data['page']
 	if "offset" in data:
 		offset = data['offset']
+	if "search_threshold" in data:
+		threshold = data['search_threshold']
 	_objects = queryObject
 	if "filter" in data:
 		filters = data['filter']
@@ -45,7 +48,7 @@ def _gets(model,data, queryObject = None):
 		terms = data['search']
 		terms = model.apiMap(terms)
 		for term in terms.keys():
-			_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
+			_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=search_threshold).order_by("distance")
 	lower = offset * page
 	upper = offset * (page + 1)
 	totalPage = math.ceil(len(_objects) / offset)
@@ -341,6 +344,18 @@ def award(request,id):
 
 def awards(request):
 	return defaultProcessGroup(Award,request)
+
+def judge(request,id):
+	return defaultProcessSingular(Judge,request,id)
+
+def judges(request):
+	return defaultProcessGroup(Judge,request)
+
+def people(request):
+	return defaultProcessGroup(Person,request)
+
+def person(request,id):
+	return defaultProcessSingular(Person,request,id)
 
 @transaction.atomic
 def entrants(request,sid):

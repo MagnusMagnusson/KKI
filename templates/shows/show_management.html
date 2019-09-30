@@ -56,14 +56,19 @@
     Skrá verðlaun
 </li>
 
-    {% endblock %}
+ {% endblock %}
+
+{% block scripts %}
+{{block.super}}
+<script src="{% static 'js/show_management.js' %}"></script>
+{% endblock %}
 
 
  {% block sections %}
 <section data-name="Dómarar" id="judges-overview">
     <h3>Dómarar sýningar</h3>
     <div>
-        <ul>
+        <ul id="judges-overview-list">
             {%for judge in show.judges %}
             <li>{{judge.fullName}}</li>
             {%endfor%}

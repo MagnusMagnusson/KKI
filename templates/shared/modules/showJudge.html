@@ -13,6 +13,9 @@
 </div>
 {%endblock%}
 
+{%block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'shared/modules/css/module-showJudge.css' %}">
+{%endblock %}
 
 {%block module_body %}
     <form id="showJudge-form">
@@ -38,13 +41,19 @@
             </div>
         </section>
     </form>
-<div style ="display:none;" id="confirm-new-judge">
-    <div  class="centeredContent">
+<div style="display:none;" id="confirm-new-judge">
+    <div class="centeredContent">
         <h3>Óþekktur dómari</h3>
         <p>Dómarinn <emph id="confirm-judge-name">Nafn</emph> frá <emph id="confirm-judge-nation">landi</emph> er ekki þekktur. </p>
-        <p>Viltu bæta honum á skrá?</p>
-        <div id="confirmJudge" class="button noLeft">Já</div>
-        <div id="confirmJudge" class="button noLeft">Nei</div>
+        <p>Meintir þú einhvern af eftirfarandi?</p>
+        <div class="list-window">
+            <ul id="showJudge-new-judge-list">
+
+            </ul>
+        </div>
+        <p>Ef ekki, viltu bæta honum á skrá sem nýjum dómara?</p>
+        <div id="confirmJudge-yes" class="button noLeft">Já</div>
+        <div id="confirmJudge-no" class="button noLeft">Nei</div>
     </div>
 </div>
 {%endblock%}

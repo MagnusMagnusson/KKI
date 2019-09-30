@@ -76,6 +76,7 @@ class Person(models.Model):
 			
 		if(hasattr(self, 'judge')):
 			member['is_judge'] = True
+			member['judge_id'] = self.judge.id
 		else:
 			member['is_judge'] = False
 		return member
@@ -104,6 +105,8 @@ class Person(models.Model):
 			self.postcode = resourceDict["postcode"]
 		if "city" in resourceDict:
 			self.city = resourceDict["city"]
+		if "country" in resourceDict:
+			self.country = resourceDict["country"]
 		if "is_member" in resourceDict:
 			if resourceDict["is_member"] == True:
 				if not hasattr(self,"member"):
@@ -297,6 +300,35 @@ class Judge(models.Model):
 	person = models.OneToOneField('Person',on_delete=models.CASCADE)
 	def fullName(self):
 		return self.person.name + " [ "+ self.person.country+" ]"
+
+	def toObject(self):
+		return self.person.toObject()
+	
+	def patch(self,rd):
+		self.person.patch(rd)
+
+	@staticmethod
+	def apiMap(rd):
+		map = Person.apiMap(rd)
+		realMap = {}
+		for key in map:
+			realKey = "person__" + key
+			realMap[realKey] = map[key]
+		return realMap
+
+	@staticmethod
+	def create(rd,id = None):
+		if "is_judge" in rd:
+			rd['is_judge'] = False 
+		per = Person.create(rd,None)
+		try:
+			j = Judge()
+			j.id = id
+			j.person = per
+			j.save()
+		except Exception:
+			per.delete()
+		return j
 
 class Cattery(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -1054,6 +1086,20 @@ class Show(models.Model):
 					award = ShowAward.objects.filter(show = self, award_id = removed)
 					if len(award) == 1:
 						award[0].delete()
+		if "judges" in rd:
+			ju = [x.judge.id for x in self.showjudges_set.all()]
+			for judge in rd['judges']:
+				if judge not in ju:
+					sj = ShowJudges()
+					sj.show = self
+					sj.judge_id = judge
+					sj.save()
+			for removed in ju:
+				if removed not in rd['judges']:
+					judge = ShowJudges.objects.filter(show = self, judge_id = removed)
+					if len(judge) == 1:
+						judge[0].delete()
+				
 
 
 	def toObject(self):

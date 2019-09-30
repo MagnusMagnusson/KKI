@@ -7,11 +7,13 @@
     setupURLs() {
         this.urlList.cats = "/api/kettir";
         this.urlList.members = "/api/felagar";
+        this.urlList.judge = "/api/domarar";
         this.urlList.catteries = "/api/raektanir";
         this.urlList.shows = "/api/syningar";
         this.urlList.ems = "/api/ems"
         this.urlList.cert = "/api/stig"
         this.urlList.award = "/api/verdlaun"
+        this.urlList.people = "/api/folk"
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -31,10 +33,18 @@
     getUrl(model, idArray = []) {
         switch (model) {
             case "cat": {
-                if (idArray.length == 0){
+                if (idArray.length == 0) {
                     return this.urlList.cats;
                 } else {
-                    return this.urlList.cats + "/"+idArray[0]
+                    return this.urlList.cats + "/" + idArray[0]
+                }
+                break;
+            }
+            case "person": {
+                if (idArray.length == 0) {
+                    return this.urlList.people;
+                } else {
+                    return this.urlList.people + "/" + idArray[0]
                 }
                 break;
             }
@@ -43,6 +53,14 @@
                     return this.urlList.members;
                 } else {
                     return this.urlList.members + "/" + idArray[0]
+                }
+                break;
+            }
+            case "judge": {
+                if (idArray.length == 0) {
+                    return this.urlList.judge;
+                } else {
+                    return this.urlList.judge + "/" + idArray[0]
                 }
                 break;
             }
@@ -125,10 +143,6 @@
 
     get(model, filterDict, callback, idArray = [], page = 0) {
         let url;
-        console.log("aaa");
-        console.log(idArray);
-        console.log(page);
-        console.log("bb");
         url = this.getUrl(model, idArray);
         let d = {
             "filter": filterDict,
