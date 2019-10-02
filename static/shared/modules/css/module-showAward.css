@@ -1,0 +1,24 @@
+﻿.halfsize.list-window {
+    width: 45%;
+    min-height: 10em;
+    max-height: 10em;
+    overflow:scroll;
+    margin-left: 3%;
+    float: left;
+    transform: translateX(0%);
+    margin-top: 1em;
+}
+
+.halfsize-container {
+    height: 12em;
+}
+
+.showAward-list li:hover {
+    background-color: red;
+    cursor: pointer;
+}
+.list-window-element {
+    font-size: .75em;
+    text-align: left;
+    pointer-events: inherit;
+}

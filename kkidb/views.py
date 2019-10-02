@@ -99,8 +99,15 @@ def show_page(request,id):
 
 @isLoggedIn()
 def show_operate(request,id):
-	template = loader.get_template("shows/show_runner.html")
-	context = {'show':Show.objects.get(id = id)}
+	template = loader.get_template("shows/show_runner.html")	
+	show = Show.objects.get(id = id)
+	awards = {}
+	for award in show.showaward_set.all():
+		if award.award.category not in awards:
+			awards[award.award.category] = []
+		awards[award.award.category].append(award.award)
+		
+	context = {'show':show, 'awards':awards}
 
 	return HttpResponse(template.render(context,request))
 

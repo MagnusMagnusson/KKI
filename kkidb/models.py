@@ -11,6 +11,7 @@ from datetime import date
 def Randstring(n = 6):
 	return  uuid.uuid4().hex[0:n]
 
+#########People 
 class Person(models.Model):
 	id = models.AutoField(primary_key = True)
 	name = models.CharField(max_length = 75)
@@ -128,7 +129,6 @@ class Person(models.Model):
 				if hasattr(self,"judge"):
 					self.member.delete()
 		self.save()
-
 class Member(models.Model):
 	id = models.CharField(primary_key=True, max_length=6)
 	person = models.OneToOneField('Person', on_delete=models.CASCADE)
@@ -169,7 +169,6 @@ class Member(models.Model):
 			i = str(i).zfill(6)
 			self.id = i
 		super(Member, self).save()
-
 class Payment(models.Model):
 	date = models.DateField()
 	giftYear = models.BooleanField(default=False)
@@ -254,8 +253,6 @@ class Payment(models.Model):
 				newMembers.append(m.person)
 			self.updateMembers(newMembers)
 		self.save()
-
-	
 class MemberPayment(models.Model):
 	member = models.ForeignKey(Member, on_delete=models.CASCADE)
 	payment = models.ForeignKey(Payment,on_delete=models.CASCADE)
@@ -281,7 +278,6 @@ class MemberPayment(models.Model):
 				translatedFilter[truekey] = value
 	
 		return translatedFilter
-
 class Owner(models.Model):
 	person = models.ForeignKey('Person',on_delete=models.CASCADE)
 	cat = models.ForeignKey('Cat', on_delete=models.CASCADE)
@@ -295,7 +291,6 @@ class Owner(models.Model):
 		owner['date'] = self.date
 		owner['current'] = self.current 
 		return owner
-
 class Judge(models.Model):
 	person = models.OneToOneField('Person',on_delete=models.CASCADE)
 	def fullName(self):
@@ -329,7 +324,6 @@ class Judge(models.Model):
 		except Exception:
 			per.delete()
 		return j
-
 class Cattery(models.Model):
 	id = models.AutoField(primary_key = True)
 	registry_date = models.DateField(null = True)
@@ -463,12 +457,16 @@ class Cattery(models.Model):
 		if "owners" in rd:
 			self.updateMembers(rd['owners'])
 		self.save()
-		
-
 class CatteryOwner(models.Model):
 	cattery = models.ForeignKey('Cattery', on_delete=models.CASCADE)
 	owner = models.OneToOneField('Person',on_delete=models.CASCADE)
+class Organization(models.Model):
+	id = models.AutoField(primary_key = True)
+	name = models.CharField(max_length = 100)
+	short = models.CharField(max_length = 15, null=True)
+	country = models.CharField(max_length = 3)
 
+######### Cats
 class Cat(models.Model):
 	id = models.AutoField(primary_key = True)
 	name = models.CharField(max_length = 50)
@@ -483,8 +481,7 @@ class Cat(models.Model):
 	dam = models.ForeignKey('Cat',related_name='dam_children',null=True, on_delete=models.PROTECT)
 	sire = models.ForeignKey('Cat',related_name='sire_children', null=True,on_delete=models.PROTECT)
 	cattery = models.ForeignKey('Cattery',null=True, on_delete=models.CASCADE)
-
-
+	
 	def owners(self):
 		ownerset = self.owner_set.all().filter(current = True)
 		return ownerset
@@ -812,41 +809,27 @@ class Cat(models.Model):
 				if hasattr(self,"neuter"):
 					self.neuter.delete()
 		self.save()
-
-
-
 class Import(models.Model):
 	cat = models.OneToOneField('Cat',on_delete=models.CASCADE)
 	organization = models.ForeignKey('organization',on_delete=models.CASCADE)
 	country = models.CharField(max_length = 3)
 	original_reg_date = models.DateField()
 	original_reg_id = models.CharField(max_length = 20)
-
 class Neuter(models.Model):
 	cat = models.OneToOneField('Cat', primary_key = True,on_delete=models.CASCADE)
 	date = models.DateField(null = True)
-
 class Microchip(models.Model):
 	id = models.AutoField(primary_key = True)
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
 	microchip = models.CharField(max_length = 30)
-
-class Organization(models.Model):
-	id = models.AutoField(primary_key = True)
-	name = models.CharField(max_length = 100)
-	short = models.CharField(max_length = 15, null=True)
-	country = models.CharField(max_length = 3)
-
 class Breed(models.Model):
 	breed = models.CharField(max_length = 25, unique=True)
 	category = models.IntegerField()
 	short = models.CharField(max_length = 5,unique = True)
-
 class Color(models.Model):
 	color = models.CharField(max_length=50, unique = True)
 	short = models.CharField(max_length=20, unique = True)
 	desc = models.CharField(max_length=1024)
-
 class EMS(models.Model):
 	breed = models.ForeignKey('Breed',on_delete=models.CASCADE)
 	color = models.ForeignKey('Color',on_delete=models.CASCADE)
@@ -971,7 +954,6 @@ class EMS(models.Model):
 	
 	class Meta:
 		unique_together = ('breed', 'color')
-
 class CatEms(models.Model):
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
 	ems = models.ForeignKey('EMS',on_delete=models.CASCADE)
@@ -993,7 +975,6 @@ class CatEms(models.Model):
 		return ems
 
 ############# Shows
-
 class Show(models.Model):
 	name = models.CharField(max_length = 51)
 	organizer = models.ForeignKey('Person',on_delete=models.CASCADE)
@@ -1022,6 +1003,13 @@ class Show(models.Model):
 	def judgementsPending(self):
 		judgements = Judgement.objects.filter(entry__show = self, abs__isnull = True).count()
 		return judgements
+
+	def awardCategories(self):
+		cats = []
+		for award in self.showaward_set.all():
+			if award.award.category not in cats:
+				cats.append(award.award.category)
+		return cats
 
 	
 	@staticmethod
@@ -1100,8 +1088,6 @@ class Show(models.Model):
 					if len(judge) == 1:
 						judge[0].delete()
 				
-
-
 	def toObject(self):
 		obj = {}
 		obj["name"] = self.name 
@@ -1119,7 +1105,6 @@ class Show(models.Model):
 		for a in showAward.objects.filter(show = self):
 			obj["awards_offered"].append(a.award.id)
 		return obj
-
 class Entry(models.Model):
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
 	show = models.ForeignKey('Show',on_delete=models.CASCADE)
@@ -1206,7 +1191,7 @@ class Entry(models.Model):
 		if "recieved_certification" in rd:
 			j.certifications(rd["recieved_certification"])
 		if "nominations" in rd:
-			j.nominations(rd["nominations"])
+			self.nominations(rd["nominations"])
 		if "awards" in rd:
 			j.awards(rd["awards"])
 		j.save()
@@ -1264,7 +1249,7 @@ class Entry(models.Model):
 					obj["next_certification"] = Cert.base(neutered = self.cat.isNeutered).fullName()
 			obj["nominations"] = []
 			obj["awards"] = []
-			nomSet = Nomination.objects.filter(judgement = self.judgement)
+			nomSet = Nomination.objects.filter(entry = self)
 			for nom in nomSet:
 				obj["nominations"].append(nom.award.name)
 				if nom.bis:
@@ -1304,9 +1289,6 @@ class Entry(models.Model):
 			else:
 				obj["class"] = Cert.base(neutered = self.cat.isNeutered).certClass
 		return obj
-
-
-
 class ShowJudges(models.Model):
 	show = models.ForeignKey(Show,on_delete=models.CASCADE)
 	judge = models.ForeignKey(Judge,on_delete=models.CASCADE)
@@ -1315,8 +1297,6 @@ class ShowJudges(models.Model):
 
 	def fullName(self):
 		return self.judge.fullName()
-
-
 class Judgement(models.Model):
 	entry = models.OneToOneField('Entry', primary_key = True,on_delete=models.CASCADE)
 	judge = models.ForeignKey('Judge', null=True, on_delete=models.CASCADE)
@@ -1340,11 +1320,10 @@ class Judgement(models.Model):
 			return self.catcert
 		else:
 			return None
+	@property 
 	def nom(self):
-		if hasattr(self,'Nomination'):
-			return self.Nomination
-		else:
-			return None
+		noms = Nomination.objects.filter(entry = self.entry)
+		return [x for x in noms]
 	
 	#certifications(recieved). Sets or removes the certification relevant to this judgement. 
 	def certifications(self, recieved):
@@ -1367,19 +1346,14 @@ class Judgement(models.Model):
 			#Future functionality: what to do if editing a show that's already passed? If the cat has other certifications above?
 			if  self._catcert():
 				self._catcert().delete()
-
-		
-
 class Litter(models.Model):
 	class Meta:
 		unique_together = ('show', 'catalog')
 	catalog = models.CharField(max_length = 3)
 	show = models.ForeignKey('Show',on_delete=models.CASCADE)
-
 class LitterCat(models.Model):
 	litter = models.ForeignKey('Litter',on_delete=models.CASCADE)
 	entry = models.OneToOneField('Entry', primary_key = True,on_delete=models.CASCADE)
-
 class LitterJudgement(models.Model):
 	show = models.ForeignKey('Show',on_delete=models.CASCADE)
 	judge = models.ForeignKey('Judge',on_delete=models.CASCADE)
@@ -1387,7 +1361,6 @@ class LitterJudgement(models.Model):
 	rank = models.IntegerField()
 	comment = models.CharField(max_length = 2048)
 	litter = models.ForeignKey('Litter',on_delete=models.CASCADE)
-
 class Cert(models.Model):
 	name = models.CharField(max_length = 10)
 	rank = models.IntegerField()
@@ -1468,7 +1441,6 @@ class Cert(models.Model):
 			return Cert.objects.get(name = "CAP", rank = 1)
 		else:
 			return Cert.objects.get(name = "CAC", rank = 1)
-
 class CatCert(models.Model):
 	cat = models.ForeignKey('Cat',on_delete=models.CASCADE)
 	judgement = models.OneToOneField('Judgement', null=True,on_delete=models.CASCADE)
@@ -1480,25 +1452,94 @@ class CatCert(models.Model):
 
 	def absRank(self):
 		return self.cert.absRank()
-
-
 class Title(models.Model):
 	name = models.CharField(max_length = 50)
 	short = models.CharField(max_length = 10)
 	cert = models.OneToOneField('Cert',null=True,on_delete=models.CASCADE)
-
 class Nomination(models.Model):
-	judgement = models.OneToOneField('Judgement',on_delete=models.CASCADE)
+	judge = models.ForeignKey('Judge', null=True, on_delete=models.CASCADE)
+	entry = models.ForeignKey('Entry', on_delete = models.CASCADE)
 	award = models.ForeignKey('Award',on_delete=models.CASCADE)
-	bis = models.BooleanField()
+	bis = models.BooleanField(default = False)
+	class Meta:
+		unique_together = (('entry', 'award'))
 
+
+	@property 
+	def uri(self):
+		#Todo, implement proper URI methods.
+		a = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890";
+		b = [17,7,37,97,2,47]
+		l = len(a)
+		uri = ""
+		for i in range(10,16):
+			_b = b[i%len(b)]
+			uri += a[(_b + (i*_b)*(self.id + i + _b)) % l]
+		return uri
+	def toObject(self):
+		o = {}
+		o['judge'] = self.judge_id 
+		o['entry'] = self.entry.catalog_nr
+		o['show'] = self.entry.show_id
+		o['cat'] = self.entry.cat_id
+		o['award'] = self.award_id 
+		o['award_name'] = self.award.name 
+		o['award_category'] = self.award.category 
+		o['bis'] = self.bis
+		o['id'] = self.uri
+		return o
+	@staticmethod
+	def create(rd,id = None):
+		nom = Nomination()
+		if id:
+			nom.id = id
+		entry = Entry.objects.get(catalog_nr = rd["entry"], show = rd["show"])
+		nom.entry = entry
+		nom.award_id = rd["award"]
+		nom.save()
+		nom.patch(rd)
+		return nom 
+	@staticmethod
+	def apiMap(filters):
+		keyMapping = {
+			"judge":"judge_id",
+			"entry":"entry__catalog_nr",
+			"show":"entry__show_id",
+			"award":"award_id",
+			"award_name":"award__name",
+			"award_category":"award__category",
+			"bis":"bis"
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+
+		return translatedFilter
+	def patch(self,rd):
+		if "judge" in rd:
+			self.judge_id = rd["judge"]
+		if "entry" in rd:
+			e = Entry.objects.get(show = self.entry.show, catalog_nr = rd["entry"])
+			self.entry = e
+		if "award" in rd:
+			self.award_id = rd["award"]
+		if "award_name" in rd:
+			aw = Award.objects.filter(name = rd["name"])
+			if len(aw) == 1:
+				self.award = award 
+		if "bis" in rd:
+			self.bis = rd["bis"]
+		self.save()
 class LitterNomination(models.Model):
 	judgement = models.ForeignKey('LitterJudgement',on_delete=models.CASCADE)
 	award = models.ForeignKey('Award',on_delete=models.CASCADE)
-
 class Award(models.Model):
 	name = models.CharField(max_length = 50)
 	coreAward = models.BooleanField(default = False)
+	category = models.CharField(max_length = 50, null = True)
 
 	@staticmethod 
 	def create(rd, id = None):
@@ -1508,6 +1549,8 @@ class Award(models.Model):
 			award.coreAward = rd["is_core"]
 		else:
 			award.coreAward = False
+		if "category" in rd:
+			award.category = rd["category"]
 		award.save()
 		return award
 
@@ -1516,6 +1559,7 @@ class Award(models.Model):
 		keyMapping = {
 			"name":"name",
 			"is_core":"coreAward",
+			"category":"category"
 		}
 		translatedFilter = {}
 		for key in filters.keys():
@@ -1531,34 +1575,30 @@ class Award(models.Model):
 		o['id'] = self.id 
 		o['name'] = self.name
 		o['is_core'] = self.coreAward 
+		o['category'] = self.category 
 		return o 
 	def patch(self,rd):
 		if "name" in rd:
 			self.name = rd['name']
-
+			
 		if "is_core" in rd:
 			self.coreAward = rd['is_core']
+
+		if "category" in rd:
+			self.coreAward = rd['category']
 		self.save()
-
-
 class showAward(models.Model):
 	show = models.ForeignKey('Show', on_delete = models.CASCADE)
 	award = models.ForeignKey('Award', on_delete = models.CASCADE)
-
-
-
   #Auth
-
 class Permissions(models.Model):
        id = models.BigIntegerField(primary_key = True)
        name = models.CharField(max_length=20, unique = True)
-
 class MemberPermissions(models.Model):
        user = models.ForeignKey(Member,on_delete=models.CASCADE)
        permission = models.ForeignKey(Permissions,on_delete=models.CASCADE)
        class Meta:
                unique_together = (('user', 'permission'))
-
 class Login_log(models.Model):
        id = models.AutoField(primary_key = True)
        user = models.ForeignKey(Member,on_delete=models.CASCADE)

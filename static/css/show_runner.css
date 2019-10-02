@@ -41,3 +41,38 @@
 #judgement-form-judge{
     width:11em;
 }
+
+.flex-container{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+}
+
+.flex-container.column{
+    flex-direction:column;
+}
+
+.flex-input {
+    margin-right: 2.5em;
+    max-width 15em;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.flex-input .textinput{
+    width:15em;
+}
+
+
+.nomination-category-wrapper, .finals-category-wrapper {
+    display: none;
+}
+
+.finals-nomination-list{
+    list-style:none;
+}
+
+.finals-nomination-li span {
+    margin-right: 1.4em;
+    font-size: 0.9em;
+}

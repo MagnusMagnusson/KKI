@@ -1,7 +1,10 @@
-﻿$(document).ready(function () {
+﻿(function () {
+
+let show_date;
+
+$(document).ready(function () {
     $(".textinput").val("");
     $("input").prop("checked", false);
-
     $("#judgement-form-abs").change(function () {
         if (this.checked) {
             judgement_lockout(true);
@@ -9,17 +12,19 @@
             judgement_lockout(false);
         }
     });
-
-    $("#sidebar-list a").on("click touchstart", function (e) {
+    $(".sidebar-link").on("click touchstart", function (e) {
         $(".main-section").hide();
         newSection = $(this).data("section")
         $("#section-" + newSection).show();
         updateData(newSection);
     });
-
     $(document).on("click touchstart", ".judge-abs-list li", abs_remove_entry_handler);
-
     $(document).on("click touchstart", "#button-confirm-abs", abs_press_button_handler);
+    $(document).on("change", "#nomination-form-categories", nomination_change_category);
+    $(document).on("change", "#nomination-form-judge", nomination_change_judge);
+    $(document).on("focusout", ".nomination-field", nomination_save_field);
+    $(document).on("change", "#finals-form-categories", finals_change_category);
+    $(document).on("change", ".finals-nomination-bis", finals_toggle_bis);
     $("#color-cat-id").on("focusout", colorGetEntrant);
     $('#color-cat-id').keyup(function (e) {
         if (e.keyCode == 13) {
@@ -34,7 +39,15 @@
             $(this).blur()
         }
     });
+    init();
 });
+
+function init() {
+    window.Api.get("show", {}, function (show) {
+        show = show.results;
+        show_date = show.date;
+    }, [ENV.show]);
+}
 
 function updateData(section) {
     switch (section) {
@@ -57,11 +70,90 @@ function updateData(section) {
             }, [ENV.show]);
             break;
         }
+        case "nominations": {
+            let e = $("#nomination-form-judge")
+            $(e).val("null");
+            nomination_change_judge();
+            break;
+        }
+        case "finals": {
+            $(".finals-nomination-list").empty();
+            finalNominations = {};
+            finalasyncRequests = {};
+            $(".finals-category-div").hide();
+            $(".finals-please-wait").show();
+
+            window.Api.getAll("nomination", {}, function (nominations) {
+                let noms = nominations.results;
+                let done = 0;
+                let total = noms.length;
+                $(".finals-percent").text(`${done}/${total} sótt (${Math.floor(100 * done / total)}%)`);
+                for (let nomination of noms) {
+                    let uri = nomination.id;
+                    let entry = nomination.entry;
+                    let cat = nomination.cat;
+                    let judge_id = nomination.judge;
+                    let checked = (nomination.bis) ? "checked='checked'" : "";
+                    let asyncId = Math.floor(1000000 * Math.random());
+                    while (finalNominations[asyncId]) {
+                        asyncId = Math.floor(1000000 * Math.random());
+                    }
+                    finalasyncRequests[asyncId] = true;
+                    window.Api.get("cat", {}, function (cat) {
+                        if (!finalasyncRequests[asyncId]) {
+                            //New request data; abort.
+                            return;
+                        }
+                        let randInt = Math.floor(1000000 * Math.random());
+                        while (finalNominations[randInt]) {
+                            randInt = Math.floor(1000000 * Math.random());
+                        }
+                        cat = cat.results;
+                        let ems = cat.ems;
+                        let bday = cat.birthdate;
+                        let age = getAgeString(bday, show_date);
+                        let name;
+                        let addNom = function () {
+                            let li = `
+                                    <li class="finals-nomination-li">
+                                        <input ${checked} class="finals-nomination-bis" data-id="${randInt}" id="finals-nomination-bis-${randInt}" type="checkbox">
+                                        <span><b>${entry}</b></span>
+                                        <span>${ems}</span>
+                                        <span>${age} / ${bday}</span>
+                                        <span>${name}</span>
+                                    </li>`;
+                            $("#finals-nomination-" + nomination.award + "-list").append($(li));
+                            finalNominations[randInt] = nomination.id;
+                            done += 1;
+                            if (done == total) {
+                                $(".finals-category-div").show();
+                                $(".finals-please-wait").hide();
+                            } else {
+                                $(".finals-percent").text(`${done}/${total} sótt (${Math.floor(100 * done / total)}%)`);
+                            }
+                        }
+                        if (judge_id) {
+                            window.Api.get("judge", {}, function (judge) {
+                                if (!finalasyncRequests[asyncId]) {
+                                    //New request data; abort.
+                                    return;
+                                }
+                                name = judge.results.name;
+                                addNom();
+                            }, [judge_id]);
+                        } else {
+                            name = "<i>Dómaralaust</i>";
+                            addNom();
+                        }
+                       
+                    }, [cat]);
+                }
+            }, [ENV.show]);
+            break;
+        }
         default: break;
     }
 }
-
-
 
 //ABS HANDLERS
 function absAddToList(cat_id, entry_nr, judge_nr) {
@@ -183,14 +275,14 @@ function colorSaveEntrant(e) {
                 if (msg.results.length == 0) {
                     warning("color", "'" + breed + "' er ekki löggild tegund");
                 } else {
-                    if (confirm("'" + color + "' er óþekktur litur fyrir tegund '"+breed+"'. Viltu skapa litinn núna?")) {
+                    if (confirm("'" + color + "' er óþekktur litur fyrir tegund '" + breed + "'. Viltu skapa litinn núna?")) {
                         window.Api.create("ems", d, function (msg) {
                             colorSaveEntrant(e);
                         });
                     }
                 }
             })
-            
+
         } else {
             window.Api.edit("cat", d, function (msg) {
                 $("#color-new-breed").val("");
@@ -199,7 +291,7 @@ function colorSaveEntrant(e) {
                 $("#color-old-color").val("");
                 warning("color", "");
                 $("#color-change-form").hide();
-                success("color", "Litadómur staðfestur. "+msg.results.name + " er nú " + msg.results.ems);
+                success("color", "Litadómur staðfestur. " + msg.results.name + " er nú " + msg.results.ems);
             }, [ENV.color_cat]);
         }
     });
@@ -236,7 +328,7 @@ function judgementGetEntrant(e) {
             console.log(judgement)
             window.Api.get("cat", {}, function (cat) {
                 let ems = cat.results.ems;
-                if (!guest && next_cert){
+                if (!guest && next_cert) {
                     window.Api.get("cert", {}, function (certificate) {
                         certificate = certificate.results;
                         let next_title;
@@ -276,7 +368,7 @@ function judgementGetEntrant(e) {
                         $("#judgement-form-biv").prop('disabled', true);
                         $("#judgement-form-abs").prop('disabled', true);
                         abs = true;
-                    } 
+                    }
                     judgement_lockout(abs);
                     $("#judgement-form-ems").val(ems);
                     $("#judgement-form-judge").val(judge);
@@ -303,7 +395,7 @@ function judgement_lockout(locked) {
         $("#judgement-form-judgement-given").val("");
         $("#judgement-form-cert").prop('checked', false);
         $("#judgement-form-biv").prop('checked', false);
-        
+
         $("#judgement-form-biv").prop('disabled', true);
         $("#judgement-form-cert").prop('disabled', true);
         $("#judgement-form-judgement-given").prop('readonly', true);
@@ -341,7 +433,7 @@ function judgement_save() {
         "recieved_certification": cert,
         "judgement": judgement,
         "judgement_comment": comment,
-        "judge":judge
+        "judge": judge
     }
     let entrant
     window.Api.edit("entry", d, function (entrant) {
@@ -357,10 +449,125 @@ function judgement_clear() {
 
 }
 
+let nomJudge = null;
+let nomFields = {};
+let oldValues = {};
+//Nominations handlers
+function nomination_change_category(e) {
+    let cat = $(this).val();
+    $(".nomination-category-wrapper").hide();
+    $(`.nomination-category-wrapper[data-category = "${cat}"]`).show();
+}
+function nomination_change_judge(e) {
+    let jid = parseInt($("#nomination-form-judge").val());
+    if (!jid) {
+        jid = null;
+    } 
+    $(".nomination-field").val("");
+    nomJudge = jid;
+    nomFields = {};
+    oldValues = {};
+    d = {
+        "judge": jid
+    }
+    window.Api.getAll("nomination", d, function (nominations) {
+        nominations = nominations.results;
+        for (let nom of nominations) {
+            $(`#nomination_input_${nom.award}`).val(nom.entry);
+            nomFields[nom.award] = nom.id;
+            oldValues[nom.award] = nom.entry;
+        }
+    }, [ENV.show]);
+}
+function nomination_save_field(e) {
+    let val = $(this).val()
+    let award = $(this).data("value");
+    let old = oldValues[award];
+    let uri = nomFields[award];
+    let t = this;
+    console.log(val + " = " + uri);
+    if (val === "" && uri && uri !== "") {
+        console.log(9)
+        window.Api.delete("nomination", {}, function (empty) {
+            oldValues[award] = "";
+            nomFields[award] = "";
+        }, [ENV.show, uri]);
+        return;
+    } else if (val === "") {
+        return;
+    }
+    window.Api.get("entry", d, function (entry) {
+        entry = entry.results;
+        if (nomJudge && nomJudge != entry.judge) {
+            let judgeName = $("#nomination-form-judge").val();
+            if (!confirm("Köttur " + entry.catalog_number + " er ekki í dóm hjá " + judgeName + ". Ertu viss um tilnefninguna?")) {
+                $(t).val(old);
+                return;
+            }
+        }
+        if (uri) {
+            d = {
+                "entry": val
+            }
+            window.Api.edit("nomination", d, function (entry) {
+                oldValues[award] = val;
+            }, [ENV.show, uri])
+        } else {
+            d = {
+                "entry": val,
+                "judge": nomJudge,
+                "award": award,
+                "bis": false,
+            }
+            window.Api.create("nomination", d, function (nomination) {
+                nomination = nomination.results;
+                oldValues[award] = val;
+                nomFields[award] = nomination.uri;
+                console.log("Success!");
+            }, [ENV.show])
+        }
+    }, [ENV.show, val]);
 
-function warning(section,warning) {
+}
+
+// Finals
+let finalNominations = {};
+let finalasyncRequests = {}
+
+function finals_change_category(e) {
+    let cat = $(this).val();
+    $(".finals-category-wrapper").hide();
+    $(`.finals-category-wrapper[data-category = "${cat}"]`).show();
+}
+    function finals_toggle_bis(e) {
+        let id = $(this).data("id");
+        let uri = finalNominations[id];
+        let selected = $(this).prop("checked");
+        d = {
+            "bis": selected
+        }
+        window.Api.edit("nomination", d, function () {}, [ENV.show, uri]);
+}
+
+///MISC
+
+function warning(section, warning) {
     $("#warning-" + section).text(warning);
 }
 function success(section, text) {
     $("#success-" + section).text(text);
 }
+function getAgeString(older, newer) {
+    old = new Date(older);
+    young = new Date(newer);
+    months =  young.getMonth() - old.getMonth();
+    years = young.getYear() - old.getYear();
+    while (months < 0) {
+        months += 12;
+        years += 1;
+    }
+    
+    return (years > 0) ? years + "y " + months + "m" : months + "m" ;
+}
+
+})();

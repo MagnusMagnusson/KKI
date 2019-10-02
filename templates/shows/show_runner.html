@@ -3,21 +3,29 @@
 
 
 {% block sidebar %}
-<li id="sidebar-list">
-    <a href="#" data-section="overview" id="sidebar-show-overview">Almennt</a>
-    <a href="#" data-section="abs" id="sidebar-show-abs">ABS-kettir</a>
-    <a href="#" data-section="color" id="sidebar-show-color">Litadómur</a>
-    <a href="#" data-section="cat" id="sidebar-show-cat">Kattardómur</a>
-    <a href="#" data-section="litter" id ="sidebar-show-litter">Got  </a>
-    <a href="#" data-section="nominations" id="sidebar-show-nominations">Tilnefningar  </a>
-    <a href="#" data-section="finals" id="sidebar-show-finals">Úrslit  </a>
+<li>
+    <a class="sidebar-link" href="#" data-section="overview" id="sidebar-show-overview">Almennt</a>
+</li><li>
+    <a class="sidebar-link" href="#" data-section="abs" id="sidebar-show-abs">ABS-kettir</a>
+</li><li>
+    <a class="sidebar-link"  href="#" data-section="color" id="sidebar-show-color">Litadómur</a>
+    </li><li>
+    <a class="sidebar-link" href="#" data-section="cat" id="sidebar-show-cat">Kattardómur</a>
+</li><li>
+    <a class="sidebar-link"  href="#" data-section="litter" id="sidebar-show-litter">Got  </a>
+</li><li>
+    <a class="sidebar-link"  href="#" data-section="nominations" id="sidebar-show-nominations">Tilnefningar  </a>
+</li><li>
+    <a class="sidebar-link"  href="#" data-section="finals" id="sidebar-show-finals">Úrslit  </a>
+</li><li>
+    <a class="sidebar-link" href="#" data-section="files" id="sidebar-show-files">Skjöl </a>
 </li>
 {%endblock%}
 
-{%block main %}
+    {%block main %}
     <section class="primary main-section" id="section-overview">
-        <h3>{{show.name}} </h3>  
-    </section>   
+        <h3>{{show.name}} </h3>
+    </section>
     <section class="main-section" id="section-abs">
         <h3>Fjarverandi kettir (ABS)</h3>
         <p>Vinsamlegast sláið inn sýningarnúmer fjarverandi katta, aðskilda með kommu (,)</p>
@@ -27,15 +35,13 @@
             <button id="button-confirm-abs" class="button nofloat">Staðfesta</button>
         </div>
         <div id="abs-list">
-            
+
             <ul>
                 {%for judge in show.judges%}
 
                 <li>
                     <b>{{judge.judge.person.name}}</b>
-                    <ul class="judge-abs-list" id="abs-list-judge-{{judge.judge.id}}">
-
-                    </ul>
+                    <ul class="judge-abs-list" id="abs-list-judge-{{judge.judge.id}}"></ul>
                 </li>
                 {%endfor%}
             </ul>
@@ -49,8 +55,8 @@
         <div class="hidden centered" id="color-change-form">
 
             <i><emph id="color-change-name">Köttur-00</emph> er núna með EMS kóða</i> <br />
-            <input id="color-old-breed"class="readonly textinput small" placeholder="PER" />
-            <input id="color-old-color"class="readonly textinput small" placeholder="n 20" /><br />
+            <input id="color-old-breed" class="readonly textinput small" placeholder="PER" />
+            <input id="color-old-color" class="readonly textinput small" placeholder="n 20" /><br />
             <i>Hefur hlotið litadóm og er nú með EMS kóða</i><br />
 
             <input id="color-new-breed" class="textinput small" placeholder="PER" />
@@ -74,39 +80,39 @@
             <div class="judgement-form-div" id="judgement-form-l1">
                 <span>
                     <i>EMS</i><br />
-                    <input id="judgement-form-ems" readonly class="readonly textinput"/>
+                    <input id="judgement-form-ems" readonly class="readonly textinput" />
                 </span>
                 <span>
                     <i>Dómari</i><br />
                     <select id="judgement-form-judge" class="textinput">
                         {% for judge in show.judges %}
-                            <option value="{{judge.judge.id}}">{{judge.judge.person.name}}</option>
+                        <option value="{{judge.judge.id}}">{{judge.judge.person.name}}</option>
                         {%endfor%}
                     </select>
-                    </span>
+                </span>
                 <span>
                     <i>Flokkur (Class)</i><br />
-                    <input id="judgement-form-class" readonly class = "textinput readonly" />
+                    <input id="judgement-form-class" readonly class="textinput readonly" />
                 </span>
             </div>
             <div class="judgement-form-div" id="judgement-form-l2">
                 <span>
                     <i>Núv. Stig</i><br />
-                    <input id="judgement-form-current-cert" readonly class = "textinput readonly"  />
+                    <input id="judgement-form-current-cert" readonly class="textinput readonly" />
                 </span>
                 <span>
                     <i>Stig í húfi</i><br />
-                    <input id="judgement-form-next-cert" readonly class="readonly textinput"  />
+                    <input id="judgement-form-next-cert" readonly class="readonly textinput" />
                 </span>
                 <span>
                     <i>Titill í húfi</i><br />
-                    <input id="judgement-form-next-title" readonly class="readonly textinput"  />
+                    <input id="judgement-form-next-title" readonly class="readonly textinput" />
                 </span>
             </div>
             <div class="judgement-form-div" id="judgement-form-l3">
                 <span>
                     <i>Dómur gefinn</i><br />
-                    <input  id="judgement-form-judgement-given" class="textinput" />
+                    <input id="judgement-form-judgement-given" class="textinput" />
                 </span>
                 <span>
                     <i>BIV</i><br />
@@ -122,11 +128,11 @@
                 </span>
                 <span>
                     <i>Athugasemd</i><br />
-                    <input id="judgement-form-comment" class="textinput"  />
+                    <input id="judgement-form-comment" class="textinput" />
                 </span>
             </div>
         </div>
-        <div id="judgement-save-button"class="button float-left">Vista</div>
+        <div id="judgement-save-button" class="button float-left">Vista</div>
 
     </section>
     <section class="main-section" id="section-litter">
@@ -134,25 +140,90 @@
     </section>
     <section class="main-section" id="section-nominations">
         <h3>Tilnefningar Dómara</h3>
-        <p>Veljið </p>
+        <p>Veljið dómara, og verðlaunaflokk</p>
+        <p>Skráið sýningarnúmer kattar við viðeigandi flokk til að tilnefna hann</p>
+        <p>Tilnefningar vistast sjálfkrafa þegar gilt sýningarnúmer er slegið inn</p>
+        <div>
+            <span>
+                <i>Dómari</i><br />
+                <select id="nomination-form-judge" class="textinput">
+                    <option selected="selected" value="null">Dómaralaus tilnefning</option>
+                    {% for judge in show.judges %}
+                    <option value="{{judge.judge.id}}">{{judge.judge.person.name}}</option>
+                    {%endfor%}
+                </select><br />
+            </span>
+            <span>
+                <i>Verðlaunaflokkur</i><br />
+                <select id="nomination-form-categories" class="textinput">
+                    {%for category in show.awardCategories%}
+                    <option value="{{category}}">{{category}}</option>
+                    {%endfor%}
+                </select>
+            </span>
+        </div>
+        {%for category, list in awards.items%}
+        <div data-category="{{category}}" class="nomination-category-wrapper">
+            <b>{{category}}</b>
+            <div class="nominations-category-div flex-container">
+                {% for award in list %}
+                <div class="flex-input">
+                    <i>{{award.name}}</i><br />
+                    <input data-value="{{award.id}}" id="nomination_input_{{award.id}}" class="nomination-field textinput" />
+                </div>
+                {%endfor%}
+            </div>
+        </div>
+        {%endfor%}
     </section>
     <section class="main-section" id="section-finals">
-        finals
+        <h3>Úrslit</h3>
+        <p>Veljið verðlaunaflokk</p>
+        <p>Hakið við viðeigandi tilnefningar sem sigra úrslit</p>
+
+        <span>
+            <i>Verðlaunaflokkur</i><br />
+            <select id="finals-form-categories" class="textinput">
+                {%for category in show.awardCategories%}
+                <option value="{{category}}">{{category}}</option>
+                {%endfor%}
+            </select>
+        </span>
+        {%for category, list in awards.items%}
+
+        <div data-category="{{category}}" class="finals-category-wrapper">
+            <b>{{category}}</b>
+            <i class="finals-please-wait">Sæki tilnefningar, augnablik... <span class="finals-percent"></span></i>
+            <div class="finals-category-div column flex-container">
+                {% for award in list %}
+                <div class="flex-input">
+                    <i>{{award.name}}</i><br />
+                    <div id="finals-nomination-{{award.id}}">
+                        <ul class="finals-nomination-list" id="finals-nomination-{{award.id}}-list"></ul>
+                    </div>
+                </div>
+                {%endfor%}
+            </div>
+        </div>
+        {%endfor%}
+    </section>
+    <section class="main-section" id="section-files">
+        <h3>Skjöl</h3>
     </section>
 
-{%endblock%}
+    {%endblock%}
 
-{%block styles%}
-{{block.super}}
-<link rel="stylesheet" type="text/css" href="{% static 'css/show_runner.css' %}">
-{%endblock%}
+    {%block styles%}
+    {{block.super}}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/show_runner.css' %}">
+    {%endblock%}
 
 
-{%block scripts%}
-{{block.super}}
-<script src="{% static 'js/show_runner.js' %}"></script>
+    {%block scripts%}
+    {{block.super}}
+    <script src="{% static 'js/show_runner.js' %}"></script>
 
-<script>
-    ENV.show = {{show.id}}
-</script>
-{%endblock%}
+    <script>
+        ENV.show = {{show.id }}
+    </script>
+    {%endblock%}

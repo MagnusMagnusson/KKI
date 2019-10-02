@@ -33,6 +33,8 @@ urlpatterns = [
 	path("raektanir",api.catteries),
 	path("syningar/<int:sid>/keppendur/<int:eid>", api.entrant),
 	path("syningar/<int:sid>/keppendur", api.entrants),
+	path("syningar/<int:sid>/tilnefningar", api.nominations),
+	path("syningar/<int:sid>/tilnefningar/<slug:uri>", api.nomination),
 	path("syningar/<int:id>", api.show),
 	path("syningar", api.shows),
 	path("ems/<slug:breed>/<slug:color>",api.color),

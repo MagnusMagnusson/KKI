@@ -16,7 +16,7 @@ import math
 from datetime import date
 import json
 
-DEBUG = True
+DEBUG = False
 
 def _get(model, id, queryObject = None):
 	if queryObject == None:
@@ -49,9 +49,14 @@ def _gets(model,data, queryObject = None):
 		terms = model.apiMap(terms)
 		for term in terms.keys():
 			_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=search_threshold).order_by("distance")
-	lower = offset * page
-	upper = offset * (page + 1)
-	totalPage = math.ceil(len(_objects) / offset)
+	if offset > 0:
+		lower = offset * page
+		upper = offset * (page + 1)
+		totalPage = math.ceil(len(_objects) / offset)
+	else:
+		lower = 0
+		upper = len(_objects) + 1
+		totalPage = 1
 	d = {'success':True, 'results':[], 'count':len(_objects), "page":page, "total_pages":totalPage}
 	for res in _objects[lower:upper]:
 		results = res.toObject()
@@ -85,18 +90,35 @@ def _patch(model,data,id):
 		else:
 			raise ex
 
-def defaultProcessGroup(model,request, queryObject = None):
+def _delete(model,data,id):
+	try:
+		_o = model.objects.get(id = id)
+		_o.delete()
+		return valid({},200)
+	except ObjectDoesNotExist as ex:
+		if not DEBUG:
+			return invalid("No resource located here with id "+str(id),True,404)
+		else:
+			raise ex
+
+def defaultProcessGroup(model,request, queryObject = None, extraData = {}):
 	if request.method == "GET":
 		if 'data' in request.GET:
 			data = json.loads(request.GET['data'])
 		else:
 			data = {}
+		if extraData:
+			for key in extraData:
+				data[key] = extraData[key]
 		return _gets(model,data,queryObject)
 	elif request.method == "POST":
 		if 'data' in request.POST:
 			data = json.loads(request.POST['data'])
 		else:
 			data = {}
+		if extraData:
+			for key in extraData:
+				data[key] = extraData[key]
 		return _post(model,data)
 	elif request.method == "PUT":
 		return invalid("Invalid method " + request.method +", use POST instead", True, 405)
@@ -107,7 +129,7 @@ def defaultProcessGroup(model,request, queryObject = None):
 	else:
 		return invalid("Unknown method " + request.method, True, 400)
 
-def defaultProcessSingular(model,request,id, queryObject = None):
+def defaultProcessSingular(model,request,id, queryObject = None, extraData = {}):
 	if request.method == "GET":
 		return _get(model,id,queryObject)
 	elif request.method == "POST":
@@ -115,6 +137,9 @@ def defaultProcessSingular(model,request,id, queryObject = None):
 			data = json.loads(request.POST['data'])
 		else:
 			data = {}
+		if extraData:
+			for key in extraData:
+				data[key] = extraData[key]
 		catTest = model.objects.filter(id = id)
 		if len(catTest) > 0:
 			return invalid("Resource already exists. use PUT or PATCH",False,409)
@@ -122,12 +147,18 @@ def defaultProcessSingular(model,request,id, queryObject = None):
 			return post(Cat,data,id)
 	elif request.method == "PUT":
 		data = getData(request.body)
+		if extraData:
+			for key in extraData:
+				data[key] = extraData[key]
 		return _put(model,data,id)
 	elif request.method == "PATCH":
 		data = getData(request.body)
+		if extraData:
+			for key in extraData:
+				data[key] = extraData[key]
 		return _patch(model,data,id)
 	elif request.method == "DELETE":
-		return invalid("Illegal Method " + request.method, True, 403)
+		return _delete(model,{},id)
 	else:
 		return invalid("Unknown method " + request.method, True, 400)
 
@@ -475,6 +506,18 @@ def hpCert(request):
 	return valid(a,200)
 def certs(request):
 	return defaultProcessGroup(Cert,request)
+
+def nominations(request, sid):
+	noms = Nomination.objects.filter(entry__show_id = sid)
+	ed = {
+		"show":sid
+	}
+	return defaultProcessGroup(Nomination,request,queryObject = noms, extraData = ed)
+
+def nomination(request, sid, uri):
+	noms = Nomination.objects.filter(entry__show_id = sid)
+	noms = [x for x in noms if x.uri == uri]
+	return defaultProcessSingular(Nomination,request,noms[0].id)
 
 #	if request.method == "GET":
 #		return invalid("Invalid method " + request.method, True, 405)

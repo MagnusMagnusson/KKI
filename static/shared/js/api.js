@@ -114,6 +114,15 @@
                     return this.urlList.award + "/" + idArray[0]
                 }
             }
+            case "nomination": {
+                if (idArray.length == 0) {
+                    throw "Not enough information to construct information";
+                } else if(idArray.length == 1) {
+                    return this.urlList.shows + "/" + idArray[0] + "/tilnefningar";
+                } else {
+                    return this.urlList.shows + "/" + idArray[0] + "/tilnefningar/" + idArray[1];
+                }
+            }
         }
         throw "No resource exists with name "+model;
     }
@@ -151,6 +160,16 @@
         d = this.prepare(d);
         this._get(url, d, callback);
     }
+    getAll(model, filterDict, callback, idArray) {
+        let url;
+        url = this.getUrl(model, idArray);
+        let d = {
+            "filter": filterDict,
+            "offset": -1
+        }
+        d = this.prepare(d);
+        this._get(url, d, callback);
+    }
 
     edit(model, patchDict, callback, idArray = []) {
         let url = this.getUrl(model, idArray);
@@ -164,6 +183,11 @@
         this._ajax("POST", url, d, callback);
     }
 
+    delete(model, patchDict, callback, idArray = []) {
+        let url = this.getUrl(model, idArray);
+        let d = this.prepare(patchDict);
+        this._ajax("DELETE", url, d, callback);
+    }
     /*
         getPerson{
             <dict:terms>, key:value dict stating which properties must be present 
