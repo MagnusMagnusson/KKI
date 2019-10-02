@@ -696,6 +696,7 @@ class Cat(models.Model):
 		cat['name'] = self.name
 		cat['full_name'] = self.fullName()
 		cat['registry_number'] = self.reg_full
+		cat['registry_number_short'] = self.reg_nr
 		cat['country'] = self.country
 		cat['registration_class'] = self.registration_class
 		cat['organization'] = self.organization
