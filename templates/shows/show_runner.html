@@ -209,6 +209,27 @@
     </section>
     <section class="main-section" id="section-files">
         <h3>Skjöl</h3>
+        <div>
+            <b>Úrslit</b>
+            <a>Búramiðar</a>
+            <a>Dómarablöð</a>
+        </div>
+        <div>
+            <div>
+                {%for category, list in awards.items%}
+                    <i>{{category}}</i>
+                    <ul>
+                        {% for award in list %}
+                        <li>
+                            {{award.name}}
+                        </li>
+                        {%endfor%}
+                    </ul>
+               
+                    
+                {%endfor%}
+            </div>
+        </div>
     </section>
 
     {%endblock%}

@@ -21,6 +21,14 @@ a {
     transition: color .15s ease-in-out,background-color .15s ease-in-out;
 }
 
+a.white{
+    color:white;
+}
+
+a.white:hover{
+    color:white;
+}
+
 a:hover {
     color: var(--orange);
 }

@@ -16,6 +16,7 @@ Including another URLconf
 from django.urls import path
 from django.contrib import admin
 from kkidb.api import api
+from kkidb.api import fileApi
 
 urlpatterns = [
     path("login",api.login),
@@ -44,7 +45,8 @@ urlpatterns = [
 	path("stig/HP",api.hpCert),
 	path("stig",api.certs),
 	path("verdlaun/<slug:id>",api.award),
-	path("verdlaun",api.awards)
+	path("verdlaun",api.awards),
+	path("syningar/<int:sid>/skjol/buramidar.pdf",fileApi.test)
 	
 
 
