@@ -46,7 +46,8 @@ urlpatterns = [
 	path("stig",api.certs),
 	path("verdlaun/<slug:id>",api.award),
 	path("verdlaun",api.awards),
-	path("syningar/<int:sid>/skjol/buramidar.pdf",fileApi.test)
+	path("syningar/<int:sid>/skjol/buramidar.pdf",fileApi.test),
+	path("syningar/<int:sid>/skjol/urslitablad.pdf",fileApi.finalJudgePaper)
 	
 
 

@@ -76,3 +76,21 @@
     margin-right: 1.4em;
     font-size: 0.9em;
 }
+
+
+.draggable {
+    margin-right: .2em;
+    border: 1px solid var(--lightorange);
+    border-radius: .5em;
+    width: 10em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    float: left;
+    font-size: .8em;
+    text-align: center;
+}
+
+
+.draggable:hover{
+    background-color:var(--lightorange);
+}

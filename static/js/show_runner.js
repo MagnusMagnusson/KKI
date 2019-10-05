@@ -1,10 +1,11 @@
 ﻿(function () {
-
 let show_date;
-
 $(document).ready(function () {
-    $(".textinput").val("");
-    $("input").prop("checked", false);
+    init();
+    handlers();
+});
+
+function handlers() {
     $("#judgement-form-abs").change(function () {
         if (this.checked) {
             judgement_lockout(true);
@@ -39,16 +40,55 @@ $(document).ready(function () {
             $(this).blur()
         }
     });
-    init();
-});
-
+    $(".files_settings_checkbox").on("change", function (a) {
+        let aye = $(this).parents(".files_checkbox_wrapper").find("input[type='checkbox']:checked").length
+        let no = $(this).parents(".files_checkbox_wrapper").find("input[type='checkbox']:not(:checked)").length
+        let dad = $(this).parents(".files_settings_wrapper").find(".files_settings_all")[0];
+        if (aye == 0) {
+            $(dad).prop("indeterminate", false);
+            $(dad).prop("checked", false);
+        } else if (no == 0) {
+            $(dad).prop("indeterminate", false);
+            $(dad).prop("checked", true);
+        } else {
+            $(dad).prop("indeterminate", true);
+        }
+    });
+    $(".files_settings_all").on("change", function (e) {
+        let check = $(this).prop("checked")
+        $(this).parent(".files_settings_wrapper").find(".files_settings_checkbox").prop("checked", check);
+        
+    });
+    $("#files-save-button").on("click touchstart", files_get_file)
+    $(".files_link").on("click touchstart", function (e) {
+    $(".files_link").removeClass("selected");
+        $(this).addClass("selected");
+        let d = $(this).data("file");
+        switch (d) {
+            case "cage": {
+                file = "/api/syningar/" + ENV.show + "/skjol/buramidar.pdf";
+                fileName = "buramidar.pdf";
+                break;
+            }
+            case "judge": {
+                file = "/api/syningar/" + ENV.show + "/skjol/urslitablad.pdf";
+                fileName = "urslitablad.pdf";
+            }
+        
+        }
+    })
+}
 function init() {
     window.Api.get("show", {}, function (show) {
         show = show.results;
         show_date = show.date;
     }, [ENV.show]);
-}
 
+    $(".textinput").val("");
+    $("input").prop("checked", false);
+
+    $("#files_settings input[type='checkbox']").prop("checked", true);
+}
 function updateData(section) {
     switch (section) {
         case "abs": {
@@ -362,7 +402,7 @@ function judgementGetEntrant(e) {
                 } else {
                     $("#judgement-form-cert").data("locked", true);
                     $("#judgement-form-cert").prop('disabled', true);
-                    if (is_guest) {
+                    if (guest) {
                         $("#judgement-form-abs").data("locked", true);
                         $("#judgement-form-biv").data("locked", true);
                         $("#judgement-form-biv").prop('disabled', true);
@@ -539,7 +579,7 @@ function finals_change_category(e) {
     $(".finals-category-wrapper").hide();
     $(`.finals-category-wrapper[data-category = "${cat}"]`).show();
 }
-    function finals_toggle_bis(e) {
+function finals_toggle_bis(e) {
         let id = $(this).data("id");
         let uri = finalNominations[id];
         let selected = $(this).prop("checked");
@@ -547,6 +587,41 @@ function finals_change_category(e) {
             "bis": selected
         }
         window.Api.edit("nomination", d, function () {}, [ENV.show, uri]);
+}
+
+file = null;
+fileName = null;
+//Files
+function files_get_file(e) {
+    if (!file) {
+        return;
+    }
+    settings = {}
+    for (let checkbox of $(".files_settings_checkbox")) {
+        let section = $(checkbox).parents(".files_checkbox_wrapper").data("setting");
+        if (!settings[section]) {
+            settings[section] = [];
+        }
+        if (!$(checkbox).prop("checked")) {
+            continue;
+        }
+        let val = $(checkbox).val()
+        settings[section].push(val);
+    }
+    let el = $("#files_settings_catorder li");
+    let ox = []
+    for (let ll of el) {
+        ox.push($(ll).data("value"));
+    }
+    settings["category_order"] = ox
+
+    d = {
+        "filters":settings
+    }
+
+    p = JSON.stringify(d)
+    newFile = file+ "?data="+p
+    getFile(newFile, {}, fileName);
 }
 
 ///MISC
@@ -564,10 +639,31 @@ function getAgeString(older, newer) {
     years = young.getYear() - old.getYear();
     while (months < 0) {
         months += 12;
-        years += 1;
+        years -= 1;
     }
     
     return (years > 0) ? years + "y " + months + "m" : months + "m" ;
 }
+function getFile(url, getData, filename) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.responseType = "blob";
 
+    xhr.onload = function () {
+        saveData(this.response, filename); 
+    };
+    xhr.send(getData);
+}
+function saveData(blob, fileName) // does the same as FileSaver.js
+{
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+
+    var url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
 })();

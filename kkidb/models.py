@@ -531,13 +531,18 @@ class Cat(models.Model):
 	def isNeutered(self):
 		return hasattr(self,"neuter")
 
-	def isKitten(self):	
-		kitten_cutoff = date.today() + relativedelta(months=-7)
+	def isKitten(self, _date = None):	
+		if not _date:
+			_date = date.today()
+		kitten_cutoff = _date + relativedelta(months=-7)
 		return self.birth_date >= kitten_cutoff
 
-	def isJunior(self):
-		youngling_cutoff = date.today() + relativedelta(months=-10)
+	def isJunior(self, d = None):
+		if not d:
+			d = date.today()
+		youngling_cutoff = d + relativedelta(months=-10)
 		return self.birth_date >= youngling_cutoff
+
 
 
 	@property
@@ -1204,7 +1209,10 @@ class Entry(models.Model):
 		obj["show"] = self.show.id
 		obj["is_guest"] = self.guest 
 		obj["cat"] = self.cat.id
-		obj["judge"] = self.judgement.judge.id
+		if self.judgement.judge:
+			obj["judge"] = self.judgement.judge.id
+		else:
+			obj["judge"]=  None 
 		if self.judgement.filled:
 			obj["judgement_ready"] = True
 			obj["is_biv"] = self.judgement.biv
@@ -1234,9 +1242,10 @@ class Entry(models.Model):
 					obj["recieved_title"] = False
 			else:
 				obj["recieved_certification"] = False
-				if self.cat.highestCert():
-					obj["current_certification"] = self.cat.highestCert().cert
-					t = self.cat.highestCert().cert.getTitle()
+				currentCert = self.cat.highestCert(self.cat.isNeutered)
+				if currentCert:
+					obj["current_certification"] = currentCert.cert
+					t = currentCert.cert.getTitle()
 					if t:
 						obj["current_title"]  = t.short
 					else:
@@ -1244,8 +1253,8 @@ class Entry(models.Model):
 				else:
 					obj["current_certification"] = None
 					obj["current_title"] = None
-				if self.cat.highestCert():
-					obj["next_certification"] = self.cat.highestCert().cert.next.fullName()
+				if currentCert:
+					obj["next_certification"] = currentCert.cert.next.fullName()
 				else:
 					obj["next_certification"] = Cert.base(neutered = self.cat.isNeutered).fullName()
 			obj["nominations"] = []
@@ -1257,10 +1266,11 @@ class Entry(models.Model):
 					obj["awards"].append(nom.award.name)
 		else:
 			obj["judgement_ready"] = False
-			if self.cat.highestCert():
-				obj["current_certification"] = self.cat.highestCert().cert
-				obj["next_certification"] = self.cat.highestCert.cert.next.fullName()
-				t =  self.cat.highestCert.cert.getTitle()
+			highCert = self.cat.highestCert(self.cat.isNeutered)
+			if highCert:
+				obj["current_certification"] =highCert.cert
+				obj["next_certification"] = highCert.cert.next.fullName()
+				t =  highCert.cert.getTitle()
 				if t:
 					obj["current_title"] = t.short
 				else:
@@ -1541,7 +1551,8 @@ class Award(models.Model):
 	name = models.CharField(max_length = 50)
 	coreAward = models.BooleanField(default = False)
 	category = models.CharField(max_length = 50, null = True)
-
+	ranking = models.IntegerField(default = 0)
+	
 	@staticmethod 
 	def create(rd, id = None):
 		award = Award()

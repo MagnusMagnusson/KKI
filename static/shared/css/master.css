@@ -337,3 +337,8 @@ a:hover {
 .textinput::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
     color: rgba(100,100,120,0.5);
 }
+
+a.selected {
+    font-weight: bold;
+    color: var(--orange);
+}

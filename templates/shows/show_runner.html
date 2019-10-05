@@ -211,24 +211,119 @@
         <h3>Skjöl</h3>
         <div>
             <b>Úrslit</b>
-            <a>Búramiðar</a>
-            <a>Dómarablöð</a>
+            <a href="#" data-file="cage" class="files_link">Búramiðar</a>
+            <a href="#" data-file="judge" class="files_link">Dómarablöð</a>
         </div>
-        <div>
+        <div id="files_settings">
+            <!--Categories-->
             <div>
-                {%for category, list in awards.items%}
-                    <i>{{category}}</i>
-                    <ul>
-                        {% for award in list %}
-                        <li>
-                            {{award.name}}
-                        </li>
+                <span class="files_settings_wrapper">
+                    <input class="files_settings_all" id="files_settings_categories_all" type="checkbox"/>
+                    <label >Allt</label>
+                    <span data-setting="award_categories" class="files_checkbox_wrapper">
+                         {%for category in show.awardCategories%}
+                        <span>
+                            <input class="files_settings_checkbox files_categories_category" value="{{category}}" type="checkbox" />
+                            {{category}}
+                        </span>
                         {%endfor%}
-                    </ul>
-               
-                    
-                {%endfor%}
+                    </span>
+                </span>
+                
             </div>
+            <div>
+                <span class="files_settings_wrapper">
+                    <input class="files_settings_all" id="files_settings_judges_all" type="checkbox" />
+                    <label checked="checked" for="files_settings_judges_all">Allt</label>
+                    <span data-setting="judges" class="files_checkbox_wrapper">
+                        <span>
+                            <input class="files_settings_checkbox" id="files_settings_judges_none" type="checkbox" value=""/>
+                            <label for="files_settings_judges_all">Dómaralaust</label>
+                        </span>
+                        {%for judge in show.judges%}
+                        <span>
+                            <input class="files_settings_checkbox"  value="{{judge.judge.id}}"  type="checkbox" />
+                            {{judge.judge.person.name}}
+                        </span>
+                        {%endfor%}
+                    </span>
+                </span>
+                
+            </div>
+            <div>
+                <span class="files_settings_wrapper">
+                    <input class="files_settings_all" id="files_settings_genders_all" type="checkbox" />
+                    <label checked="checked" >Allt</label>
+                    <span data-setting="gender" class="files_checkbox_wrapper">
+                        <span>
+                            <input value="male" class="files_settings_checkbox" type="checkbox" />
+                            <label >Fress</label>
+                        </span>
+                        <span>
+                            <input value="female" class="files_settings_checkbox" type="checkbox" />
+                            <label >Læða</label>
+                        </span>
+                    </span>
+                </span>
+            </div>
+
+            <div>
+                <span class="files_settings_wrapper" >
+                    <input class="files_settings_all" id="files_settings_genders_all" type="checkbox" />
+                    <label >Allt</label>
+                    <span data-setting="neutered" class="files_checkbox_wrapper">
+                        <span>
+                            <input value="false" class="files_settings_checkbox" id="files_settings_genders_all" type="checkbox" />
+                            <label>Ógeldir</label>
+                        </span>
+                        <span>
+                            <input value="true" class="files_settings_checkbox" id="files_settings_genders_all" type="checkbox" />
+                            <label>Geldir</label>
+                        </span>
+                    </span>
+                </span>
+                
+            </div>
+            <div>
+                <span class="files_settings_wrapper">
+                    <input class="files_settings_all" id="files_settings_ages_all" type="checkbox" />
+                    <label checked="checked" >Allt</label>
+                    <span data-setting="age" class="files_checkbox_wrapper">
+                        <span>
+                            <input value="kitten" class="files_settings_checkbox" id="files_settings_ages_kitten" type="checkbox" />
+                            <label>Kettlingur</label>
+                        </span>
+                        <span>
+                            <input value="junior" class="files_settings_checkbox" id="files_settings_ages_junior" type="checkbox" />
+                            <label>Ungdýr</label>
+                        </span>
+                        <span>
+                            <input value="adult" class="files_settings_checkbox" id="files_settings_ages_adult" type="checkbox" />
+                            <label>Fullorðinn</label>
+                        </span>
+                    </span>
+                </span>
+                
+            </div>
+            <div>
+            Röðun flokka<br />
+            <i>Smelltu á og dragðu flokkinn sem þú vilt færa á réttan stað í röðinni</i>
+                <div class="files_settings_wrapper">
+                    <div data-setting="category_order">
+                        <ol id="files_settings_catorder">
+                            {% for category in show.awardCategories %}
+                            <li data-value = "{{category}}" draggable="true" ondragend="dragEnd()" ondragover="dragOver(event)" ondragstart="dragStart(event)" class="draggable">{{category}}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+
+            </div> <br />
+            <div>
+                Sýningarnúmer
+                <input class="textinput" placeholder="Öll sýningarnúmer"/>
+            </div>
+            <div href="test" id="files-save-button" class="button small ">Sækja</div>
         </div>
     </section>
 
@@ -242,7 +337,8 @@
 
     {%block scripts%}
     {{block.super}}
-    <script src="{% static 'js/show_runner.js' %}"></script>
+<script src="{% static 'js/show_runner.js' %}"></script>
+<script src="{% static 'shared/js/sortable.js' %}"></script>
 
     <script>
         ENV.show = {{show.id }}
