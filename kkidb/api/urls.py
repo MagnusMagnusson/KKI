@@ -30,6 +30,8 @@ urlpatterns = [
 	path("domarar",api.judges),
 	path("folk/<int:id>",api.person),
 	path("folk",api.people),
+	path("felog/<int:id>",api.organization ),
+	path("felog",api.organizations ),
 	path("raektanir/<int:id>", api.cattery),
 	path("raektanir",api.catteries),
 	path("syningar/<int:sid>/keppendur/<int:eid>", api.entrant),
@@ -46,6 +48,7 @@ urlpatterns = [
 	path("stig",api.certs),
 	path("verdlaun/<slug:id>",api.award),
 	path("verdlaun",api.awards),
+	path("util/skrnr",api.next_regid),
 	path("syningar/<int:sid>/skjol/buramidar.pdf",fileApi.test),
 	path("syningar/<int:sid>/skjol/urslitablad.pdf",fileApi.finalJudgePaper)
 	

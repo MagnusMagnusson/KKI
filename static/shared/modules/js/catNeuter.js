@@ -8,7 +8,7 @@
         window.Api.get(data, function (result) {
             $("#catNeuterForm-catRegNr").val(result.results.registry)
             $("#catNeuterForm-catName").val(result.results.name)
-        })
+        });
     }
 })
 

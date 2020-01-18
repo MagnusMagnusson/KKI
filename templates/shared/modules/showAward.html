@@ -44,7 +44,13 @@
             <div class="centeredContent">               
                 Nafn verðlauna<br />
                 <input id="showAward-form-newAward-name"class="textinput" />              <br /> 
-                Eru þetta aukaverðlaun?<br />
+                Verðlaunaflokkur<br />
+                <select id="showAward-category">
+                    {% for cat in categories%}
+                    <option value="{{cat}}">{{cat}}</option>
+                    {%endfor%}
+                </select><br /> 
+                Eru þessi verðlaun einkvæð (birtast ekki á hverri sýningu)?<br />
                 <input id="showAward-form-newAward-core" type="checkbox" class="textinput" /> <br />
                 <div id="showAward-form-newAward-save" class="fixed-button">Skrá ný verðlaun</div>
 

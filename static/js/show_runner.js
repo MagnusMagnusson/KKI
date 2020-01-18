@@ -78,19 +78,69 @@ function handlers() {
         }
     })
 }
+
+    let _judges = {}
 function init() {
+    updateData("overview");
     window.Api.get("show", {}, function (show) {
         show = show.results;
         show_date = show.date;
-    }, [ENV.show]);
+        for (let judge_id of show.judges) {
+            window.Api.get("judge", {}, function (judge) {
+                judge = judge.results;
+                _judges[judge_id] = judge;
+            }, null, [judge_id])
+        }
+    }, null, [ENV.show]);
 
     $(".textinput").val("");
     $("input").prop("checked", false);
 
     $("#files_settings input[type='checkbox']").prop("checked", true);
+
 }
 function updateData(section) {
     switch (section) {
+        case "overview": {
+            $("#overview-judgementless-list").empty();
+            $("#overview-judged-list").empty();
+            let li = "<li>Sæki...</li>";
+            $(li).appendTo("#overview-judged-list");
+            $(li).appendTo("#overview-judgementless-list");
+            d = {
+                "judgement_ready": false
+            }
+            window.Api.getAll("entry", d, function (entries) {
+                $("#overview-judgementless-list").empty();
+
+                entries = entries.results;
+                entries.sort(function (a, b) { return a.catalog_number - b.catalog_number; });
+                for (let entry of entries) {
+                    let catalog = entry.catalog_number;
+                    let l = `<li><b>${catalog}</b></li>`;
+                    $(l).appendTo("#overview-judgementless-list")
+                }
+            }, null, [ENV.show]);
+
+            d = {
+                "judgement_ready": true
+            }
+            window.Api.getAll("entry", d, function (entries) {
+                $("#overview-judged-list").empty();
+                entries = entries.results;
+                entries.sort(function (a, b) { return a.catalog_number - b.catalog_number; });
+                for (let entry of entries) {
+                    let catalog = entry.catalog_number;
+                    let cert = entry.recieved_certification ? "CERT":"";
+                    let judgement = entry.judgement;
+                    let nom = entry.nominations.length;
+                    nom = nom > 0 ? " Tilnefndur("+nom+")" : "";
+                    let l = `<li><b>${catalog}</b> ${judgement} ${cert} ${nom}</li>`;
+                    $(l).appendTo("#overview-judged-list")
+                }
+            }, null, [ENV.show]);
+            break;
+        }
         case "abs": {
             $(".judge-abs-list").empty();
             d = { "was_absent": true }
@@ -107,7 +157,7 @@ function updateData(section) {
                 } else {
                     alert("Error");
                 }
-            }, [ENV.show]);
+            }, null, [ENV.show]);
             break;
         }
         case "nominations": {
@@ -122,7 +172,7 @@ function updateData(section) {
             finalasyncRequests = {};
             $(".finals-category-div").hide();
             $(".finals-please-wait").show();
-
+            let judgeCache = {}
             window.Api.getAll("nomination", {}, function (nominations) {
                 let noms = nominations.results;
                 let done = 0;
@@ -173,22 +223,17 @@ function updateData(section) {
                             }
                         }
                         if (judge_id) {
-                            window.Api.get("judge", {}, function (judge) {
-                                if (!finalasyncRequests[asyncId]) {
-                                    //New request data; abort.
-                                    return;
-                                }
-                                name = judge.results.name;
-                                addNom();
-                            }, [judge_id]);
+                            let j = _judges[judge_id];
+                            name = j.name;
+                            addNom();
                         } else {
                             name = "<i>Dómaralaust</i>";
                             addNom();
                         }
                        
-                    }, [cat]);
+                    }, null, [cat]);
                 }
-            }, [ENV.show]);
+            }, null, [ENV.show]);
             break;
         }
         default: break;
@@ -220,7 +265,7 @@ function absAddToList(cat_id, entry_nr, judge_nr) {
         } else {
             alert("2nd° error");
         }
-    }, [cat_id]);
+    }, null, [cat_id]);
 }
 function abs_press_button_handler(e) {
     let integers = $("#textarea-abs").val().split(",");
@@ -239,7 +284,7 @@ function abs_press_button_handler(e) {
                 } else {
                     alert(cat.catalog_number + " could not be added to abs list");
                 }
-            }, [ENV.show, int])
+            },null, [ENV.show, int])
         }
         $("#textarea-abs").val("");
     }
@@ -262,7 +307,7 @@ function abs_remove_entry_handler(e) {
             } else {
                 alert(msg.error);
             }
-        }, [ENV.show, e]);
+        }, null, [ENV.show, e]);
     }
 }
 
@@ -290,7 +335,7 @@ function colorGetEntrant(e) {
                 $("#color-warning").hide();
                 $("#color-change-name").text(`${cat.name} (#${e})`)
             }, [c]);
-        }, [ENV.show, e]);
+        }, null, [ENV.show, e]);
     }
 }
 function colorSaveEntrant(e) {
@@ -332,7 +377,7 @@ function colorSaveEntrant(e) {
                 warning("color", "");
                 $("#color-change-form").hide();
                 success("color", "Litadómur staðfestur. " + msg.results.name + " er nú " + msg.results.ems);
-            }, [ENV.color_cat]);
+            }, null, [ENV.color_cat]);
         }
     });
 }
@@ -398,7 +443,7 @@ function judgementGetEntrant(e) {
                         $("#judgement-form-abs").prop('checked', abs);
                         $("#judgement-form-cert").prop('checked', cert);
                         $("#judgement-form-comment").val(comment);
-                    }, [next_cert]);
+                    }, null, [next_cert]);
                 } else {
                     $("#judgement-form-cert").data("locked", true);
                     $("#judgement-form-cert").prop('disabled', true);
@@ -422,8 +467,8 @@ function judgementGetEntrant(e) {
                     $("#judgement-form-cert").prop('checked', cert);
                     $("#judgement-form-comment").val(comment);
                 }
-            }, [entrant.cat]);
-        }, [ENV.show, ent]);
+            },null, [entrant.cat]);
+        }, null, [ENV.show, ent]);
     }
 }
 function judgement_lockout(locked) {
@@ -479,14 +524,16 @@ function judgement_save() {
     window.Api.edit("entry", d, function (entrant) {
         entrant = entrant.results;
         if (entrant.recieved_title) {
-            $("#judgement-form-next-title").addClass("glow-green");
-        } else {
-            judgement_clear();
-        }
-    }, [ENV.show, ENV.entry]);
+            alert("Titill veittur " + $("#judgement-form-next-title").val());
+        } 
+        judgement_clear();
+        
+    }, null, [ENV.show, ENV.entry]);
 }
 function judgement_clear() {
-
+    $("#judgement-form .textinput").val("");
+    $("#judgement-form input[type='checkbox']").prop("checked", false);
+    judgement_lockout(false);
 }
 
 let nomJudge = null;
@@ -517,9 +564,11 @@ function nomination_change_judge(e) {
             nomFields[nom.award] = nom.id;
             oldValues[nom.award] = nom.entry;
         }
-    }, [ENV.show]);
+    }, null, [ENV.show]);
 }
 function nomination_save_field(e) {
+
+    $("#nomination-confirm").hide();
     let val = $(this).val()
     let award = $(this).data("value");
     let old = oldValues[award];
@@ -531,7 +580,8 @@ function nomination_save_field(e) {
         window.Api.delete("nomination", {}, function (empty) {
             oldValues[award] = "";
             nomFields[award] = "";
-        }, [ENV.show, uri]);
+            $("#nomination-confirm").hide();
+        }, null, [ENV.show, uri]);
         return;
     } else if (val === "") {
         return;
@@ -539,8 +589,7 @@ function nomination_save_field(e) {
     window.Api.get("entry", d, function (entry) {
         entry = entry.results;
         if (nomJudge && nomJudge != entry.judge) {
-            let judgeName = $("#nomination-form-judge").val();
-            if (!confirm("Köttur " + entry.catalog_number + " er ekki í dóm hjá " + judgeName + ". Ertu viss um tilnefninguna?")) {
+            if (!confirm("Köttur " + entry.catalog_number + " er ekki í dóm hjá dómara. Ertu viss um tilnefninguna?")) {
                 $(t).val(old);
                 return;
             }
@@ -551,6 +600,7 @@ function nomination_save_field(e) {
             }
             window.Api.edit("nomination", d, function (entry) {
                 oldValues[award] = val;
+                $("#nomination-confirm").show();
             }, [ENV.show, uri])
         } else {
             d = {
@@ -563,10 +613,10 @@ function nomination_save_field(e) {
                 nomination = nomination.results;
                 oldValues[award] = val;
                 nomFields[award] = nomination.uri;
-                console.log("Success!");
-            }, [ENV.show])
+                $("#nomination-confirm").show();
+            }, null, [ENV.show])
         }
-    }, [ENV.show, val]);
+    }, null,[ENV.show, val]);
 
 }
 
@@ -586,7 +636,7 @@ function finals_toggle_bis(e) {
         d = {
             "bis": selected
         }
-        window.Api.edit("nomination", d, function () {}, [ENV.show, uri]);
+        window.Api.edit("nomination", d, null, null [ENV.show, uri]);
 }
 
 file = null;

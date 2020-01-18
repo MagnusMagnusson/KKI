@@ -25,14 +25,14 @@
                 Ræktunarnafn<br />
                 <input required class="textinput" placeholder="ÍS*Kynjakatta" name="name" />
                 <div>
-                    <input required id="prefix" type="radio" name="prefix" value="prefix" />
+                    <input required id="prefix" type="radio" name="is_prefix" value="True" />
                     <label for="prefix">Forskeyti</label>
-                    <input required id="affix" type="radio" name="prefix" value="affix" />
+                    <input required id="affix" type="radio" name="is_prefix" value="False" />
                     <label for="affix">Viðskeyti</label>
                 </div>
                 <div>
                     Dagsetning<br />
-                    <input required class="textinput" data-date-format="DD MMMM YYYY" type="date" name="date" />
+                    <input required class="textinput" data-date-format="DD MMMM YYYY" type="registry_date" name="date" />
                 </div><br />
             </div>
             <div>
@@ -41,7 +41,7 @@
                 </select>
             </div>
             <div>
-                <select hidden form="cattery-form" name ="organization"class="centerd">
+                <select form="cattery-form" name ="organization"class="centerd">
                     <option value="-1">Annað</option>
                     {%for org in orgs%}
                         <option  {%if org.country == "IS"%}selected{%endif%} value="{{org.id}}">{{org.country}}: {{org.name}}
@@ -59,10 +59,10 @@
             <div>
                 <small>Heimilisfang</small><br />
                 <input class="textinput" placeholder="Heimilisfang" name="address" /><br />
-                <input class="textinput" placeholder="Póstnúmer" name="post" /><br />
+                <input class="textinput" placeholder="Póstnúmer" name="postcode" /><br />
                 <input class="textinput" placeholder="Borg" name="city" /><br />
                 <small>Símanúmer</small><br />
-                <input class="textinput" placeholder="123-4567" name="phone" /><br />
+                <input class="textinput" placeholder="123-4567" name="phone_number" /><br />
                 <small>Netfang</small><br />
                 <input class="textinput" placeholder="kynjakettir@kynjakettir.is" name="email" /><br />
                 <small>Vefsvæði</small><br />

@@ -25,6 +25,20 @@
     {%block main %}
     <section class="primary main-section" id="section-overview">
         <h3>{{show.name}} </h3>
+        <div>
+            <div class="list-window overview-left">
+                Kettir án dóms
+                <ul id="overview-judgementless-list">
+                    <li>Sæki...</li>
+                </ul>
+            </div>
+            <div class="list-window overview-right">
+                Tilbúnir dómar
+                <ul id="overview-judged-list">
+                    <li>Sæki...</li>
+                </ul>
+            </div>
+        </div>
     </section>
     <section class="main-section" id="section-abs">
         <h3>Fjarverandi kettir (ABS)</h3>
@@ -143,6 +157,7 @@
         <p>Veljið dómara, og verðlaunaflokk</p>
         <p>Skráið sýningarnúmer kattar við viðeigandi flokk til að tilnefna hann</p>
         <p>Tilnefningar vistast sjálfkrafa þegar gilt sýningarnúmer er slegið inn</p>
+        <i id="nomination-confirm"><b class="red">Köttur tilnefndur</b></i>
         <div>
             <span>
                 <i>Dómari</i><br />

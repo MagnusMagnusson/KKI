@@ -6,7 +6,19 @@ import random
 import uuid
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from datetime import date
+from datetime import date,datetime
+
+cache = {}
+
+def getCache(model,id,var):
+	key = hash(str(model) + "-"+ str(id) + "-"+ str(var))
+	if key in cache:
+		return cache[key]
+	return None
+
+def setCache(model,id,var,value):	
+	key = hash(str(model) + "-"+ str(id) + "-"+ str(var))
+	cache[key] = value
 
 def Randstring(n = 6):
 	return  uuid.uuid4().hex[0:n]
@@ -31,7 +43,6 @@ class Person(models.Model):
 		if self.postcode:
 			str += " ("+self.postcode+")"
 		return str
-	
 	@staticmethod
 	def apiMap( filters):
 		keyMapping = {
@@ -57,7 +68,6 @@ class Person(models.Model):
 			translatedFilter["judge"] = not translatedFilter["judge"]
 	
 		return translatedFilter
-
 	def toObject(self):
 		member = {}
 		member['name'] = self.name
@@ -81,8 +91,6 @@ class Person(models.Model):
 		else:
 			member['is_judge'] = False
 		return member
-	
-
 	@staticmethod 
 	def create( resourceDict, id = None):
 		person = Person()
@@ -92,7 +100,6 @@ class Person(models.Model):
 		person.save()
 		person.patch(resourceDict)
 		return person 
-
 	def patch(self, resourceDict):
 		if "name" in resourceDict:
 			self.name = resourceDict["name"]
@@ -365,6 +372,7 @@ class Cattery(models.Model):
 
 	def updateMembers(self, newMembers):
 		currentMembers = self.memberEntries()
+		newMembers = [Person.objects.get(id = x) for x in newMembers]
 		currentMemberInstances = []
 		deleted = 0
 		added = 0
@@ -423,10 +431,7 @@ class Cattery(models.Model):
 	def create(resourceDict, id = None):
 		cat = Cattery()
 		if id:
-			cat.id = id 
-		cat.name = "N/A"
-		cat.prefix = True
-		cat.save()
+			cat.id = id  
 		cat.patch(resourceDict)
 		return cat 
 
@@ -441,10 +446,10 @@ class Cattery(models.Model):
 		if "is_prefix" in rd:
 			self.prefix = rd["is_prefix"]
 		if "organization" in rd:
-			self.organization = rd["organization"]
+			self.organization_id = rd["organization"]
 		if "email" in rd:
 			self.email = rd['email']
-		if address in rd:
+		if "address" in rd:
 			self.address = rd['address']
 		if "city" in rd:
 			self.city = rd['city']
@@ -454,7 +459,10 @@ class Cattery(models.Model):
 			self.website = rd['website']
 		if "phone_number" in rd:
 			self.phone = rd['phone_number']
+		if "registry_date" in rd:
+			self.registry_date = rd['registry_date']
 		if "owners" in rd:
+			self.save()
 			self.updateMembers(rd['owners'])
 		self.save()
 class CatteryOwner(models.Model):
@@ -465,6 +473,43 @@ class Organization(models.Model):
 	name = models.CharField(max_length = 100)
 	short = models.CharField(max_length = 15, null=True)
 	country = models.CharField(max_length = 3)
+	def toObject(self):
+		o = {}
+		o['id'] = self.id
+		o['name'] = self.name
+		o['acronym'] = self.short 
+		o['country'] = self.country
+		return o
+	@staticmethod
+	def apiMap( filters):
+		keyMapping = {
+			"id":"id",
+			"name":"name",
+			"acronym":"short",
+			"country":"country"
+		}
+		translatedFilter = {}
+		for key in filters.keys():
+			value = filters[key]
+			if key in keyMapping:
+				truekey = keyMapping[key]
+				translatedFilter[truekey] = value
+		return translatedFilter
+	@staticmethod 
+	def create( resourceDict, id = None):
+		org = Organization()
+		if id:
+			org.id = id 
+		org.patch(resourceDict)
+		return org 
+	def patch(self, resourceDict):
+		if "name" in resourceDict:
+			self.name = resourceDict["name"]
+		if "acronym" in resourceDict:
+			self.short_name = resourceDict["acronym"]
+		if "country" in resourceDict:
+			self.country = resourceDict["country"]
+		self.save()
 
 ######### Cats
 class Cat(models.Model):
@@ -553,7 +598,8 @@ class Cat(models.Model):
 		elif self.isJunior():
 			return g+ " Junior"
 		else:
-			cat = self.ems.category if self.ems else 0
+			e = self.ems
+			cat = e.category if e else 0
 			if cat == 5:
 				return "Housecat " + g
 			if hasattr(self,"neuter"):
@@ -577,9 +623,9 @@ class Cat(models.Model):
 		ce.cat = self 
 		ce.date = date.today()
 		ce.save()
-
+		
 	def highestCert(self,neutered = False):
-		catSet = self.catcert_set.all().filter(cert__neuter = neutered)
+		catSet = CatCert.objects.filter(cat = self, cert__neuter = neutered)
 		if len(catSet) > 0:
 			catSet = list(catSet)
 			def absSort(a):
@@ -692,44 +738,66 @@ class Cat(models.Model):
 		return Q
 
 	def toObject(self):
+		id = str(self.id)
+		#print(id + " 717 : " + str(datetime.now()) )
 		cat = {} 
 		cat['id'] = self.id 
-		if self.ems:
-			cat['ems'] = str(self.ems.ems)
+		ems = self.ems
+		#print(id + " 721 : " + str(datetime.now()) )
+		if ems:
+			cat['ems'] = str(ems.ems)
 		else:
 			cat['ems'] = None
+		#print(id + " 726 : " + str(datetime.now()) )
 		cat['name'] = self.name
 		cat['full_name'] = self.fullName()
+		
+		#print(id + " 730 : " + str(datetime.now()) )
 		cat['registry_number'] = self.reg_full
-		cat['registry_number_short'] = self.reg_nr
+		cat['registry_digits'] = self.reg_nr
 		cat['country'] = self.country
 		cat['registration_class'] = self.registration_class
 		cat['organization'] = self.organization
+		
+		#print(id + " 737 : " + str(datetime.now()) )
 		cat['age_class'] = "Kitten" if self.isKitten() else "Junior" if self.isJunior() else "Adult"
-		if self.ems:
-			cat['category'] = self.ems.category
-			cat['breed'] = self.ems.breed.breed
+		if ems:
+			cat['category'] = ems.category
+			cat['breed'] = ems.breed.breed
 		else:
 			cat['category'] = None 
 			cat['breed'] = None
+		
+		#print(id + " 746 : " + str(datetime.now()) )
 		cat['division'] = self.division
 		
+		#print(id + " 749 : " + str(datetime.now()) )
 
 		cat['birthdate'] = self.birth_date
 		cat['registration_date'] = self.reg_date
 		cat['microchip'] = self.microchip()
+		
+		#print(id + " 755 : " + str(datetime.now()) )
 		if cat['microchip']:
 			cat['microchip'] = cat['microchip'].microchip
+		
+		#print(id + " 758 : " + str(datetime.now()) )
 		cat['gender'] = "Male" if self.isMale else "Female"
 		cat['owners'] = []
+		
+		#print(id + " 763 : " + str(datetime.now()) )
 		for owner in self.owners():
-			cat['owners'].append(owner.person.id)
+			cat['owners'].append(owner.person_id)
 		if self.cattery:
-			cat['cattery'] = self.cattery.id
+			cat['cattery'] = self.cattery_id
 		else:
 			cat['cattery'] = None
+		
+		#print(id + " 721 : " + str(datetime.now()) )
 		cat['sire'] = self.sire_id 
 		cat['dam'] = self.dam_id
+		
+		#print(id + " 775 : " + str(datetime.now()) )
 		if hasattr(self,"neuter"):
 			cat['neutered'] = True 
 			cat['neutered_date'] = self.neuter.date
@@ -741,6 +809,7 @@ class Cat(models.Model):
 
 	@staticmethod
 	def apiMap(filters):
+		#print(filters)
 		keyMapping = {
 			"name":"name",
 			"neutered":"neuter__isnull",
@@ -758,11 +827,11 @@ class Cat(models.Model):
 			if key in keyMapping:
 				truekey = keyMapping[key]
 				translatedFilter[truekey] = value
-		if "neutered_isnull" in translatedFilter:
-			translatedFilter["neutered_isnull"] = not translatedFilter["neutered_isnull"]
+		if "neuter__isnull" in translatedFilter:
+			translatedFilter["neuter__isnull"] = not translatedFilter["neuter__isnull"]
 		if "isMale" in translatedFilter:
-			translatedFilter["isMale"] = True if translatedFilter["isMale"] =="male" else "female" 
-
+			translatedFilter["isMale"] = True if translatedFilter["isMale"] =="male" else False
+		#print(translatedFilter)
 		return translatedFilter
 
 	@staticmethod 
@@ -776,7 +845,7 @@ class Cat(models.Model):
 		return cat 
 
 	def patch(self, resourceDict):
-		print(resourceDict)
+		#print(resourceDict)
 		if "ems" in resourceDict:
 			self.ems = resourceDict['ems']
 
@@ -815,6 +884,7 @@ class Cat(models.Model):
 				if hasattr(self,"neuter"):
 					self.neuter.delete()
 		self.save()
+
 class Import(models.Model):
 	cat = models.OneToOneField('Cat',on_delete=models.CASCADE)
 	organization = models.ForeignKey('organization',on_delete=models.CASCADE)
@@ -1129,7 +1199,7 @@ class Entry(models.Model):
 			"is_guest":"guest",
 			"cat":"cat_id",
 			"judge":"judgement__judge__id",
-			"judgement_ready":"judgement__filled",
+			"judgement_ready":"judgement__abs__isnull",
 			"is_biv":"judgement__biv",
 			"was_absent":"judgement__abs",
 			"judgement":"judgement__judgement",
@@ -1149,7 +1219,8 @@ class Entry(models.Model):
 			translatedFilter["judgement__catcert__isnull"] = not translatedFilter["judgement__catcert__isnull"]
 		if "judgement__catcert__cert__isnull" in translatedFilter:
 			translatedFilter["judgement__catcert__cert__isnull"] = not translatedFilter["judgement__catcert__cert__isnull"]
-
+		if "judgement__abs__isnull" in translatedFilter:
+			translatedFilter["judgement__abs__isnull"] = not translatedFilter["judgement__abs__isnull"] 
 		return translatedFilter
 
 	@staticmethod 
@@ -1163,7 +1234,7 @@ class Entry(models.Model):
 
 	def patch(self, resourceDict):
 		rd = resourceDict
-		print(rd)
+		#print(rd)
 		j = Judgement.objects.filter(entry = self)
 		if len(j) == 0:
 			j = Judgement()
@@ -1347,7 +1418,7 @@ class Judgement(models.Model):
 				c.judgement = self
 				cert = self.entry.cat.highestCert(self.entry.cat.isNeutered)
 				if cert:
-					c.cert = cert.next
+					c.cert = cert.cert.next
 				else:
 					c.cert = Cert.base(self.entry.cat.isNeutered)
 				c.ems = self.entry.cat.ems.ems #Todo, use the EMS code that the cat *had* at the date of the show, not the most recent. 
@@ -1402,12 +1473,20 @@ class Cert(models.Model):
 				return None
 
 	def absRank(self):
+		c = getCache("Cert",self.id,"")
+		if(c):
+			#print(c)
+			return c
 		if(self.next):
 			if self.next == self:
+				setCache("Cert",self.id,"",1);
 				return 1
 			else:
-				return 1 + self.next.absRank()
+				r = 1 + self.next.absRank()
+				setCache("Cert",self.id,"", r);
+				return r
 		else:
+			setCache("Cert",self.id,"",1);
 			return 1
 
 	def toObject(self):
@@ -1597,7 +1676,7 @@ class Award(models.Model):
 			self.coreAward = rd['is_core']
 
 		if "category" in rd:
-			self.coreAward = rd['category']
+			self.category = rd['category']
 		self.save()
 class showAward(models.Model):
 	show = models.ForeignKey('Show', on_delete = models.CASCADE)

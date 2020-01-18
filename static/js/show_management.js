@@ -16,7 +16,7 @@ $("document").ready(function (e) {
                         person = person.results;
                         let li = `<li>${person.name} [${person.country}]</li>`
                         $("#judges-overview-list").append(li);
-                    }, [judge]);
+                    }, null,s [judge]);
                 }
             }
             break;

@@ -9,8 +9,7 @@
 .warning {
     display: none;
     color: red;
-    font-weight: bold;
     font-style: italic;
     position: relative;
-    top: 1.5em;
+    font-size:0.8em;
 }

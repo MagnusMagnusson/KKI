@@ -14,6 +14,7 @@ from django.db.models import Max
 from django.db import transaction
 import math
 from datetime import date
+from datetime import datetime
 import json
 
 DEBUG = False
@@ -28,41 +29,53 @@ def _get(model, id, queryObject = None):
 	return JsonResponse({"success":True,"results":_o.toObject()})
 
 def _gets(model,data, queryObject = None):
-	page = 0
-	offset = 25
-	search_threshold = 0.9
-	if queryObject == None:
-		queryObject = model.objects.all()
-	if "page" in data:
-		page = data['page']
-	if "offset" in data:
-		offset = data['offset']
-	if "search_threshold" in data:
-		threshold = data['search_threshold']
-	_objects = queryObject
-	if "filter" in data:
-		filters = data['filter']
-		filters = model.apiMap(filters)
-		_objects = _objects.filter(**filters)
-	if "search" in data:
-		terms = data['search']
-		terms = model.apiMap(terms)
-		for term in terms.keys():
-			_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=search_threshold).order_by("distance")
-	if offset > 0:
-		lower = offset * page
-		upper = offset * (page + 1)
-		totalPage = math.ceil(len(_objects) / offset)
-	else:
-		lower = 0
-		upper = len(_objects) + 1
-		totalPage = 1
-	d = {'success':True, 'results':[], 'count':len(_objects), "page":page, "total_pages":totalPage}
-	for res in _objects[lower:upper]:
-		results = res.toObject()
-		d['results'].append(results)
-	d['results'] = list(d['results'])
-	return JsonResponse(d)
+	try:
+		print("aaa")
+		page = 0
+		offset = 25
+		search_threshold = 0.9
+		if queryObject == None:
+			queryObject = model.objects.all()
+		if "page" in data:
+			page = data['page']
+		if "offset" in data:
+			offset = data['offset']
+		if "search_threshold" in data:
+			threshold = data['search_threshold']
+		_objects = queryObject
+
+		if "filter" in data:
+			filters = data['filter']
+			filters = model.apiMap(filters)
+			_objects = _objects.filter(**filters)
+	
+
+		if "search" in data:
+			terms = data['search']
+			terms = model.apiMap(terms)
+			for term in terms.keys():
+				_objects = _objects.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=search_threshold).order_by("distance")
+	
+
+		if offset > 0:
+			lower = offset * page
+			upper = offset * (page + 1)
+			totalPage = math.ceil(len(_objects) / offset)
+		else:
+			lower = 0
+			upper = len(_objects) + 1
+			totalPage = 1
+	
+		d = {'success':True, 'results':[], 'count':len(_objects), "page":page, "total_pages":totalPage}
+	
+		_objects = _objects[lower:upper]
+		d['results'] = [x.toObject() for x in _objects]
+	
+		d['results'] = list(d['results'])
+
+		return JsonResponse(d)
+	except ObjectDoesNotExist as ex:
+		return invalid("Resource does not exist",404)
 
 def _post(model, data, id = None):
 		if(id):
@@ -86,7 +99,7 @@ def _patch(model,data,id):
 		return valid(_o.toObject(),200)
 	except ObjectDoesNotExist as ex:
 		if not DEBUG:
-			return invalid("No resource located here with id "+str(id),True,404)
+			return invalid("Resource does not exist",True,404)
 		else:
 			raise ex
 
@@ -97,7 +110,7 @@ def _delete(model,data,id):
 		return valid({},200)
 	except ObjectDoesNotExist as ex:
 		if not DEBUG:
-			return invalid("No resource located here with id "+str(id),True,404)
+			return invalid("Resource does not exist",True,404)
 		else:
 			raise ex
 
@@ -131,7 +144,15 @@ def defaultProcessGroup(model,request, queryObject = None, extraData = {}):
 
 def defaultProcessSingular(model,request,id, queryObject = None, extraData = {}):
 	if request.method == "GET":
-		return _get(model,id,queryObject)
+		try:
+			print("Hererererereeeeeeeeeee")
+			return _get(model,id,queryObject)
+		except ObjectDoesNotExist as ex:
+			print("REEEEEEEEEEEEEE")
+			if DEBUG:
+				raise ex
+			else:
+				return invalid("Resource does not exist",False,404)
 	elif request.method == "POST":
 		if 'data' in request.POST:
 			data = json.loads(request.POST['data'])
@@ -382,6 +403,13 @@ def judge(request,id):
 def judges(request):
 	return defaultProcessGroup(Judge,request)
 
+
+def organization(request,id):
+	return defaultProcessSingular(Organization,request,id)
+
+def organizations(request):
+	return defaultProcessGroup(Organization,request)
+
 def people(request):
 	return defaultProcessGroup(Person,request)
 
@@ -401,6 +429,7 @@ def entrants(request,sid):
 			page = data['page']
 		if "offset" in data:
 			offset = data['offset']
+
 		entrants = Entry.objects.filter(show_id = sid)
 		if "filter" in data:
 			filters = data['filter']
@@ -411,8 +440,15 @@ def entrants(request,sid):
 			terms = Entry.apiMap(terms)
 			for term in terms.keys():
 				entrants = entrants.annotate( distance=TrigramDistance(term, terms[term]),).filter(distance__lte=0.9).order_by("distance")
-		lower = offset * page
-		upper = offset * (page + 1)
+
+		if offset > 0:
+			lower = offset * page
+			upper = offset * (page + 1)
+			totalPage = math.ceil(len(entrants) / offset)
+		else:
+			lower = 0
+			upper = len(entrants) + 1
+			totalPage = 1
 		d = {'success':True, 'results':[]}
 
 		for res in entrants[lower:upper]:
@@ -465,7 +501,7 @@ def entrant(request,sid,eid):
 			return valid(_o.toObject(),200)
 		except ObjectDoesNotExist as ex:
 			if not DEBUG:
-				return invalid("No resource located here with id "+str(eid),True,404)
+				return invalid("Resource does not exist",True,404)
 			else:
 				raise ex
 	elif request.method == "DELETE":
@@ -477,14 +513,24 @@ def ems(request):
 	return defaultProcessGroup(EMS,request)
 
 def breed(request,breed):
-	_b = Breed.objects.get(short = breed.upper().strip())
-	_e = EMS.objects.filter(breed = _b)
-	return defaultProcessGroup(EMS,request,_e)
+	try:
+		_b = Breed.objects.get(short = breed.upper().strip())
+		_e = EMS.objects.filter(breed = _b)
+		return defaultProcessGroup(EMS,request,_e)
+	except ObjectDoesNotExist as ex:
+		return invalid("Resource does not exist",False,404)
 
 def color(request,breed,color):
-	col = " ".join(color.split("_"))
-	ems = EMS.getEMS(breed + " " + col)
-	return defaultProcessSingular(EMS,request,None,ems)
+	try:
+		col = " ".join(color.split("_"))
+		ems = EMS.getEMS(breed + " " + col)
+		return defaultProcessSingular(EMS,request,None,ems)
+	except ObjectDoesNotExist as ex:
+		if DEBUG:
+			raise ex
+		else:
+			return invalid("Resource does not exist", False, 404)
+
 
 def cert(request,name,rank):
 	if request.method == "GET":
@@ -494,7 +540,7 @@ def cert(request,name,rank):
 			return valid(c.toObject(),200)
 		except ObjectDoesNotExist as ex:
 			if not DEBUG:
-				return invalid("No resource at this location",True,404)
+				return invalid("Resource does not exist",True,404)
 			else:
 				raise ex
 	else: 
@@ -946,7 +992,7 @@ def next_regid(request):
 	max =  1 + Cat.objects.all().exclude(reg_nr__gt = 9000).aggregate(Max('reg_nr'))['reg_nr__max']
 	if max >= 9000:
 		max =  1 + Cat.objects.all().aggregate(Max('reg_nr'))['reg_nr__max']
-	return JsonResponse({'result':max})
+	return JsonResponse({'success':True, 'result':max})
 
 
 

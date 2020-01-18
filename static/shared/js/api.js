@@ -10,10 +10,12 @@
         this.urlList.judge = "/api/domarar";
         this.urlList.catteries = "/api/raektanir";
         this.urlList.shows = "/api/syningar";
-        this.urlList.ems = "/api/ems"
-        this.urlList.cert = "/api/stig"
-        this.urlList.award = "/api/verdlaun"
-        this.urlList.people = "/api/folk"
+        this.urlList.ems = "/api/ems";
+        this.urlList.cert = "/api/stig";
+        this.urlList.award = "/api/verdlaun";
+        this.urlList.organizations = "/api/felog";
+        this.urlList.people = "/api/folk";
+        this.urlList.getNextRegNr = "/api/util/skrnr";
         //this.urlList.find = "/api/leit/";
         //this.urlList.getPerson = "/api/saekja/einstakling";
         //this.urlList.getCat = "/api/saekja/kott";
@@ -123,6 +125,15 @@
                     return this.urlList.shows + "/" + idArray[0] + "/tilnefningar/" + idArray[1];
                 }
             }
+
+            case "organization": {
+                if (idArray.length == 0) {
+                    return this.urlList.organizations;
+                } else {
+                    return this.urlList.organizations + "/" + idArray[0]
+                }
+                break;
+            }
         }
         throw "No resource exists with name "+model;
     }
@@ -133,152 +144,115 @@
         return dat;
     }
 
-    /*
-        find {
-            type : 'Model'
-            terms : 'field',
-            value : 'blue'
-        }
-    */
-    find(model, searchDict, callback, idArray = []) {
+    find(model, searchDict, callback, onError = {}, idArray = [], e = {}) {
         let url;
         url = this.getUrl(model, idArray);
-        let d = {
-            "search": searchDict
-        };
+        let d = e;
+        d.search = searchDict;
         d = this.prepare(d);
-        this._get(url,d, callback);
+        this._get(url,d, callback, onError);
     }
 
-    get(model, filterDict, callback, idArray = [], page = 0) {
+    get(model, filterDict, callback, onError, idArray = [], e = {}) {
         let url;
         url = this.getUrl(model, idArray);
-        let d = {
-            "filter": filterDict,
-            "page":page
-        }
+        let d = e;
+        d.filter = filterDict;
         d = this.prepare(d);
-        this._get(url, d, callback);
+        this._get(url, d, callback, onError);
     }
-    getAll(model, filterDict, callback, idArray) {
+
+    getfind(model, filterDict, searchDict, callback, onError, idArray = [], e = {}) {
         let url;
         url = this.getUrl(model, idArray);
-        let d = {
-            "filter": filterDict,
-            "offset": -1
-        }
+        let d = e;
+        d.filter = filterDict;
+        d.search = searchDict;
         d = this.prepare(d);
-        this._get(url, d, callback);
+        this._get(url, d, callback, onError);
     }
 
-    edit(model, patchDict, callback, idArray = []) {
+    getAll(model, filterDict, callback, onError, idArray, e = {}) {
+        let url;
+        url = this.getUrl(model, idArray);
+        let d = e;
+        e.filter = filterDict;
+        e.offset = -1;
+        d = this.prepare(d);
+        this._get(url, d, callback, onError);
+    }
+
+    edit(model, patchDict, callback, onError, idArray = []) {
         let url = this.getUrl(model, idArray);
         let d = this.prepare(patchDict);
-        this._ajax("PATCH", url, d, callback);
+
+        this._ajax("PATCH", url, d, callback, onError);
     }
 
-    create(model, patchDict, callback, idArray = []) {
+    create(model, patchDict, callback, onError, idArray = []) {
         let url = this.getUrl(model, idArray);
         let d = this.prepare(patchDict);
-        this._ajax("POST", url, d, callback);
+        this._ajax("POST", url, d, callback, onError);
     }
 
-    delete(model, patchDict, callback, idArray = []) {
+    delete(model, patchDict, callback, onError, idArray = []) {
         let url = this.getUrl(model, idArray);
         let d = this.prepare(patchDict);
-        this._ajax("DELETE", url, d, callback);
-    }
-    /*
-        getPerson{
-            <dict:terms>, key:value dict stating which properties must be present 
-        }
-        returns a list of all persons that fit *all* specified criteria.
-    */
-    getPerson(terms, callback) {
-        this.get("member", terms, callback);
+        this._ajax("DELETE", url, d, callback, onError);
     }
 
-    getCat(data, callback) {
+    getPerson(terms, callback, onError) {
+        this.get("member", terms, callback, onError);
+    }
+
+    getCat(data, callback, onError) {
         let dat = this.prepare(data);
-        this._get(this.urlList.cats, dat, callback);
+        this._get(this.urlList.cats, dat, callback, onError);
     }
 
-    
-
-    /*
-        will retrieve any items that have fields exactly matching the specified terms and values
-        get{
-            type: The model being sought after
-            values: value being retrieved,
-                a dictionary with the key being the term being searched,
-                the value being the string that has to be matched.
-        }
-    */
-    __get(data, callback) {
+    __get(data, callback, onError) {
         data = this.prepare(data);
-        this._get(this.urlList.get, data, callback);
-    }
-
-    submitPayment(data, callback) {
-        this._post(this.urlList.submitPayment, data, callback);
-    }
-
-    submitPerson(data, callback) {
-        this._post(this.urlList.submitPerson, data, callback);
-    }
-
-    submitMember(data, callback) {
-        this._post(this.urlList.submitMember, data, callback);
-    }
-
-    submitCattery(data, callback) {
-        this._post(this.urlList.submitCattery, data, callback);
-    }
-
-    submitNeuter(data, callback) {
-        this._post(this.urlList.submitNeuter, data, callback);
-    }
-
-    submitCatOwner(data, callback) {
-        this._post(this.urlList.submitCatOwner, data, callback);
-    }
-
-    submitShow(data, callback) {
-        this._post(this.urlList.submitShow, data, callback);
-    }
-
-    submitCat(data, callback) {
-        this._post(this.urlList.submitCat, data, callback);
+        this._get(this.urlList.get, data, callback, onError);
     }
 
     getNextRegNr(callback) {
-        this._get(this.urlList.nextRegNr, {}, callback);
+        this._get(this.urlList.getNextRegNr, {}, callback);
     }
 
-    _get(url, data, callback) {
-        this._ajax("GET", url, data, callback);
+    _get(url, data, callback, onError) {
+        console.log(onError);
+        this._ajax("GET", url, data, callback, onError);
     }
 
-    _post(url, data, callback) {
-        this._ajax("POST", url, data, callback);
+    _post(url, data, callback, onError) {
+        this._ajax("POST", url, data, callback, onError);
     }
 
-    _patch(url, data, callback) {
-        this._ajax("PATCH", url, data, callback);
+    _patch(url, data, callback, onError) {
+        this._ajax("PATCH", url, data, callback, onError);
     }
 
-    _ajax(method, url, data, callback) {
+    _ajax(method, url, data, callback, onError) {
+        console.log("AAAAAAAA");
         $.ajax({
             method: method.toUpperCase(),
             url: url,
             data: data,
         }).done(function (msg) {
             if (msg.success) {
-                callback(msg);
+                if (callback) {
+                    callback(msg);
+                }
             } else {
-                alert(msg.error);
+                if (onError) {
+                    onError(msg);
+                }
             }
-        });
+            }).fail(function (msg) {
+                if (onError) {
+                    onError(msg.responseJSON);
+                }
+        });;
     }
 
     getModule(module, callback) {

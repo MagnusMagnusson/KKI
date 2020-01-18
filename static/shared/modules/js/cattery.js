@@ -1,5 +1,6 @@
 ﻿$(document).ready(function (e) {
-
+    let owners = [];
+    let keyCodes = {}
     function addOwner(kt) {
         window.Api.getPerson({ "ssn": kt , 'member':true}, function (e) {
             if (e.results.length == 0) {
@@ -7,12 +8,13 @@
             }
             else {
                 var person = e.results[0]
-                let list = $("#cattery-list-window .list-window-element[data-value='" + person.id + "']");
-                if (list.length > 0) {
-                    $("li[data-value='" + person.pid + "']").animateHighlight("#dd0000", 5000);
+                if (owners.includes(person.id)) {
+                    $("li[data-value='" + keyCodes[person.id] + "']").animateHighlight("#dd0000", 5000);
                 }
                 else {
-                    let li = $("<li data-value = '" + person.pid + "' class='list-window-element'>" + person.name + "  -  <small>" + person.ssn + "</small></li>")
+                    owners.push(person.id);
+                    keyCodes[person.id] = Math.floor(Math.random() * Math.pow(2, 31));
+                    let li = $("<li data-value = '" + keyCodes[person.id]+ "' class='list-window-element'>" + person.name + "  -  <small>" + person.ssn + "</small></li>")
                     $("#cattery-list-window ul").append(li);
                 }
             }
@@ -36,15 +38,8 @@
         for (let x of a) {
             d[x.name] = x.value;
         }
-        let owners = []
-        $("#cattery-list-window li").each(function (e) {
-            owners.push($(this).data("value"));
-        });
         d['owners'] = owners;
-        string = JSON.stringify(d);
-        d = {};
-        d['data'] = string;
-        window.Api.submitCattery(d, function (msg) {
+        window.Api.create("catteries", d, function (msg) {
             window.ModuleManager.saveSuccess("cattery");
         });
     })

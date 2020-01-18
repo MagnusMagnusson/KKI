@@ -31,8 +31,12 @@ def test(request,sid):
 		settings = {}
 	show = Show.objects.get(id = sid)
 	showDate = show.date
-	noms = Nomination.objects.filter(entry__show = show).order_by("award__name", "entry__catalog_nr")
+	noms = Nomination.objects.filter(entry__show = show).order_by("award__category","award__ranking","award__name","entry__catalog_nr")
+	noms = [x for x in noms]
+	if "category_order" in settings:
+		noms = sorted(noms,key=lambda s: settings["category_order"].index(s.award.category))
 	buffer = io.BytesIO()
+
 	c = canvas.Canvas(buffer, pagesize = A4)    
 	width, height = A4 
 	off = width * 0.025
@@ -96,10 +100,10 @@ def finalJudgePaper(request, sid):
 		settings = {}
 	show = Show.objects.get(id = sid)
 	showDate = show.date
-	noms = Nomination.objects.filter(entry__show = show).order_by("award__category","award__name","entry__catalog_nr")
+	noms = Nomination.objects.filter(entry__show = show).order_by("award__category","award__ranking","award__name","entry__catalog_nr")
 	noms = [x for x in noms]
 	if "category_order" in settings:
-		noms = sorted(noms,key=lambda s: settings["category_order"].index(s.award.category))
+		noms = sorted(noms,key=lambda s: (settings["category_order"].index(s.award.category), -s.award.ranking))
 	buffer = io.BytesIO()
 	lastCategory = None
 	lastAward = None 
@@ -166,10 +170,10 @@ def finalJudgePaper(request, sid):
 		c.drawString(left + 5*off + 1.75*bigOff, top - off, judge)
 
 		i += 1
-		if i >= amount:
+		if i >= 60:
 			i = 0
 			j +=1
-			if j == 2:
+			if j >= 2:
 				j = 0
 				c.showPage()
 	c.showPage()  

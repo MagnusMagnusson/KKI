@@ -27,9 +27,11 @@
     $(document).on("click", "#showAward-form-newAward-save", function (e) {
         let name = $("#showAward-form-newAward-name").val();
         let optional = $("#showAward-form-newAward-core").prop("checked");
+        let category = $("#showAward-category");
         d = {
             "name": name,
-            "is_core": !optional
+            "is_core": !optional,
+            "category": category
         }
         window.Api.create("award", d, function (msg) {
             msg = msg.results;
@@ -39,7 +41,7 @@
             $("#showAward-form-newAward-name").val("");
             let optional = $("#showAward-form-newAward-core").prop("checked", false);
             $("#showAward-basic-section").click();
-        })
+        });
     });
 
     window.ModuleManager.registerModuleHandler("showAward", "activate", function () {
@@ -65,10 +67,10 @@
                     if (page < total_pages) {
                         getAwardPage(page);
                     }
-                }, [], page);
+                }, null,[], page);
             }
             getAwardPage(0);           
-		},[show_id]);
+		}, null, [show_id]);
 
     })
 
@@ -79,9 +81,9 @@
 		};
 		window.Api.edit("show",d,function(msg){
 			 window.ModuleManager.saveSuccess("showAward", msg.results, msg.results);
-		},[show_id]);
+		}, null, [show_id]);
     })
-
+    
     window.ModuleManager.activateModule("showAward");  
 
     function addAwardPage(results, offered_awards) {

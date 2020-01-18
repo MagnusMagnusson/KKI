@@ -94,3 +94,36 @@
 .draggable:hover{
     background-color:var(--lightorange);
 }
+
+.list-window.overview-left {
+    width: 25%;
+    margin-left: 0px;
+    float: left;
+    padding-left: 1em;
+    height: 45%;
+    transform: translate(0);
+}
+
+
+.list-window.overview-right {
+    width: 60%;
+    margin-left: 5%;
+    float: left;
+    height: 45%;
+    padding-left: 1em;
+    transform: translate(0);
+}
+
+.list-window.overview-left ul, .list-window.overview-right ul {
+    font-size: .8em;
+    overflow-y: scroll;
+    height: 86%;
+}
+
+.red{
+    color:darkgreen;
+}
+
+#nomination-confirm {
+   display:none;
+}

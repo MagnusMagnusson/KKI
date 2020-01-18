@@ -80,7 +80,7 @@
                 per = per.results;
                 addToJudgeList(per.judge_id, per.name, per.country);
                 swapPane();
-            }, [$(this).data(id)]);
+            }, null, [$(this).data(id)]);
         }
     });
 
@@ -126,9 +126,9 @@
                 window.Api.get("judge", {}, function (judge) {
                     judge = judge.results;
                     addToJudgeList(judge.judge_id, judge.name, judge.country);
-                }, [judge]);
+                }, null, [judge]);
             }
-        }, [show]);
+        }, null, [show]);
     })
 
     window.ModuleManager.registerModuleHandler("showJudge", "save", function () {
@@ -141,7 +141,7 @@
             judges = [];
             country = "";
             window.ModuleManager.saveSuccess("showJudge",show.results, show.results);
-        }, [show])
+        }, null, [show])
     })
 
     window.ModuleManager.activateModule("showJudge");  

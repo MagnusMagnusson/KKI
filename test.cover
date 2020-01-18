@@ -1,0 +1,24 @@
+    1: def a(n):
+ 4708:         if(n <= 0):
+ 2355:                 return 1;
+ 2353:         return b(n - 1) + c(n - 1, n -1)
+       
+    1: def b(n):
+20777:         if n <= 0:
+ 1177:                 return a(n-1)
+19600:         if n == 1:
+ 1176:                 return c(1,n - 1)
+18424:         return b(n - 1)
+    1: def c(n,m):
+244660:         x = [x for x in range(50)]
+ 4705:         if(n <= 0):
+ 1177:                 return a(n - 1) 
+ 3528:         if(m == 1):
+   48:                 return 1
+ 3480:         if(m == 0):
+ 1176:                 return c(1, n + 1)
+ 2304:         return a(n)
+       
+       
+   52: a = [a(x) for x in range(50)]
+    1: print(a[2])
