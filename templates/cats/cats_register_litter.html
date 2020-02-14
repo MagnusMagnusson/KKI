@@ -16,10 +16,15 @@
 {% endblock %}
 
 {%block main %}
+
+<div class="progressbar">
+
+</div>
+
 <h3>Nýskrá got</h3>
 
 <div>
-        <section id="lr_pairing">
+        <section class="activeSection" id="lr_pairing">
             <div id ="lr_cattery_registry_id_wrapper" class="fullPageForm">
                 <input required id="lr_cattery_registry_id" class="hidden" name="cattery"  autocomplete="off" value=""/>
                 <i>Ræktunarnafn</i><br />
@@ -88,19 +93,28 @@
                 <div id="confirm_litter_button" class="button">Staðfesta</div>
             </div>
         </section>
-        <section style="display:none" id="lr_kitten_new_data">
-            <i>Eftirfarandi litir fundust ekki. Vilt þú skapa þá núna?</i>
-            <div id="lr_colors_formlist">
+        <section style="display:none" id="lr_kitten_new_owners">
+            <i>Eftirfarandi einstaklingar fundust ekki. Vinsamlegast fyllið inn persónuupplýsingar þeirra</i>
+            <div id="lr_ssn_formlist">
 
             </div>
-
-            <i>Eftirfarandi félög fundust ekki. Vilt þú skapa þau núna?</i>
-            <div id="lr_orgs_formlist">
-
-            </div>
-            <div id="lr_new_data_button">
-                <div id="confirm_new_button" class="button">Staðfesta</div>
-            </div>
+            <div id="confirm_new_people" class="button">Staðfesta</div>
         </section>
+    <section style="display:none" id="lr_kitten_new_colors">
+        <i>Eftirfarandi litir fundust ekki. Vinsamlegast fyllið þá inn</i>
+        <div id="lr_colors_formlist">
+
+        </div>
+        <div id="confirm_new_colors" class="button">Staðfesta</div>
+    </section>
+    <section style="display:none" id="lr_kitten_new_orgs">
+        <i>Eftirfarandi félög fundust ekki. Vinsamlegast fyllið þau inn</i>
+        <div id="lr_orgs_formlist">
+
+        </div>
+        <div id="lr_new_data_button">
+            <div id="confirm_new_orgs" class="button">Staðfesta</div>
+        </div>
+    </section>
 </div>
 {%endblock%}

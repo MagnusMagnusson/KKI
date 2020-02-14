@@ -220,7 +220,6 @@
     }
 
     _get(url, data, callback, onError) {
-        console.log(onError);
         this._ajax("GET", url, data, callback, onError);
     }
 
@@ -233,7 +232,6 @@
     }
 
     _ajax(method, url, data, callback, onError) {
-        console.log("AAAAAAAA");
         $.ajax({
             method: method.toUpperCase(),
             url: url,
@@ -252,7 +250,7 @@
                 if (onError) {
                     onError(msg.responseJSON);
                 }
-        });;
+        });
     }
 
     getModule(module, callback) {

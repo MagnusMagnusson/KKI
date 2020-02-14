@@ -1,10 +1,8 @@
 ﻿function login() {
-    console.log("logging in");
     D = {
         'user': $("#uname").val(),
         'password': $("#pword").val()
     }
-    console.log(D);
     $.ajax({
         type: "POST",
         url: "/api/login",

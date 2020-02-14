@@ -1,4 +1,5 @@
 ﻿$(document).ready(function (e) {
+
     let form_data;
     form_data = {
         'cattery': null,
@@ -11,6 +12,10 @@
     let breedCache = [];
     let newOrgs = [];
     let newColors = [];
+    let newOwners = [];
+    let progressBar = progressBar_create(".progressbar", 6);
+
+    let countryForm = false;
 
     function getKitten(i) {
         let formName = "#litter_kitten_" + i;
@@ -60,6 +65,12 @@
                 console.log("string " + i + " - " + regnr);
                 return false;
             }
+
+            let kt = $(`${form_id} input[name="owner"]`).val();
+            let ssn = kt.replace("-", "");
+            if (kt.length !== 0 && !window.Util.ssn_valid(ssn)) {
+                return false;
+            }
         }
         return true;
     }
@@ -100,8 +111,14 @@
             if (regnr && regnr > 0) {
                 //cont. 
             } else {
-                console.log(regnr)
                 $(`${form_id} .w_skrnr`).show();
+            }
+            
+            let kt = $(`${form_id} input[name="owner"]`).val();
+
+            let ssn = kt.replace("-", "");
+            if (kt.length !== 0 && !window.Util.ssn_valid(ssn)) {
+                $(`${form_id} .w_ssn`).show();
             }
         }
     }
@@ -225,13 +242,29 @@
                     $(formdiv).find(`input[name='registry_digits`).val(nr);
                 })
             }
-
-            $("#lr_pairing").hide();
-            $("#lr_kitten_section").show();
+            progressBar_increment(progressBar, 1);
+            $("#lr_pairing").fadeOut({
+                complete: function () {
+                    $("#lr_kitten_section").fadeIn();
+                    $("#lr_pairing").removeClass("activeSection");
+                    $("#lr_kitten_section").addClass("activeSection");
+                }
+            });
+            
+            $("#lr_kitten_section .form_kt").each(function () {
+                new Cleave(this, {
+                    delimiter: '-',
+                    blocks: [6, 4]
+                });
+            })
         } else {
             preform_errors_show();
         }
     });
+
+    $("#confirm_new_people").on('click touchstart', function (e) {
+        
+    })
 
     window.getKitty = function (i) {
         let k = getKitten(i);
@@ -254,11 +287,8 @@
         for (let i = 1; i <= littersize; i++) {
             kitten = getKitten(i);
             let digits = kitten.registry_digits;
-            console.log(digits);
-            console.log(kitten);
             if (regDigits.indexOf(digits) >= 0) {
                 valid = false;
-                console.log(regDigits);
                 $(`#litter_kitten_${i} .w_skrn`).show();
             } else {
                 regDigits.push(digits);
@@ -284,71 +314,152 @@
     }
 
     function showNewStructures() {
+        if (newOrgs.length > 0 || newOwners.length > 0) {
+            if (!countryForm) {
+                window.Util.forms_countrySelection(function (e) {
+                    countryForm = e;
+                    showNewStructures();
+                });
+                return;
+            }
+        }
 
-        console.log(newOrgs);
-        console.log(newColors);
+        $("#lr_orgs_formlist").hide();
+        $("#lr_colors_formlist").hide();
+        $("#lr_ssn_formlist").hide();
+
+        if (newColors.length > 0) {
+            let colorForms = "";
+            for (let i = 0; i < newColors.length; i++) {
+                let ems = newColors[i].split(" ");
+                let c, b;
+                b = ems[0];
+                c = ems.splice(1).join(" ");
+                colorForms += "<div class='top-space'>";
+                colorForms += getNewColorForm(i, b, c);
+                colorForms += "</div>";
+            }
+            $("#lr_colors_formlist").empty();
+            $("#lr_colors_formlist").append($(colorForms));
+            $("#lr_colors_formlist").show();
+        }
+
+        if (newOwners.length > 0) {
+            let peopleForms = "";
+            for (let i = 0; i < newOwners.length; i++) {
+                let ssn = newOwners[i];
+                peopleForms += "<div class='top-space'>";
+                peopleForms += getNewPersonForm(i, ssn);
+                peopleForms += "</div>";
+            }
+            $("#lr_ssn_formlist").empty();
+            $("#lr_ssn_formlist").append($(peopleForms));
+            $("#lr_ssn_formlist").show();
+        }
+
+        if (newOrgs.length > 0) {
+            let orgForm = "";
+            for (let i = 0; i < newOrgs.length; i++) {
+                let acronym = newOrgs[i];
+                orgForm += "<div class='top-space'>";
+                orgForm += getNewOrginazationForm(i, acronym);
+                orgForm += "</div>";
+            }
+            $("#lr_orgs_formlist").empty();
+            $("#lr_orgs_formlist").append($(orgForm));
+            $("#lr_orgs_formlist").show();
+        }
+        $("#lr_kitten_section").fadeOut({
+            complete: function () {
+                $("#lr_kitten_new_data").fadeIn();
+            }
+        });
+
     }
 
     function validateNewStructures() {
+        console.log("ValidateNewStructures");
+        confirmationRequestId = Math.floor(Math.random() * Math.pow(2, 32));
+        getNewPeople();
+    }
+
+    function getNewPeople() {
+        console.log("hello!");
         let confirmationRequestsWaiting;
-        let confirmationRequestId = Math.floor(Math.random() * Math.pow(2, 32));
         let currentId = confirmationRequestId;
-        let colors = [];
-        let orginizations = [];
-        newColors = [];
-        newOrgs = [];
+        let owners = [];
+        newOwners = [];
 
         for (let i = 1; i <= form_data.litterCount; i++) {
             let k = getKitten(i);
-            let ems = k.ems;
-            let org = k.organization;
-            if (colors.indexOf(ems) === -1) {
-                colors.push(ems);
+            let owner = k.owner.replace("-", "");;
+            if (owners.indexOf(owner) === -1) {
+                console.log(owner);
+                if (owner.length === 10) {
+                    if (window.Util.ssn_valid(owner)) {
+                        owners.push(owner);
+                    }
+                }
             }
-            if (orginizations.indexOf(org) === -1) {
-                orginizations.push(org);
+        }
+        confirmationRequestsWaiting = owners.length;
+        if (confirmationRequestsWaiting === 0) {
+            progressBar_increment(progressBar, 1);
+            getNewColors();
+        } else {
+            for (let kt of owners) {
+                d = { "ssn": kt }
+                window.Api.get("person", d, function (e) {
+                    if (currentId === confirmationRequestId) {
+                        if (e.count === 0) {
+                            newOwners.push(kt);
+                        }
+                        confirmationRequestsWaiting--;
+                        if (confirmationRequestsWaiting === 0) {
+                            progressBar_increment(progressBar, 1);
+                            showNewPeople();
+                        }
+                    }
+                }, []);
             }
         }
-        confirmationRequestsWaiting = colors.length + orginizations.length;
-        for (let c of colors) {
-            window.Util.emsColorExists(c, function (e) {
-                if (currentId === confirmationRequestId) {
-                    confirmationRequestsWaiting--;
-                    if (confirmationRequestsWaiting === 0) {
-                        showNewStructures();
-                    }
-                }
-            }, function (e) {
-                if (currentId === confirmationRequestId) {
-                    newColors.push(c);
-                    confirmationRequestsWaiting--;
-                    if (confirmationRequestsWaiting === 0) {
-                        showNewStructures();
-                    }
-                }
-            }, null);
+    }
+    function showNewPeople() {
+        console.log("showNewPeople()");
+        if (!countryForm) {
+            window.Util.forms_countrySelection(function (e) {
+                countryForm = e;
+                showNewPeople();
+            });
+            return;
         }
-        for (let o of orginizations) {
-            window.Util.organizationAcronymExists(o, function (e) {
-                if (currentId === confirmationRequestId) {
-                    confirmationRequestsWaiting--;
-                    if (confirmationRequestsWaiting === 0) {
-                        showNewStructures();
-                    }
-                }
-            }, function (e) {
-                if (currentId === confirmationRequestId) {
-                    newOrgs.push(o);
-                    confirmationRequestsWaiting--;
-                    if (confirmationRequestsWaiting === 0) {
-                        showNewStructures();
-                    }
-                }
-            }, null);
+
+        $("#lr_ssn_formlist").hide();
+        
+        let peopleForms = "";
+        for (let i = 0; i < newOwners.length; i++) {
+            let ssn = newOwners[i];
+            peopleForms += "<div class='top-space'>";
+            peopleForms += getNewPersonForm(i, ssn);
+            peopleForms += "</div>";
         }
+        $("#lr_ssn_formlist").empty();
+        $("#lr_ssn_formlist").append($(peopleForms));
+        $("#lr_ssn_formlist").show();
+        $(".activeSection").fadeOut({
+            complete: function () {
+                $("#lr_kitten_new_owners").fadeIn();
+                $(".activeSection").removeClass("activeSection");
+                $("#lr_kitten_new_owners").addClass("activeSection");
+            }
+        });
+    }
+    function saveNewPeople() {
+
     }
 
     function validateKittenBreeds(i) {
+        console.log("validateKittenBreeds");
         let cat = getKitten(i);
         $(`#litter_kitten_${i} .w_ems`).hide();
         let breed = cat.ems.split(" ")[0];
@@ -371,6 +482,10 @@
     }
 
     function validateUniqueKitten(i) {
+        console.log("ValidateUniqueKitten " + i);
+        if (i == 0) {
+            validateKittenBreeds(form_data.litterCount);
+        }
         let cat = getKitten(i);
         $(`#litter_kitten_${i} .w_skrn`).hide();
         let digits = cat.registry_digits;
@@ -390,10 +505,12 @@
             $(`#litter_kitten_${i} .w_skrn`).show();
         }
     }
-});
 
-function getLitterKittenForm(i, country = "IS", org = "KKI", num = 0000) {
-    return `
+    window.kitty = getKitten;
+
+
+    function getLitterKittenForm(i, country = "IS", org = "KKÍ", num = 0000) {
+        return `
 <form id='litter_kitten_${i}'>
     <div style="clear:both;">            
 
@@ -401,7 +518,7 @@ function getLitterKittenForm(i, country = "IS", org = "KKI", num = 0000) {
         <div class="fullPageForm float-left">
 <br><b>Kettlingur #${i}</b><br>
             <i>Nafn kettlings</i><br/>
-            <i class="w_nafn warning">Köttur þarf að hafa nafn</i><br />
+            <i class="w_nafn warning">Köttur þarf að hafa nafn</i>                                                                                                              
             <input name='name' class="textinput" placeholder="Nafn" />
                         <br />
 
@@ -418,9 +535,6 @@ function getLitterKittenForm(i, country = "IS", org = "KKI", num = 0000) {
                     <option>
                         LO
                             </option>
-                    <option>
-                        HUS
-                            </option>
                 </select>
                 <input required name='registry_digits' class="textinput normal" type="number" value="${num}" />
             </div>
@@ -428,19 +542,23 @@ function getLitterKittenForm(i, country = "IS", org = "KKI", num = 0000) {
             <i class="w_ems warning">Ógilt EMS gildi</i>
 
             <input required name='ems' class="textinput " placeholder="EMS" />
+            <div class="radio-input">
+                <i class="w_gender warning">Köttur þarf að hafa kyn</i>
+                <i>Fress</i><input type="radio" name="gender" value="male" />
+                <i>Læða</i><input type="radio" name="gender" value="female" />
+            </div><br />
         </div>
         <div class="fullPageForm float-left">
 
             <br /><br>
-            <div class="radio-input">
-                <i class="w_gender warning">Köttur þarf að hafa kyn</i><br/>
-                <i>Fress</i><input type="radio" name="gender" value="male" />
-                <i>Læða</i><input type="radio" name="gender" value="female" />
-            </div><br />
             <i>Örmerki</i>           </br> 
             <i class="w_micro warning">Köttur þarf að vera örmerktur</i>
 
             <input required name='microchip' class="textinput" placeholder="0000000000000" /><br />
+
+            <i>Kt. Eiganda (ef ekki ræktandi)</i>           </br> 
+            <i class="w_ssn warning">Kennitala ekki lögleg</i><br>
+            <input  name='owner' class="textinput form_kt" placeholder="" /><br />
             <i>Athugasemd</i>
             <input name='comment' type="text" class="textinput " placeholder="" />
         </div>
@@ -449,12 +567,76 @@ function getLitterKittenForm(i, country = "IS", org = "KKI", num = 0000) {
 
 </form>    
     `;
-}
+    }
 
-function getNewColorForm(Breed = "", color = "") {
-    let cString = color.replace(" ", "_");
-    return 
-    `
-        <form id='color_form_
+    function getNewColorForm(i,Breed = "", color = "") {
+        return `
+        <form id='color_form_${i}'>
+            <div class='fullPageForm float-left'>
+                <i>Heiti litar</i><br>
+                <input name='color' class='textinput'><br>
+                <i>Lýsing litar</i><br>
+                <input name='color_description' class='textinput'><br>
+            </div>
+            <div class='fullPageForm float-left'>
+                <i>EMS kóði</i><br>
+                <input name='color_short' class='normal textinput' value="${Breed} ${color}"><br>
+                <i>Hópur (Group)</i><br>
+                <input type=number name='color_description' class='normal textinput'>
+            </div>
+        </form>
     `;
-}
+    }
+
+    function getNewOrginazationForm(i,acronym) {
+        return `
+        <form id='org_form_${i}'>
+            <div class='fullPageForm float-left'>
+                <i>Heiti félags</i>
+                <input class="textinput normal" >
+                <i>Skammstöfun félags</i>
+                <input class="textinput normal" >
+                <i>Upprunaland félags</i>
+                ${countryForm}
+            </div>
+        </form>
+    `;
+    }
+
+    function getNewPersonForm(i,kt) {
+        return `
+            <form id='${i}'>
+            
+            <div class='fullPageForm float-left'>
+            <i>Nafn</i><br>
+            <input class='textinput'><br>
+            <i>Heimilisfang</i><br>
+            <input class='textinput'><br>
+            <i>Land</i><br>
+            ${countryForm}
+
+            <div class='fullPageForm float-left'>
+            <i>Bæjarfélag</i><br/>
+            <input class='textinput'>
+
+            <i>Póstnúmer</i></br>
+            <input class='normal textinput'>
+</div>
+            </div>
+
+            <div class='fullPageForm float-left'>
+            <i>Kennitala</i><br>
+            <input class='textinput normal' value='${kt}'><br>
+            <i>Sími</i><br>
+            <input class='normal textinput'><br>
+            <i>Netfang</i><br>
+            <input class='normal textinput'><br>
+
+
+            </div>
+            </form>
+        `;
+    }
+
+    window.newPerson = getNewPersonForm;
+});

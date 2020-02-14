@@ -996,6 +996,7 @@ def next_regid(request):
 
 
 
+
 def validate_login(request):
 	if('token' in request.session):
 		meta = request.META['HTTP_USER_AGENT']

@@ -1,5 +1,6 @@
 ﻿class Util {
 
+    ///Existence tests
     breedExists(breed, existsCallback, doesNotExistCallback, errorCallback) {
         window.Api.get("ems", {}, function (e) {
             if (existsCallback) {
@@ -7,7 +8,6 @@
             }
         
         }, function (e) {
-            console.log(e);
                 if (e.error == "Resource does not exist") {
                     if (doesNotExistCallback) {
                         doesNotExistCallback();
@@ -23,14 +23,12 @@
         let b, c;
         b = emsCode.split(" ")[0];
         c = emsCode.split(" ").splice(1).join("_");
-        console.log(c);
         window.Api.get("ems", {}, function (e) {
             if (existsCallback) {
                 existsCallback();
             }
 
         }, function (e) {
-            console.log(e);
             if (e.error == "Resource does not exist") {
                 if (doesNotExistCallback) {
                     doesNotExistCallback();
@@ -57,7 +55,6 @@
             }
 
         }, function (e) {
-            console.log(e);
             if (e.error == "Resource does not exist") {
                 if (doesNotExistCallback) {
                     doesNotExistCallback();
@@ -69,4 +66,77 @@
             }
         }, [], { 'offset': 1 });
     }
-}
+
+    //Misc. validation tests
+    ssn_valid(kt) {
+        if (kt.length !== 10) {
+            return false;
+        }
+        let d, m, a, cent;
+        let rad, q, check, constant;
+        d = kt.substr(0, 2);
+        m = kt.substr(2, 2);
+        a = kt.substr(4, 2);
+        rad = kt.substr(6, 2);
+        q = kt.substr(8, 1);
+        cent = kt.substr(9, 1);
+        check = kt.substr(0, 8);
+        constant = "32765432";
+
+        cent = (cent == 8 || cent == 9) ? "1"+cent : "2"+cent;
+        let date = cent + a + "-" + m + "-" + d;
+        date = moment(date, 'YYYY-MM-DD');
+        if (!date.isValid()) {
+            return false;
+        }
+        if (rad < 20) {
+            return false;
+        }
+        let sum = 0;
+        for (let i = 0; i < constant.length; i++) {
+            sum += check[i] * constant[i];
+        }
+        let r = 11 - sum % 11;
+        if (r !== parseInt(q)) {
+            return false;
+        }
+        return true;
+    }
+
+    ///Form finders
+    forms_countrySelection(callback) {
+        let formMaker = function (msg) {
+            let form = "<select class='textinput' name='country'>";
+            for (let nation of msg.data) {
+                let c = nation.code;
+                let n = nation.name;
+                form += `<option value="${c}">${n}</option>`;
+            }
+            form += "</select>";
+            callback(form);
+        }
+        this.formLoader("countryCodes", formMaker);
+    }
+    formLoader(form, callback) {
+        let url;
+        switch (form) {
+            case "countryCodes": {
+                url = "/static/shared/AllCountries.json";
+                break;
+            }
+            default: {
+                throw "NO FORM WITH NAME " + form;
+            }
+        }
+        $.ajax({
+            method: "GET",
+            url: url
+        }).done(function (msg) {
+            if (callback) {
+                callback(msg);
+            }
+        });
+    }
+} 
+
+

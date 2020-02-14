@@ -314,7 +314,6 @@ a:hover {
 
 .radio-input {
     margin-bottom: -1em;
-    margin-top: 1.5em;
 }
 
 .tiny.textinput{
@@ -341,4 +340,41 @@ a:hover {
 a.selected {
     font-weight: bold;
     color: var(--orange);
+}
+
+.progressbar {
+    border-radius: 13px;
+    width:66%;
+    margin-left:16.5%;
+    position:relative;
+}
+
+.progressbar > .fulldiv {
+    background-color: lightgray;
+    height: 20px;
+    border-radius: 10px;
+    width: 100%;
+    position: absolute;
+    z-index:50;
+}
+.progressbar > .graydiv {
+    background-color: gray;
+    width: 0%;
+    height: 20px;
+    border-radius: 10px;
+    z-index: 100;
+    position: absolute;
+}
+
+.progressbar > .orangediv {
+    background-color: orange;
+    width: 0%;
+    height: 20px;
+    border-radius: 10px;
+    z-index:300;
+    position:absolute;
+}
+
+.progress-color{
+    transition: width 1s;
 }

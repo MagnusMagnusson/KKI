@@ -41,3 +41,33 @@ $(document).ready(function () {
     };
 });
 
+
+Math.clamp = function (value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+
+function progressBar_create(element, steps){
+    let progressColors = `<b>Skref <i class='progress-steps'>1/${steps}</i></b>
+    <div class="fulldiv"></div>
+    <div class="progress-color graydiv"></div>
+    <div class="progress-color orangediv"></div>`;
+    $(element).append(progressColors);
+    let el = { element, steps, "current": 0 };
+    progressBar_increment(el, 0);
+    return el;
+}
+
+
+function progressBar_increment(barDict, incrementSize) {
+    let totalSize = barDict.steps;
+    let newSize = Math.clamp(barDict.current + incrementSize, 0, totalSize);
+    barDict.current = newSize;
+    let completeStep = (100 / totalSize) * newSize;
+    let nextStep = Math.clamp(completeStep + (100 / totalSize), 0, 100);
+
+    let stepText = (newSize === totalSize) ? (newSize) + "/" + totalSize : (1 + newSize) + "/" + totalSize;
+
+    $(barDict.element).find(".graydiv").css("width", (nextStep) + "%");
+    $(barDict.element).find(".orangediv").css("width", (completeStep) + "%");
+    $(barDict.element).find(".progress-steps").text(stepText);
+}
