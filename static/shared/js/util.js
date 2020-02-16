@@ -110,7 +110,8 @@
             for (let nation of msg.data) {
                 let c = nation.code;
                 let n = nation.name;
-                form += `<option value="${c}">${n}</option>`;
+                let s = (c === "ISL") ? "selected" : "";
+                form += `<option value="${c}" ${s}>${n}</option>`;
             }
             form += "</select>";
             callback(form);

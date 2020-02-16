@@ -54,6 +54,8 @@ class Person(models.Model):
 			"postcode":"postcode",
 			"city":"city",
 			"country":"country",
+			"phone":"phoneNumber",
+			"email":"email",
 			"is_judge":"judge__isnull",
 		}
 		translatedFilter = {}

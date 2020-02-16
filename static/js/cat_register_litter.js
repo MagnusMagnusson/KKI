@@ -1,5 +1,5 @@
 ﻿$(document).ready(function (e) {
-
+    let DEBUG = true;
     let form_data;
     form_data = {
         'cattery': null,
@@ -29,15 +29,35 @@
         formObject.push({ 'name': 'dam', 'value': dam });
         let birthdate = form_data.birthdate;
         formObject.push({ 'name': 'birthdate', 'value': birthdate });
-
+        let owner = {};
+        owner.cat = i;
         let kitten = {};
         for (let field of formObject) {
+            if (field.name === "owner") {
+                owner.ssn = field.value;
+                owner.id = owner.ssn;
+            }
+            if (field.name === "foreign_owner") {
+                owner.isForeign = field.value === "on";
+            }
             kitten[field.name] = field.value;
+        }
+        kitten.owner = owner;
+        kitten.owner.isForeign = kitten.owner.isForeign || false;
+        if (kitten.owner.isForeign) {
+            kitten.owner.id = i;
+        } else {
+            if (kitten.owner.ssn.length !== 11) {
+                kitten.owner.id = "CATTERY";
+            }
         }
         return kitten;
     }
 
     function validate_postform() {
+        if (DEBUG) {
+            return true;
+        }
         let lc = form_data.litterCount;
         for (let i = 1; i <= lc; i++) {
             let form_id = `#litter_kitten_${i}`;
@@ -76,6 +96,9 @@
     }
 
     function validate_preform() {
+        if (DEBUG) {
+            return true;
+        }
         for (let key in form_data) {
             if (form_data[key] === null) {
                 return false;
@@ -113,7 +136,7 @@
             } else {
                 $(`${form_id} .w_skrnr`).show();
             }
-            
+
             let kt = $(`${form_id} input[name="owner"]`).val();
 
             let ssn = kt.replace("-", "");
@@ -165,7 +188,7 @@
         }
         form_data.cattery = null;
         let d = {
-            'name':text
+            'name': text
         };
 
         window.Api.find("cattery", d, function (e) {
@@ -173,7 +196,7 @@
                 return;
             }
             $("#lr_cattery_registry_results .result-box-list").empty();
-            for (res of e.results.slice(0,10)) {
+            for (res of e.results.slice(0, 10)) {
                 let cattery = res;
                 li = $(`<li>${cattery.name}</li>`);
                 $("#lr_cattery_registry_results .result-box-list").append(li);
@@ -195,7 +218,7 @@
         }
 
         let fill = $(this).data("fill");
-        
+
         let s = {
             'registry_number': text
         };
@@ -250,7 +273,7 @@
                     $("#lr_kitten_section").addClass("activeSection");
                 }
             });
-            
+
             $("#lr_kitten_section .form_kt").each(function () {
                 new Cleave(this, {
                     delimiter: '-',
@@ -263,12 +286,12 @@
     });
 
     $("#confirm_new_people").on('click touchstart', function (e) {
-        
+        saveNewPeople();
     })
 
     window.getKitty = function (i) {
         let k = getKitten(i);
-        
+
         string = JSON.stringify(k);
         console.log(string);
     }
@@ -282,7 +305,7 @@
         if (!validate_postform()) {
             postform_errors_show();
             valid = false;
-        } 
+        }
         //Check if the digits of any of the kittens are the same.
         for (let i = 1; i <= littersize; i++) {
             kitten = getKitten(i);
@@ -392,27 +415,39 @@
 
         for (let i = 1; i <= form_data.litterCount; i++) {
             let k = getKitten(i);
-            let owner = k.owner.replace("-", "");;
-            if (owners.indexOf(owner) === -1) {
-                console.log(owner);
-                if (owner.length === 10) {
-                    if (window.Util.ssn_valid(owner)) {
+            console.log(k.owner);
+            let owner = k.owner;
+            owner.ssn = owner.ssn.replace("-", "");
+            if (owners.map(x => x.id).indexOf(owner.id) === -1) {
+                console.log(owner.ssn);
+                if (owner.ssn.length === 10 || owner.isForeign) {
+                    console.log("valid");
+                    if (window.Util.ssn_valid(owner.ssn) || owner.isForeign) {
                         owners.push(owner);
                     }
                 }
             }
         }
+        console.log(owners);
         confirmationRequestsWaiting = owners.length;
         if (confirmationRequestsWaiting === 0) {
             progressBar_increment(progressBar, 1);
             getNewColors();
         } else {
-            for (let kt of owners) {
-                d = { "ssn": kt }
+            for (let owner of owners) {
+                if (owner.isForeign) {
+                    confirmationRequestsWaiting--;
+                    newOwners.push(owner);
+                    if (confirmationRequestsWaiting === 0) {
+                        progressBar_increment(progressBar, 1);
+                        showNewPeople();
+                    }
+                }
+                d = { "ssn": owner.ssn }
                 window.Api.get("person", d, function (e) {
                     if (currentId === confirmationRequestId) {
                         if (e.count === 0) {
-                            newOwners.push(kt);
+                            newOwners.push(owner);
                         }
                         confirmationRequestsWaiting--;
                         if (confirmationRequestsWaiting === 0) {
@@ -424,8 +459,10 @@
             }
         }
     }
+
     function showNewPeople() {
         console.log("showNewPeople()");
+
         if (!countryForm) {
             window.Util.forms_countrySelection(function (e) {
                 countryForm = e;
@@ -433,15 +470,19 @@
             });
             return;
         }
-
+        console.log(newOwners);
         $("#lr_ssn_formlist").hide();
-        
+
         let peopleForms = "";
         for (let i = 0; i < newOwners.length; i++) {
-            let ssn = newOwners[i];
+            let o = newOwners[i];
+            let ssn = o.isForeign ? "Á ekki við" : o.ssn.substr(0, 6) + "-" + o.ssn.substr(6, 4);;
+            let cat = getKitten(o.cat).name;
             peopleForms += "<div class='top-space'>";
+            peopleForms += `<b>Skráðu eiganda '${cat}'</b>`;
             peopleForms += getNewPersonForm(i, ssn);
             peopleForms += "</div>";
+            newOwners[i].form = "#person-form-" + i;
         }
         $("#lr_ssn_formlist").empty();
         $("#lr_ssn_formlist").append($(peopleForms));
@@ -454,8 +495,28 @@
             }
         });
     }
-    function saveNewPeople() {
 
+    function saveNewPeople() {
+        let newPeople = [];
+        let jsonMap = [];
+        for (let o of newOwners) {
+            let person = $(o.form).serializeArray();
+            let personJson = JSON.stringify(person);
+            if (jsonMap.indexOf(personJson) === -1) {
+                jsonMap.push(personJson);
+                map[personJson] = o;
+                newPeople.push(person);
+                o.requestDict = person;
+            }
+        }
+        for (let pp of newPeople) {
+            window.Api.create("person", pp, function (msg) {
+                let Js = JSON.stringify(pp);
+                $(map[pp].form)
+            }, function (msg) {
+
+            }, []);
+        }
     }
 
     function validateKittenBreeds(i) {
@@ -559,6 +620,8 @@
             <i>Kt. Eiganda (ef ekki ræktandi)</i>           </br> 
             <i class="w_ssn warning">Kennitala ekki lögleg</i><br>
             <input  name='owner' class="textinput form_kt" placeholder="" /><br />
+            <input type='checkbox' name='foreign_owner' class='form_foreign_kt'/> 
+            <i>Eigandi er án kennitölu</i><br>
             <i>Athugasemd</i>
             <input name='comment' type="text" class="textinput " placeholder="" />
         </div>
@@ -605,32 +668,32 @@
 
     function getNewPersonForm(i,kt) {
         return `
-            <form id='${i}'>
+            <form class='person-form' id='person-form-${i}'>
             
             <div class='fullPageForm float-left'>
             <i>Nafn</i><br>
-            <input class='textinput'><br>
+            <input name='name' class='textinput'><br>
             <i>Heimilisfang</i><br>
-            <input class='textinput'><br>
+            <input name'address' class='textinput'><br>
             <i>Land</i><br>
             ${countryForm}
 
             <div class='fullPageForm float-left'>
             <i>Bæjarfélag</i><br/>
-            <input class='textinput'>
+            <input name='city' class='textinput'>
 
             <i>Póstnúmer</i></br>
-            <input class='normal textinput'>
+            <input name='postcode' class='normal textinput'>
 </div>
             </div>
 
             <div class='fullPageForm float-left'>
             <i>Kennitala</i><br>
-            <input class='textinput normal' value='${kt}'><br>
+            <input name='ssn' readonly class='textinput readonly normal' value='${kt}'><br>
             <i>Sími</i><br>
-            <input class='normal textinput'><br>
+            <input name='phone' class='normal textinput'><br>
             <i>Netfang</i><br>
-            <input class='normal textinput'><br>
+            <input name='email' class='normal textinput'><br>
 
 
             </div>
