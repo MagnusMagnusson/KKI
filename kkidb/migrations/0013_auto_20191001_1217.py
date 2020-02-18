@@ -30,9 +30,5 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='nomination',
             unique_together={('entry', 'award')},
-        ),
-        migrations.RemoveField(
-            model_name='nomination',
-            name='judgement',
-        ),
+        )
     ]

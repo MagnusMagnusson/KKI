@@ -4,15 +4,16 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.template import loader
 from django.http import HttpResponse
-from kkidb.auth.authMiddleware import ValidateLogin
+from kkidb.auth.authMiddleware import ValidateLogin, PermissionRequired
 from kkidb.models import *
 from django.utils.decorators import decorator_from_middleware_with_args
 # Create your views here.
 
 isLoggedIn = decorator_from_middleware_with_args(ValidateLogin)
+requirePermission = decorator_from_middleware_with_args(PermissionRequired)
 
 
-@isLoggedIn()
+@requirePermission(["Prófsteinn"])
 def index(request):
 	template = loader.get_template('index.html')
 	context = {}
