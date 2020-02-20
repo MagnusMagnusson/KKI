@@ -1695,7 +1695,7 @@ class Account(models.Model):
 	password = models.CharField(max_length = 256, default = "-")
 	active = models.BooleanField(default = True)
 	def hasPermission(Permissiontring):
-		if len(self.MemberPermission_set.all().filter(permission__name = Permissiontring)) > 0:
+		if len(self.MemberPermission_set.all().filter(permission__name = PermissionString)) > 0:
 			return True 
 		else:
 			groups = self.groupmember_set.all()
@@ -1706,7 +1706,7 @@ class Account(models.Model):
 
 
 class Permission(models.Model):        
-	id = models.IntegerField( primary_key = True)
+	id = models.AutoField( primary_key = True)
 	name = models.CharField(max_length=20, unique = True)
 
 class MemberPermission(models.Model):
@@ -1720,16 +1720,17 @@ class GroupPermission(models.Model):
 	permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
 class UserGroup(models.Model):       
-	id = models.IntegerField(primary_key = True)
+	id = models.AutoField(primary_key = True)
 	name = models.CharField(max_length=20)
-
+	def hasPermission(self, PermissionString):
+		return len(self.grouppermission_set.all().filter(permission__name = PermissionString)) > 0
 
 class GroupMember(models.Model):
 	member = models.ForeignKey(Account, on_delete=models.CASCADE)
 	group = models.ForeignKey(UserGroup, on_delete=models.CASCADE)
 	date_joined = models.DateTimeField(default=datetime.now)
-	def hasPermission(PermissionString):
-		return len(self.group.groupPermission_set.all().filter(permission__name = Permissiontring)) > 0
+	def hasPermission(self, PermissionString):
+		return self.group.hasPermission(PermissionString)
 
 class Login_log(models.Model):
        id = models.AutoField(primary_key = True)
