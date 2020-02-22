@@ -636,6 +636,7 @@ def login(request):
 		request.session['token'] = access[1]
 		pid = Person.objects.get(email=uName)
 		request.session['user'] = pid.name
+		request.session['account'] = pid.account.id
 		request.session.set_expiry(0)
 		D = {
 			'success':True

@@ -37,6 +37,7 @@ class Person(models.Model):
 	phoneNumber = models.CharField(max_length = 25, null = True)
 	comment = models.CharField(max_length = 2048, null = True)
 	email = models.CharField(max_length=1024,null = True)
+	account = models.OneToOneField("Account", default=None, null=True, unique=True, on_delete=models.SET_NULL)
 
 	def fullAddress(self):
 		str = self.address
@@ -144,9 +145,6 @@ class Person(models.Model):
 class Member(models.Model):
 	id = models.CharField(primary_key=True, max_length=6)
 	person = models.OneToOneField('Person', on_delete=models.CASCADE)
-	account = models.OneToOneField("Account", default=None, null=True, unique=True, on_delete=models.SET_NULL)
-	salt = models.CharField(max_length=256, default = "-")
-	password = models.CharField(max_length = 256, default = "-")
 
 	def allPayments(self):
 		payment_set = self.memberpayment_set;
@@ -1694,13 +1692,13 @@ class Account(models.Model):
 	salt = models.CharField(max_length=256, default = "-")
 	password = models.CharField(max_length = 256, default = "-")
 	active = models.BooleanField(default = True)
-	def hasPermission(Permissiontring):
-		if len(self.MemberPermission_set.all().filter(permission__name = PermissionString)) > 0:
+	def hasPermission(self, PermissionString):
+		if len(self.memberpermission_set.all().filter(permission__name = PermissionString)) > 0:
 			return True 
 		else:
 			groups = self.groupmember_set.all()
 			for g in groups:
-				if g.hasPermission(PermissionsString):
+				if g.hasPermission(PermissionString):
 					return True 
 		return False
 
@@ -1726,7 +1724,7 @@ class UserGroup(models.Model):
 		return len(self.grouppermission_set.all().filter(permission__name = PermissionString)) > 0
 
 class GroupMember(models.Model):
-	member = models.ForeignKey(Account, on_delete=models.CASCADE)
+	account = models.ForeignKey(Account, on_delete=models.CASCADE)
 	group = models.ForeignKey(UserGroup, on_delete=models.CASCADE)
 	date_joined = models.DateTimeField(default=datetime.now)
 	def hasPermission(self, PermissionString):
