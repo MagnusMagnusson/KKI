@@ -23,6 +23,8 @@ def setCache(model,id,var,value):
 def Randstring(n = 6):
 	return  uuid.uuid4().hex[0:n]
 
+def rand():
+	return random.randint(1,100)
 #########People 
 class Person(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -35,6 +37,7 @@ class Person(models.Model):
 	phoneNumber = models.CharField(max_length = 25, null = True)
 	comment = models.CharField(max_length = 2048, null = True)
 	email = models.CharField(max_length=1024,null = True)
+	account = models.OneToOneField("Account", default=None, null=True, unique=True, on_delete=models.SET_NULL)
 
 	def fullAddress(self):
 		str = self.address
@@ -138,11 +141,10 @@ class Person(models.Model):
 				if hasattr(self,"judge"):
 					self.member.delete()
 		self.save()
+
 class Member(models.Model):
 	id = models.CharField(primary_key=True, max_length=6)
 	person = models.OneToOneField('Person', on_delete=models.CASCADE)
-	salt = models.CharField(max_length=256, default = "NOT SET")
-	password = models.CharField(max_length = 256, default = "NOT SET")
 
 	def allPayments(self):
 		payment_set = self.memberpayment_set;
@@ -178,6 +180,7 @@ class Member(models.Model):
 			i = str(i).zfill(6)
 			self.id = i
 		super(Member, self).save()
+
 class Payment(models.Model):
 	date = models.DateField()
 	giftYear = models.BooleanField(default=False)
@@ -1684,17 +1687,52 @@ class showAward(models.Model):
 	show = models.ForeignKey('Show', on_delete = models.CASCADE)
 	award = models.ForeignKey('Award', on_delete = models.CASCADE)
   #Auth
-class Permissions(models.Model):
-       id = models.BigIntegerField(primary_key = True)
-       name = models.CharField(max_length=20, unique = True)
-class MemberPermissions(models.Model):
-       user = models.ForeignKey(Member,on_delete=models.CASCADE)
-       permission = models.ForeignKey(Permissions,on_delete=models.CASCADE)
+class Account(models.Model):
+	email = models.CharField(unique=True, max_length = 124)
+	salt = models.CharField(max_length=256, default = "-")
+	password = models.CharField(max_length = 256, default = "-")
+	active = models.BooleanField(default = True)
+	def hasPermission(self, PermissionString):
+		if len(self.memberpermission_set.all().filter(permission__name = PermissionString)) > 0:
+			return True 
+		else:
+			groups = self.groupmember_set.all()
+			for g in groups:
+				if g.hasPermission(PermissionString):
+					return True 
+		return False
+
+
+class Permission(models.Model):        
+	id = models.AutoField( primary_key = True)
+	name = models.CharField(max_length=20, unique = True)
+
+class MemberPermission(models.Model):
+       user = models.ForeignKey(Account,on_delete=models.CASCADE)
+       permission = models.ForeignKey(Permission,on_delete=models.CASCADE)
        class Meta:
                unique_together = (('user', 'permission'))
+
+class GroupPermission(models.Model):
+	group = models.ForeignKey("UserGroup", on_delete=models.CASCADE)
+	permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+
+class UserGroup(models.Model):       
+	id = models.AutoField(primary_key = True)
+	name = models.CharField(max_length=20)
+	def hasPermission(self, PermissionString):
+		return len(self.grouppermission_set.all().filter(permission__name = PermissionString)) > 0
+
+class GroupMember(models.Model):
+	account = models.ForeignKey(Account, on_delete=models.CASCADE)
+	group = models.ForeignKey(UserGroup, on_delete=models.CASCADE)
+	date_joined = models.DateTimeField(default=datetime.now)
+	def hasPermission(self, PermissionString):
+		return self.group.hasPermission(PermissionString)
+
 class Login_log(models.Model):
        id = models.AutoField(primary_key = True)
-       user = models.ForeignKey(Member,on_delete=models.CASCADE)
+       user = models.ForeignKey(Account,on_delete=models.CASCADE)
        time = models.DateTimeField()
        lastRefresh = models.DateTimeField(null = True)
        expires = models.BooleanField(default = True)
