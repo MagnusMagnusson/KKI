@@ -14,3 +14,10 @@
 .wcenter{
     margin-top:1.5em;
 }
+
+.warning {
+    display:none;
+    position: absolute;
+    margin-left: 50%;
+    transform: translateX(-50%);
+}

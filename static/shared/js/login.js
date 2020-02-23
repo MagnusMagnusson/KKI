@@ -3,6 +3,7 @@
         'user': $("#uname").val(),
         'password': $("#pword").val()
     }
+    $(".warning").hide();
     $.ajax({
         type: "POST",
         url: "/api/login",
@@ -13,7 +14,7 @@
                 location.reload();
             }
             else {
-                alert(d.error);
+                $(".warning").show();
             }
 
         }
