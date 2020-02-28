@@ -108,6 +108,17 @@ a:hover {
     font-weight: 400;
 }
 
+#navbar li img {
+    height: 60%;
+    transform: translateY(-20%);
+    transition: filter 0.25s;
+}
+
+#navbar li img:hover {
+    cursor: pointer;
+    filter: invert(.6) sepia(1) hue-rotate(338deg) brightness(0.9) saturate(3);
+}
+
 #navbar ul{
     list-style:none;
     height:100%;
@@ -119,6 +130,40 @@ a:hover {
     float:right;
 }
 
+#navbar-settings-div {
+    display: none;
+    min-height: 2em;
+    min-width: 8em;
+    background-color: white;
+    box-shadow: 3px 2px 8px -1px rgba(0,0,0,0.35);
+    border-radius: .2em;
+    right: 0.7em;
+    position: absolute;
+    top: 7.35em;
+    padding-bottom:0.5em;
+}
+
+#navbar-settings-div ul{
+    padding-left:0px;
+}
+
+    #navbar-settings-div ul li {
+        padding: 0px;
+        margin: 0px;
+        width: 100%;
+        text-align: center;
+    }
+
+#navbar-settings-div ul li:hover {
+    color:var(--orange);
+}
+
+#navbar-settings-div ul li a {
+    font-size: .8em;
+    width: 100%;
+    display: block;
+}
+    
 .wcenter {
     margin-left: 50%;
     transform: translateX(-50%);

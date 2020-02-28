@@ -6,7 +6,6 @@ from django.template import loader
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.http import QueryDict
-from kkidb.auth import auth
 from django.core.exceptions import ObjectDoesNotExist
 from kkidb.models import *
 from django.contrib.postgres.search import TrigramDistance
@@ -614,22 +613,17 @@ def login(request):
 
 	member = validate_login(request)	
 	if(member):		
-		D = {
-			'success':False,
-			'error': "Þú ert núþegar innskráður"
-		}
-		return JsonResponse(D)
+		return invalid("User already logged in", False, 401)
 	pWord = str(request.POST['password']);
 	uName = str(request.POST['user']);
 	meta = request.META['HTTP_USER_AGENT']
-	access = auth.log_in(uName,pWord,meta);
+	try:
+		acc = Account.objects.get(email = uName)
+		access = acc.login(pWord, True, meta)
+	except Account.DoesNotExist as ex:
+		return invalid("Invalid Credentials", False, 401)
 	if not access[0]:
-		D = {
-			'success':False,
-			'error': "Rangt notendanafn/lykilorð"
-			
-		}		
-		return JsonResponse(D)
+		return invalid("Invalid Credentials")
 	else:
 		request.session.cycle_key()
 		request.session['logged_in'] = True
@@ -642,6 +636,32 @@ def login(request):
 			'success':True
 		}
 		return JsonResponse(D)
+
+def logout(request):
+	if not request.is_ajax():
+		D = {
+			'success':False,
+			'error': "óvænt villa kom upp við beiðni þinni"
+		}
+		return JsonResponse(D)
+
+	member = validate_login(request)	
+	if(member):		
+		cookie = request.session['token']
+		meta = request.META['HTTP_USER_AGENT']
+		member.logout(cookie)
+		request.session.cycle_key()
+		request.session['logged_in'] = False
+		request.session['token'] = None
+		request.session['user'] = None
+		request.session['account'] = None
+		request.session.set_expiry(1)
+		D = {
+			'success':True
+		}
+		return JsonResponse(D)
+	else:
+		return invalid("User not logged in",False,401)
 
 def find(request):
 	if not request.is_ajax():
@@ -999,10 +1019,15 @@ def next_regid(request):
 
 
 def validate_login(request):
-	if('token' in request.session):
-		meta = request.META['HTTP_USER_AGENT']
-		member = auth.validate_login(request.session['token'],meta)
-		return member
+	if('account' in request.session and 'token' in request.session):
+		try:
+			acc = Account.objects.get(id = request.session['account'])
+			if acc.login_valid(request.session['token']):
+				return acc
+			else:
+				return None
+		except Account.ObjectDoesNotExist as ex:
+			return None
 	else:
 		return None
 

@@ -54,7 +54,22 @@
                             Sýningar
                         </a>
                     </li>
+                    <li style="width:10px">
+                        <img id="navbar_setting_button"src="{%static 'images/gear.png'%}"/>
+                      
+                    </li>
                 </ul>
+                <div id="navbar-settings-div">
+                    {% block navbar_setting %}
+                    <ul>
+                        <li>
+                            <a id="navbar_settings_button_logout">
+                                Útskrá
+                            </a>
+                        </li>
+                    </ul>
+                    {%endblock%}
+                </div>
                 {%endblock%}
             </div>
         </div>

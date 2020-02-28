@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import hashlib
+import random
 from django.db import models
+from django.utils import timezone
 import random
 import uuid
+import string
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from datetime import date,datetime
+from datetime import date,datetime, timedelta
 
 cache = {}
 
@@ -25,6 +29,7 @@ def Randstring(n = 6):
 
 def rand():
 	return random.randint(1,100)
+
 #########People 
 class Person(models.Model):
 	id = models.AutoField(primary_key = True)
@@ -1687,6 +1692,9 @@ class showAward(models.Model):
 	show = models.ForeignKey('Show', on_delete = models.CASCADE)
 	award = models.ForeignKey('Award', on_delete = models.CASCADE)
   #Auth
+DEFAULT_ITER = 1
+DEBUG = False
+
 class Account(models.Model):
 	email = models.CharField(unique=True, max_length = 124)
 	salt = models.CharField(max_length=256, default = "-")
@@ -1702,6 +1710,121 @@ class Account(models.Model):
 					return True 
 		return False
 
+	def login(self, password, expires, meta):
+		if not self.active:
+			return (False, None)
+		access = Account.validate_password(password, (self.password, self.salt))
+		if(access):
+			login = Login_log()
+			login.user = self 
+			login.loginTime = timezone.now()
+			login.lastRefresh = timezone.now()
+			login.expires = expires
+			login.ip = meta
+			while True:		
+				cookie = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32))
+				try:
+					login = Login_log.objects.get(cookie = cookie)
+				except Login_log.DoesNotExist as ex:
+					break
+			login.cookie = cookie
+			login.save()
+			return (True, cookie)
+		else:
+			return (False,None)
+
+	def logout(self, cookie = None):
+		if not cookie:
+			logs = self.login_log_set.all()
+			for l in logs:
+				l.logout()
+			return True
+		else:
+			loginlogs = self.login_log_set.all().filter(cookie = cookie)
+			if(len(loginlogs) == 0):
+				return False
+			else:
+				for l in loginlogs:
+					l.logout()
+
+	def login_valid(self, cookie):
+		if(cookie == None):
+			return False
+		try:
+			login = Login_log.objects.get(user = self, cookie = cookie)
+			if(login.expires):
+				cutoff = timedelta(hours = 6)
+				now = timezone.now()
+				lastRefresh = login.lastRefresh
+				if(lastRefresh == None): #Invalid
+					logout(login.cookie)
+					return False
+				delta = now - lastRefresh
+				if(cutoff <= delta): #Timeout, automatic logout
+					logout(login.cookie)
+					return False
+				else:
+					login.lastRefresh = now
+				login.save()
+		except Login_log.DoesNotExist as ex:
+			return False
+
+		return True
+
+	def deactivate(self, killPassword = False):
+		self.active = False
+		if killPassword:
+			self.salt = "-"
+			self.password = "-"
+		self.save()
+	
+	def activate(self):
+		self.active = True
+		self.save()
+
+	@staticmethod
+	def hash_password(password, iterations = DEFAULT_ITER, salt = None):
+		if not type(password) == type("String"):
+			raise TypeError("Password not a string")
+
+		if(not salt):
+			salt = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(64))
+
+		s = hashlib.sha3_512()
+
+		password = password.encode('utf-8')
+		usalt = salt.encode("utf-8")
+
+		for i in range(iterations):
+			password += usalt
+			s.update(password)
+			password = s.hexdigest().encode("utf-8")
+		return (str(password),salt)
+	
+	@staticmethod
+	def validate_password(password,tuple):
+		if not len(tuple)==2:
+			raise ValueError("The given hash must have both a password and salt")
+		if not type(tuple[0] == type("string")):
+			raise TypeError("The given hash and salt must be strings")
+		if not type(password) == type("string"):
+			raise TypeError("The given password must be string")
+		hashed_tuple = Account.hash_password(password,DEFAULT_ITER,tuple[1])
+		hashed_password = hashed_tuple[0]
+		if tuple[0] == hashed_password:
+			return True
+		else:
+			if DEBUG:
+				raise PermissionError("WRONG PASSWORD { ("+tuple[0] + ","+tuple[1]+ ") != ( " + hashed_tuple[0] + "," + hashed_tuple[1] + ")}")
+		return tuple[0] == hashed_password
+
+	@staticmethod
+	def has_permission(acc_id, permissionString):
+		try:
+			account = Account.objects.get(id = acc_id)
+			return account.hasPermission(permissionString)
+		except Account.DoesNotExist as ex:
+			return False
 
 class Permission(models.Model):        
 	id = models.AutoField( primary_key = True)
@@ -1716,10 +1839,12 @@ class MemberPermission(models.Model):
 class GroupPermission(models.Model):
 	group = models.ForeignKey("UserGroup", on_delete=models.CASCADE)
 	permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+	class Meta:
+		unique_together = (('group', 'permission'))
 
 class UserGroup(models.Model):       
 	id = models.AutoField(primary_key = True)
-	name = models.CharField(max_length=20)
+	name = models.CharField(unique=True, max_length=20)
 	def hasPermission(self, PermissionString):
 		return len(self.grouppermission_set.all().filter(permission__name = PermissionString)) > 0
 
@@ -1731,10 +1856,16 @@ class GroupMember(models.Model):
 		return self.group.hasPermission(PermissionString)
 
 class Login_log(models.Model):
-       id = models.AutoField(primary_key = True)
-       user = models.ForeignKey(Account,on_delete=models.CASCADE)
-       time = models.DateTimeField()
-       lastRefresh = models.DateTimeField(null = True)
-       expires = models.BooleanField(default = True)
-       ip = models.CharField(max_length = 50)
-       cookie = models.CharField(max_length = 256, unique = True, null = True)
+	id = models.AutoField(primary_key = True)
+	user = models.ForeignKey(Account,on_delete=models.CASCADE)
+	loginTime = models.DateTimeField()
+	logoutTime = models.DateTimeField(null=True, default = None)
+	lastRefresh = models.DateTimeField(null = True)
+	expires = models.BooleanField(default = True)
+	ip = models.CharField(max_length = 128)
+	cookie = models.CharField(max_length = 256, unique = True, null = True)
+
+	def logout(self):
+		self.cookie = None
+		self.logoutTime = timezone.now()
+		self.save()

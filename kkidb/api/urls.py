@@ -20,6 +20,7 @@ from kkidb.api import fileApi
 
 urlpatterns = [
     path("login",api.login),
+    path("logout",api.logout),
 	path("kettir/<int:id>", api.cat),
 	path("kettir",api.cats),
 	path("felagar/<int:id>/greidslur",api.payments),

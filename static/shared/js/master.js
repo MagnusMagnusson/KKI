@@ -23,6 +23,31 @@ $(document).ready(function () {
         if (!container.is(e.target) && container.has(e.target).length === 0) {
             container.hide();
         }
+
+        var container = $("#navbar-settings-div");
+        var gearButton = $("#navbar_setting_button");
+
+        // if the target of the click isn't the container nor a descendant of the container
+        if (!gearButton.is(e.target) && !container.is(e.target) && container.has(e.target).length === 0) {
+            container.hide();
+        }
+    });
+
+    $("#navbar_settings_button_logout").on("click touchstart", function (e) {
+        $.ajax({
+            type: "POST",
+            url: "/api/logout",
+            dataType: 'json',
+            success: function (d) {
+                if (d.success) {
+                    window.location = "/";
+                }
+            }
+        });
+    })
+
+    $("#navbar_setting_button").on("click touchstart", function (e) {
+        $("#navbar-settings-div").show();
     });
 
     var notLocked = true;
