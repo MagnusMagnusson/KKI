@@ -1692,8 +1692,8 @@ class showAward(models.Model):
 	show = models.ForeignKey('Show', on_delete = models.CASCADE)
 	award = models.ForeignKey('Award', on_delete = models.CASCADE)
   #Auth
-DEFAULT_ITER = 1
-DEBUG = False
+DEFAULT_ITER = 100
+DEBUG = True
 
 class Account(models.Model):
 	email = models.CharField(unique=True, max_length = 124)
@@ -1709,6 +1709,12 @@ class Account(models.Model):
 				if g.hasPermission(PermissionString):
 					return True 
 		return False
+
+	def changePassword(self, password):
+		s = Account.hash_password(password)
+		self.password = s[0]
+		self.salt = s[1]
+		self.save()
 
 	def login(self, password, expires, meta):
 		if not self.active:
@@ -1757,11 +1763,11 @@ class Account(models.Model):
 				now = timezone.now()
 				lastRefresh = login.lastRefresh
 				if(lastRefresh == None): #Invalid
-					logout(login.cookie)
+					self.logout(login.cookie)
 					return False
 				delta = now - lastRefresh
 				if(cutoff <= delta): #Timeout, automatic logout
-					logout(login.cookie)
+					self.logout(login.cookie)
 					return False
 				else:
 					login.lastRefresh = now
@@ -1792,13 +1798,13 @@ class Account(models.Model):
 
 		s = hashlib.sha3_512()
 
-		password = password.encode('utf-8')
+		ps = password.encode('utf-8')
 		usalt = salt.encode("utf-8")
 
 		for i in range(iterations):
-			password += usalt
-			s.update(password)
-			password = s.hexdigest().encode("utf-8")
+			ps  += usalt
+			s.update(ps)
+			ps = s.hexdigest().encode("utf-8")
 		return (str(password),salt)
 	
 	@staticmethod

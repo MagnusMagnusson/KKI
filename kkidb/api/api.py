@@ -613,7 +613,7 @@ def login(request):
 
 	member = validate_login(request)	
 	if(member):		
-		return invalid("User already logged in", False, 401)
+		return invalid("User already logged in", False, 200)
 	pWord = str(request.POST['password']);
 	uName = str(request.POST['user']);
 	meta = request.META['HTTP_USER_AGENT']
@@ -621,7 +621,7 @@ def login(request):
 		acc = Account.objects.get(email = uName)
 		access = acc.login(pWord, True, meta)
 	except Account.DoesNotExist as ex:
-		return invalid("Invalid Credentials", False, 401)
+		return invalid("Invalid Credentials", False, 200)
 	if not access[0]:
 		return invalid("Invalid Credentials")
 	else:
@@ -1015,9 +1015,6 @@ def next_regid(request):
 		max =  1 + Cat.objects.all().aggregate(Max('reg_nr'))['reg_nr__max']
 	return JsonResponse({'success':True, 'result':max})
 
-
-
-
 def validate_login(request):
 	if('account' in request.session and 'token' in request.session):
 		try:
@@ -1030,7 +1027,6 @@ def validate_login(request):
 			return None
 	else:
 		return None
-
 
 def invalid(message, fatal = False, code = 200):
 	d = {
