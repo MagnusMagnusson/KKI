@@ -1,0 +1,39 @@
+@import url(//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,600italic,700,800);
+
+body, html {
+    --orange: #eeac39;
+    --lightorange: #facb7a;
+    margin: 0px;
+    padding: 0px;
+    font-family: 'Open Sans',Helvetica,Arial,sans-serif;
+    background-position-x: -25em;
+}
+#header {
+    padding-top: 22px;
+    height: 72px;
+    border-bottom: 1px solid var(--orange);
+    background-color:white;
+}
+
+a {
+    color: #0aa678;
+    text-decoration: none;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out;
+}
+
+a.white{
+    color:white;
+}
+
+a.white:hover{
+    color:white;
+}
+
+a:hover {
+    color: var(--orange);
+    cursor: pointer;
+}
+
+ul{
+    list-style-type: none;
+}

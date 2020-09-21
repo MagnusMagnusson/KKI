@@ -1,0 +1,35 @@
+.searchpage ul{
+    text-align: center;
+    font-size:1.25em;
+    position:relative;
+}
+
+.searchpage{
+    width:75%;
+}
+
+.searchbar{
+    left:50%;
+    transform:translateX(-50%);
+    position: relative;
+}
+
+.bubble{
+    color: white;
+    border-radius: 1em;
+    margin-right: .75em;
+    padding-left: .5em;
+    padding-right: .5em;
+} 
+
+.bubble.red{
+    background-color:red;
+}
+
+.bubble.orange{
+    background-color:var(--orange);
+}
+
+.bubble.green{
+    background-color:green;
+}
