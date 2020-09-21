@@ -13,18 +13,12 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.urls import path
 from django.contrib import admin
+from administration_frontend import views
 from django.conf.urls import include
-from django.conf.urls.static import static
-from django.conf import settings
-import administration_frontend
 
 
-
-urlpatterns = static(settings.STATIC_URL,document_root=settings.STATIC_ROOT)
-
-urlpatterns += [
-    url(r'stjorn/', include("administration_frontend.urls")),
-    url(r'^', include("kkidb.urls")),
+urlpatterns = [
+    path('',views.react_frontend),
 ]
