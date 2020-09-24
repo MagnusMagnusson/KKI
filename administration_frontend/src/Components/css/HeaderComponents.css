@@ -1,0 +1,27 @@
+#brand{
+    margin: 0;
+    font-weight: 300;
+    color: #262626;
+    text-transform: uppercase;
+    font-size: 18px;
+    line-height: 1.4;
+    float: left;
+    margin-left:1.5em;
+}
+
+#brand strong{
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.header{
+    padding-top: 22px;
+    height: 72px;
+    border-bottom: 1px solid var(--orange);
+    background-color: white;
+}
+
+#brand:hover{
+    color:var(--orange)
+}

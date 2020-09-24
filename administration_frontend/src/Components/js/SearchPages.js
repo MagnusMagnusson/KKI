@@ -3,7 +3,7 @@ import {SearchPage} from './SearchComponents';
 import "../css/SearchPages.css"
 
 
-class GenericSearchPage extends React.Component {
+class GenericSearchComponent extends React.Component {
     constructor(props){
         super();
         this.apiLocation = null; ///Overwrite
@@ -42,7 +42,7 @@ class GenericSearchPage extends React.Component {
 }
 
 
-class CatSearchPage extends GenericSearchPage{
+class CatSearchComponent extends GenericSearchComponent{
     constructor(props){
         super();
         this.apiLocation = "/api/kettir"
@@ -70,7 +70,7 @@ class CatSearchPage extends GenericSearchPage{
     }
 }
 
-class CatterySearchPage extends GenericSearchPage{
+class CatterySearchComponent extends GenericSearchComponent{
     constructor(props){
         super();
         this.apiLocation = "/api/raektanir"
@@ -98,7 +98,7 @@ class CatterySearchPage extends GenericSearchPage{
     }
 }
 
-class MemberSearchPage extends GenericSearchPage{
+class MemberSearchComponent extends GenericSearchComponent{
     constructor(props){
         super();
         this.apiLocation = "/api/felagar";
@@ -147,4 +147,4 @@ class MemberSearchPage extends GenericSearchPage{
     }
 }
 
-export {CatSearchPage, CatterySearchPage, MemberSearchPage}
+export {CatSearchComponent, CatterySearchComponent, MemberSearchComponent}
