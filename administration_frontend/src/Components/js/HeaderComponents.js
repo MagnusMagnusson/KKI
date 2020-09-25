@@ -1,6 +1,7 @@
 import React from 'react';
 import "../css/HeaderComponents.css";
 import { Link } from "react-router-dom";
+import { navbarList } from '../../Site_code/urls';
 
 function NavBar(props){
     return (<div>
@@ -23,7 +24,7 @@ function Header(props){
     return (
         <div className="header">
             <Brand></Brand>
-            <NavBar links={props.links}></NavBar>
+            <NavBar links={props.navbar}></NavBar>
         </div>
     );
 }

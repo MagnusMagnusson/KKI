@@ -1,19 +1,17 @@
 import React from 'react';
 import {CatSearchComponent} from './SearchPages';
 import {  Route } from "react-router-dom";
+import urls from '../../Site_code/urls';
 
 
 function CatRouter(props){
     return(
             <div>                
-                <Route path="/kettir" exact component={CatSearchComponent}>
-                </Route>
-                <Route path="/kettir/test">
-                    <b>test</b>
-                </Route>
+                <Route path={urls.CATSEARCH} exact component={CatSearchComponent}></Route>
+                <Route path={urls.CATPROFILE}></Route>
             </div>
     );
-}
+};
 
 let exp = {CatRouter};
 
